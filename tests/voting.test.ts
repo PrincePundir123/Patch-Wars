@@ -1,4 +1,27 @@
-import {it,expect} from 'vitest';
-import {Room} from '../apps/server/src/room.js';
-it('collects ideas and counts only one effective vote per stable user across channels',()=>{const r=new Room('owner','demo');r.start();r.demoCommand('!forge a splitting slime','ember','a');r.demoCommand('!forge a frost archer','azure','b');r.openVote();r.demoCommand('!vote p1','ember','viewer');r.game.tick+=40;r.demoCommand('!vote p2','azure','viewer');expect(r.proposals.map(p=>p.votes)).toEqual([0,1]);r.dispose();});
-it('blocks proposals outside the round and repeated user submissions',()=>{const r=new Room('owner','demo');r.start();r.demoCommand('!forge a splitting slime','ember','a');r.game.tick+=40;r.demoCommand('!forge a healing bird','ember','a');expect(r.proposals).toHaveLength(1);r.openVote();r.game.tick+=40;r.demoCommand('!forge a shield turtle','azure','b');expect(r.proposals).toHaveLength(1);r.dispose();});
+import { it, expect } from 'vitest';
+import { Room } from '../apps/server/src/room.js';
+it('collects ideas and counts only one effective vote per stable user across channels', () => {
+  const r = new Room('owner', 'demo');
+  r.start();
+  r.demoCommand('!forge a splitting slime', 'ember', 'a');
+  r.demoCommand('!forge a frost archer', 'azure', 'b');
+  r.openVote();
+  r.demoCommand('!vote p1', 'ember', 'viewer');
+  r.game.tick += 40;
+  r.demoCommand('!vote p2', 'azure', 'viewer');
+  expect(r.proposals.map((p) => p.votes)).toEqual([0, 1]);
+  r.dispose();
+});
+it('blocks proposals outside the round and repeated user submissions', () => {
+  const r = new Room('owner', 'demo');
+  r.start();
+  r.demoCommand('!forge a splitting slime', 'ember', 'a');
+  r.game.tick += 40;
+  r.demoCommand('!forge a healing bird', 'ember', 'a');
+  expect(r.proposals).toHaveLength(1);
+  r.openVote();
+  r.game.tick += 40;
+  r.demoCommand('!forge a shield turtle', 'azure', 'b');
+  expect(r.proposals).toHaveLength(1);
+  r.dispose();
+});

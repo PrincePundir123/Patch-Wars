@@ -3,57 +3,457 @@ import cookie from '@fastify/cookie';
 import websocket from '@fastify/websocket';
 import rateLimit from '@fastify/rate-limit';
 import staticFiles from '@fastify/static';
-import {randomBytes,timingSafeEqual} from 'node:crypto';
-import {existsSync} from 'node:fs';
-import {resolve} from 'node:path';
-import {z} from 'zod';
-import type {WebSocket} from 'ws';
-import {Room} from './room.js';
-import {ControlSchema,CommandSchema,TeamSchema} from '../../../packages/shared/src/index.js';
-import {TwitchIdentity,EventSubClient,SCOPES,type TwitchConfig} from '../../../packages/twitch-adapter/src/index.js';
-type Session={id:string;operator:boolean;expires:number};
-type PendingAuth={session:string;roomId:string;team:'ember'|'azure';expires:number};
-export const safeEqual=(a:string,b:string)=>a.length===b.length&&timingSafeEqual(Buffer.from(a),Buffer.from(b));
-export function consumeState(states:Map<string,PendingAuth>,state:string,session:string,now=Date.now()){const value=states.get(state);states.delete(state);if(!value||value.expires<now||value.session!==session)throw new Error('OAuth state mismatch or expired.');return value;}
-export type ServerOptions={webOrigin?:string;adminKey?:string;production?:boolean;demo?:boolean;clock?:boolean;provider?:string;twitch?:TwitchConfig};
-export async function buildApp(options:ServerOptions={}){
- const production=options.production??process.env.NODE_ENV==='production';const webOrigin=options.webOrigin??process.env.WEB_ORIGIN??'http://localhost:5173';const adminKey=options.adminKey??process.env.ADMIN_KEY??'';const demo=options.demo??process.env.DEMO_MODE!=='false';const provider=options.provider??process.env.FORGE_PROVIDER??'fixture';
- if(!['fixture','openai-responses','codex-sdk'].includes(provider))throw new Error('Unsupported Forge provider.');if(production&&(!webOrigin.startsWith('https://')||adminKey.length<32))throw new Error('Production requires HTTPS WEB_ORIGIN and ADMIN_KEY of at least 32 characters.');
- const twitch=options.twitch??{clientId:process.env.TWITCH_CLIENT_ID??'',clientSecret:process.env.TWITCH_CLIENT_SECRET??'',redirectUri:process.env.TWITCH_REDIRECT_URI??`${webOrigin}/auth/twitch/callback`};
- const app=Fastify({logger:production?{level:process.env.LOG_LEVEL??'info',redact:['req.headers.authorization','req.headers.cookie','req.body','req.url']}:false,disableRequestLogging:true,bodyLimit:8192});
- await app.register(cookie);await app.register(rateLimit,{max:120,timeWindow:'1 minute'});await app.register(websocket,{options:{maxPayload:1024}});
- const sessions=new Map<string,Session>();const rooms=new Map<string,Room>();const oauth=new Map<string,PendingAuth>();const invites=new Map<string,{roomId:string;team:'azure';expires:number}>();const clients=new Map<string,Set<WebSocket>>();const connections=new Map<string,{client:EventSubClient;identity:TwitchIdentity}>();
- app.decorate('rooms',rooms);
- app.addHook('onRequest',async(req,reply)=>{reply.header('X-Content-Type-Options','nosniff').header('Referrer-Policy','no-referrer').header('Content-Security-Policy',"default-src 'self'; connect-src 'self' ws: wss:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'self'");if(req.url.startsWith('/api')||req.url.startsWith('/auth'))reply.header('Cache-Control','no-store');if(!['GET','HEAD','OPTIONS'].includes(req.method)&&req.headers.origin!==webOrigin)return reply.code(403).send({error:'Request origin is not allowed.'});});
- app.setErrorHandler((error,_req,reply)=>{if(error instanceof z.ZodError)return reply.code(400).send({error:'Invalid request fields.'});const status=(error as {statusCode?:number}).statusCode??400;reply.code(status>=400&&status<600?status:500).send({error:status>=500?'Request failed. Check server configuration.':error instanceof Error?error.message:'Invalid request.'});});
- const getSession=(id?:string)=>{const s=id?sessions.get(id):undefined;if(s&&s.expires>Date.now())return s;return undefined;};
- const roomById=(id:string)=>{const r=rooms.get(id);if(!r)throw Object.assign(new Error('Match not found.'),{statusCode:404});r.lastAccess=Date.now();return r;};
- const own=(id:string,sid?:string)=>{const r=roomById(id);const s=getSession(sid);if(!s||s.id!==r.owner)throw Object.assign(new Error('Only the match operator can change this match.'),{statusCode:403});return r;};
- const newSession=(operator=false)=>{if(sessions.size>=2000)throw new Error('Session capacity reached.');const id=randomBytes(32).toString('hex');const s={id,operator,expires:Date.now()+12*3600000};sessions.set(id,s);return s;};
- const cookieOptions={httpOnly:true,secure:production,sameSite:'lax' as const,path:'/',maxAge:12*3600};
- app.get('/health',async()=>({status:'ok',rooms:rooms.size,simulationHz:20,provider,twitchConfigured:!!twitch.clientId,storage:'memory'}));
- app.get('/api/me',async req=>{const session=getSession(req.cookies.pw_session);return {operator:session?.operator??false,twitchConfigured:!!(twitch.clientId&&twitch.clientSecret),demoEnabled:demo,provider,rooms:[...rooms.values()].filter(r=>r.owner===session?.id).map(r=>({id:r.id,mode:r.mode}))};});
- app.post('/api/session',async(req,reply)=>{const {key}=z.object({key:z.string().min(1).max(256)}).strict().parse(req.body);if(adminKey.length<24||!safeEqual(key,adminKey))return reply.code(401).send({error:'Operator key is incorrect or not configured.'});const s=newSession(true);reply.setCookie('pw_session',s.id,cookieOptions);return {ok:true};});
- app.post('/api/rooms',async(req,reply)=>{const {mode}=z.object({mode:z.enum(['demo','live'])}).strict().parse(req.body);let s=getSession(req.cookies.pw_session);if(mode==='live'&&!s?.operator)return reply.code(401).send({error:'Unlock operator access before creating a live match.'});if(mode==='demo'&&!demo)return reply.code(403).send({error:'Demo creation is disabled.'});if(rooms.size>=30)return reply.code(429).send({error:'Match capacity reached.'});if(!s){s=newSession();reply.setCookie('pw_session',s.id,cookieOptions);}if([...rooms.values()].filter(r=>r.owner===s!.id).length>=4)throw new Error('You already have four matches. Restart an existing match.');const room=new Room(s.id,mode,mode==='demo'?'fixture':provider,Number(process.env.FORGE_MAX_JOBS_PER_HOUR??12),Number(process.env.FORGE_TIMEOUT_MS??90000));rooms.set(room.id,room);return {id:room.id};});
- app.get<{Params:{id:string}}>('/api/rooms/:id',async req=>roomById(req.params.id).snapshot());
- app.post<{Params:{id:string}}>('/api/rooms/:id/control',async req=>{const r=own(req.params.id,req.cookies.pw_session);const c=ControlSchema.parse(req.body);switch(c.action){case 'start':r.start();break;case 'reset':r.reset();break;case 'pause':r.paused=true;break;case 'resume':r.paused=false;break;case 'vote':r.openVote();break;case 'forge':r.launchForge();break;case 'raid':if(r.mode!=='demo')throw new Error('Simulated raids are only available in demo mode.');r.raid('azure',50,randomBytes(8).toString('hex'));break;case 'settings':r.commandsEnabled=c.commandsEnabled;r.forgeEnabled=c.forgeEnabled;r.game.durationTicks=c.duration*20;r.teamNames={ember:c.ember,azure:c.azure};break;case 'reject':{if(r.roundPhase!=='proposals')throw new Error('Moderation closes when voting begins.');r.proposals=r.proposals.filter(p=>p.id!==c.proposalId);break;}}return {ok:true};});
- app.post<{Params:{id:string}}>('/api/rooms/:id/demo-command',async req=>{const r=own(req.params.id,req.cookies.pw_session);if(r.mode!=='demo')throw new Error('Synthetic chat is disabled for live matches.');const c=CommandSchema.parse(req.body);return {message:r.demoCommand(c.text,c.team,'demo-operator')};});
- app.post<{Params:{id:string}}>('/api/rooms/:id/invite',async req=>{const r=own(req.params.id,req.cookies.pw_session);if(r.mode!=='live')throw new Error('Create a live match first.');const token=randomBytes(24).toString('hex');invites.set(token,{roomId:r.id,team:'azure',expires:Date.now()+600000});return {url:`${webOrigin}/auth/twitch?invite=${token}`};});
- app.get('/auth/twitch',async(req,reply)=>{if(!twitch.clientId||!twitch.clientSecret)return reply.redirect('/dashboard?error=twitch-not-configured');const q=z.object({room:z.string().uuid().optional(),invite:z.string().max(100).optional()}).parse(req.query);let s=getSession(req.cookies.pw_session);let roomId:string;let team:'ember'|'azure'='ember';if(q.invite){const invite=invites.get(q.invite);invites.delete(q.invite);if(!invite||invite.expires<Date.now())throw new Error('Invitation expired. Ask the operator for a new link.');roomId=invite.roomId;team=invite.team;if(!s){s=newSession();reply.setCookie('pw_session',s.id,cookieOptions);}}else{if(!q.room)throw new Error('Create a live match in the dashboard first.');roomId=own(q.room,s?.id).id;}const r=roomById(roomId);if(r.mode!=='live')throw new Error('Twitch requires a live match.');const state=randomBytes(32).toString('hex');oauth.set(state,{session:s!.id,roomId,team,expires:Date.now()+600000});const params=new URLSearchParams({client_id:twitch.clientId,redirect_uri:twitch.redirectUri,response_type:'code',scope:SCOPES.join(' '),state,force_verify:'true'});return reply.redirect(`https://id.twitch.tv/oauth2/authorize?${params}`);});
- app.get('/auth/twitch/callback',async(req,reply)=>{
-  const q=z.object({code:z.string().max(500).optional(),state:z.string().max(100),error:z.string().optional()}).parse(req.query);let pending:PendingAuth;try{pending=consumeState(oauth,q.state,req.cookies.pw_session??'');}catch{return reply.code(400).send({error:'OAuth state mismatch or expired. Restart from the dashboard.'});}if(q.error||!q.code)return reply.redirect('/dashboard?error=twitch-denied');
-  const r=roomById(pending.roomId);const identity=new TwitchIdentity(twitch);try{await identity.exchange(q.code);}catch{return reply.redirect('/dashboard?error=twitch-auth-failed');}
-  if([...rooms.values()].some(room=>room.channels.some(c=>c.id===identity.userId&&(room.id!==r.id||c.team!==pending.team))))throw new Error('This channel is already assigned to a match. Disconnect it first.');
-  const key=`${r.id}:${pending.team}`;const previous=connections.get(key);previous?.client.stop();if(previous)void previous.identity.revoke().catch(()=>{});r.channels=r.channels.filter(c=>c.team!==pending.team);const channel={id:identity.userId,name:identity.login,team:pending.team,status:'connecting'};r.channels.push(channel);
-  const client=new EventSubClient(identity,(type,event,messageId,timestamp)=>{if(type==='channel.chat.message'){const response=r.receive(event);if(response&&!response.startsWith('Unknown')&&!response.startsWith('Duplicate'))void identity.say(channel.id,response).catch(()=>r.note('Twitch chat reply failed; gameplay continues.'));}else if(type==='channel.raid'){const parsed=z.object({to_broadcaster_user_id:z.string(),viewers:z.number().int().nonnegative()}).safeParse(event);if(parsed.success){const target=r.channels.find(c=>c.id===parsed.data.to_broadcaster_user_id);if(target)r.raid(target.team,parsed.data.viewers,messageId);}}else if(type.startsWith('channel.shared_chat.')){const parsed=z.object({session_id:z.string(),broadcaster_user_id:z.string()}).safeParse(event);if(parsed.success&&r.channels.some(c=>c.id===parsed.data.broadcaster_user_id))r.shared(type,parsed.data.session_id,timestamp);}},status=>{channel.status=status;});connections.set(key,{identity,client});client.start();return reply.redirect(`/dashboard?room=${r.id}`);
- });
- app.post<{Params:{id:string}}>('/api/rooms/:id/disconnect',async req=>{const r=own(req.params.id,req.cookies.pw_session);const {team}=z.object({team:TeamSchema}).parse(req.body);const key=`${r.id}:${team}`;const c=connections.get(key);c?.client.stop();if(c)await c.identity.revoke().catch(()=>{});connections.delete(key);r.channels=r.channels.filter(c=>c.team!==team);return {ok:true};});
- app.get<{Params:{id:string}}>('/ws/:id',{websocket:true},(socket,req)=>{if(req.headers.origin&&req.headers.origin!==webOrigin){socket.close(1008,'Invalid origin');return;}const r=rooms.get(req.params.id);if(!r){socket.close(1008,'Match not found');return;}const set=clients.get(r.id)??new Set<WebSocket>();if(set.size>=100){socket.close(1013,'Spectator capacity');return;}set.add(socket);clients.set(r.id,set);socket.send(JSON.stringify(r.snapshot()));socket.on('message',()=>socket.close(1008,'Read-only connection'));socket.on('close',()=>set.delete(socket));});
- let frame=0;const clock=options.clock===false?undefined:setInterval(()=>{for(const r of rooms.values()){r.tick();if(frame%2===0){const set=clients.get(r.id);if(set?.size){const json=JSON.stringify(r.snapshot());for(const socket of set){if(socket.bufferedAmount>1000000)socket.close(1013,'Slow consumer');else if(socket.readyState===1)socket.send(json);}}}}frame++;},50);
- const cleanup=setInterval(()=>{const now=Date.now();for(const [id,s] of sessions)if(s.expires<now)sessions.delete(id);for(const [id,s] of oauth)if(s.expires<now)oauth.delete(id);for(const [id,s] of invites)if(s.expires<now)invites.delete(id);for(const [id,r] of rooms)if(now-r.lastAccess>2*3600000&&!(clients.get(id)?.size)){r.dispose();rooms.delete(id);for(const team of ['ember','azure']){connections.get(`${id}:${team}`)?.client.stop();connections.delete(`${id}:${team}`);}}for(const set of clients.values())for(const socket of set)socket.ping();},30000);
- if(existsSync(resolve('dist/web/index.html'))){await app.register(staticFiles,{root:resolve('dist/web'),prefix:'/'});app.setNotFoundHandler((req,reply)=>req.url.startsWith('/api/')?reply.code(404).send({error:'Not found'}):reply.sendFile('index.html'));}
- app.addHook('onClose',async()=>{clearInterval(clock);clearInterval(cleanup);for(const r of rooms.values())r.dispose();for(const c of connections.values())c.client.stop();for(const set of clients.values())for(const s of set)s.close();});
- return {app,rooms};
+import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { z } from 'zod';
+import type { WebSocket } from 'ws';
+import { Room } from './room.js';
+import { ControlSchema, CommandSchema, TeamSchema } from '../../../packages/shared/src/index.js';
+import {
+  TwitchIdentity,
+  EventSubClient,
+  SCOPES,
+  type TwitchConfig,
+} from '../../../packages/twitch-adapter/src/index.js';
+type Session = { id: string; operator: boolean; expires: number };
+type PendingAuth = { session: string; roomId: string; team: 'ember' | 'azure'; expires: number };
+export const safeEqual = (a: string, b: string) => {
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+  return left.length === right.length && timingSafeEqual(left, right);
+};
+export function consumeState(
+  states: Map<string, PendingAuth>,
+  state: string,
+  session: string,
+  now = Date.now(),
+) {
+  const value = states.get(state);
+  states.delete(state);
+  if (!value || value.expires < now || value.session !== session)
+    throw new Error('OAuth state mismatch or expired.');
+  return value;
 }
-
-
+export type ServerOptions = {
+  webOrigin?: string;
+  adminKey?: string;
+  production?: boolean;
+  demo?: boolean;
+  clock?: boolean;
+  provider?: string;
+  twitch?: TwitchConfig;
+};
+export async function buildApp(options: ServerOptions = {}) {
+  const production = options.production ?? process.env.NODE_ENV === 'production';
+  const webOrigin = options.webOrigin ?? process.env.WEB_ORIGIN ?? 'http://localhost:5173';
+  const adminKey = options.adminKey ?? process.env.ADMIN_KEY ?? '';
+  const demo = options.demo ?? process.env.DEMO_MODE !== 'false';
+  const provider = options.provider ?? process.env.FORGE_PROVIDER ?? 'fixture';
+  if (!['fixture', 'openai-responses', 'codex-sdk'].includes(provider))
+    throw new Error('Unsupported Forge provider.');
+  if (production && (!webOrigin.startsWith('https://') || adminKey.length < 32))
+    throw new Error(
+      'Production requires HTTPS WEB_ORIGIN and ADMIN_KEY of at least 32 characters.',
+    );
+  const twitch = options.twitch ?? {
+    clientId: process.env.TWITCH_CLIENT_ID ?? '',
+    clientSecret: process.env.TWITCH_CLIENT_SECRET ?? '',
+    redirectUri: process.env.TWITCH_REDIRECT_URI ?? `${webOrigin}/auth/twitch/callback`,
+  };
+  const app = Fastify({
+    logger: production
+      ? {
+          level: process.env.LOG_LEVEL ?? 'info',
+          redact: ['req.headers.authorization', 'req.headers.cookie', 'req.body', 'req.url'],
+        }
+      : false,
+    disableRequestLogging: true,
+    bodyLimit: 8192,
+  });
+  await app.register(cookie);
+  await app.register(rateLimit, { max: 120, timeWindow: '1 minute' });
+  await app.register(websocket, { options: { maxPayload: 1024 } });
+  const sessions = new Map<string, Session>();
+  const rooms = new Map<string, Room>();
+  const oauth = new Map<string, PendingAuth>();
+  const invites = new Map<string, { roomId: string; team: 'azure'; expires: number }>();
+  const clients = new Map<string, Set<WebSocket>>();
+  const connections = new Map<string, { client: EventSubClient; identity: TwitchIdentity }>();
+  app.decorate('rooms', rooms);
+  app.addHook('onRequest', async (req, reply) => {
+    reply
+      .header('X-Content-Type-Options', 'nosniff')
+      .header('Referrer-Policy', 'no-referrer')
+      .header(
+        'Content-Security-Policy',
+        "default-src 'self'; connect-src 'self' ws: wss:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'self'",
+      );
+    if (req.url.startsWith('/api') || req.url.startsWith('/auth'))
+      reply.header('Cache-Control', 'no-store');
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && req.headers.origin !== webOrigin)
+      return reply.code(403).send({ error: 'Request origin is not allowed.' });
+  });
+  app.setErrorHandler((error, _req, reply) => {
+    if (error instanceof z.ZodError)
+      return reply.code(400).send({ error: 'Invalid request fields.' });
+    const status = (error as { statusCode?: number }).statusCode ?? 400;
+    reply.code(status >= 400 && status < 600 ? status : 500).send({
+      error:
+        status >= 500
+          ? 'Request failed. Check server configuration.'
+          : error instanceof Error
+            ? error.message
+            : 'Invalid request.',
+    });
+  });
+  const getSession = (id?: string) => {
+    const s = id ? sessions.get(id) : undefined;
+    if (s && s.expires > Date.now()) return s;
+    return undefined;
+  };
+  const roomById = (id: string) => {
+    const r = rooms.get(id);
+    if (!r) throw Object.assign(new Error('Match not found.'), { statusCode: 404 });
+    r.lastAccess = Date.now();
+    return r;
+  };
+  const own = (id: string, sid?: string) => {
+    const r = roomById(id);
+    const s = getSession(sid);
+    if (!s || s.id !== r.owner)
+      throw Object.assign(new Error('Only the match operator can change this match.'), {
+        statusCode: 403,
+      });
+    return r;
+  };
+  const newSession = (operator = false) => {
+    if (sessions.size >= 2000) throw new Error('Session capacity reached.');
+    const id = randomBytes(32).toString('hex');
+    const s = { id, operator, expires: Date.now() + 12 * 3600000 };
+    sessions.set(id, s);
+    return s;
+  };
+  const cookieOptions = {
+    httpOnly: true,
+    secure: production,
+    sameSite: 'lax' as const,
+    path: '/',
+    maxAge: 12 * 3600,
+  };
+  app.get('/health', async () => ({
+    status: 'ok',
+    rooms: rooms.size,
+    simulationHz: 20,
+    provider,
+    twitchConfigured: !!twitch.clientId,
+    storage: 'memory',
+  }));
+  app.get('/api/me', async (req) => {
+    const session = getSession(req.cookies.pw_session);
+    return {
+      operator: session?.operator ?? false,
+      twitchConfigured: !!(twitch.clientId && twitch.clientSecret),
+      demoEnabled: demo,
+      provider,
+      rooms: [...rooms.values()]
+        .filter((r) => r.owner === session?.id)
+        .map((r) => ({ id: r.id, mode: r.mode })),
+    };
+  });
+  app.post('/api/session', async (req, reply) => {
+    const { key } = z
+      .object({ key: z.string().min(1).max(256) })
+      .strict()
+      .parse(req.body);
+    if (adminKey.length < 24 || !safeEqual(key, adminKey))
+      return reply.code(401).send({ error: 'Operator key is incorrect or not configured.' });
+    const s = newSession(true);
+    reply.setCookie('pw_session', s.id, cookieOptions);
+    return { ok: true };
+  });
+  app.post('/api/rooms', async (req, reply) => {
+    const { mode } = z
+      .object({ mode: z.enum(['demo', 'live']) })
+      .strict()
+      .parse(req.body);
+    let s = getSession(req.cookies.pw_session);
+    if (mode === 'live' && !s?.operator)
+      return reply
+        .code(401)
+        .send({ error: 'Unlock operator access before creating a live match.' });
+    if (mode === 'demo' && !demo)
+      return reply.code(403).send({ error: 'Demo creation is disabled.' });
+    if (rooms.size >= 30) return reply.code(429).send({ error: 'Match capacity reached.' });
+    if (!s) {
+      s = newSession();
+      reply.setCookie('pw_session', s.id, cookieOptions);
+    }
+    if ([...rooms.values()].filter((r) => r.owner === s!.id).length >= 4)
+      throw new Error('You already have four matches. Restart an existing match.');
+    const room = new Room(
+      s.id,
+      mode,
+      mode === 'demo' ? 'fixture' : provider,
+      Number(process.env.FORGE_MAX_JOBS_PER_HOUR ?? 12),
+      Number(process.env.FORGE_TIMEOUT_MS ?? 90000),
+    );
+    rooms.set(room.id, room);
+    return { id: room.id };
+  });
+  app.get<{ Params: { id: string } }>('/api/rooms/:id', async (req) =>
+    roomById(req.params.id).snapshot(),
+  );
+  app.post<{ Params: { id: string } }>('/api/rooms/:id/control', async (req) => {
+    const r = own(req.params.id, req.cookies.pw_session);
+    const c = ControlSchema.parse(req.body);
+    switch (c.action) {
+      case 'start':
+        r.start();
+        break;
+      case 'reset':
+        r.reset();
+        break;
+      case 'pause':
+        r.paused = true;
+        break;
+      case 'resume':
+        r.paused = false;
+        break;
+      case 'vote':
+        r.openVote();
+        break;
+      case 'forge':
+        r.launchForge();
+        break;
+      case 'raid':
+        if (r.mode !== 'demo') throw new Error('Simulated raids are only available in demo mode.');
+        r.raid('azure', 50, randomBytes(8).toString('hex'));
+        break;
+      case 'settings':
+        r.commandsEnabled = c.commandsEnabled;
+        r.forgeEnabled = c.forgeEnabled;
+        r.game.durationTicks = c.duration * 20;
+        r.teamNames = { ember: c.ember, azure: c.azure };
+        break;
+      case 'reject': {
+        if (r.roundPhase !== 'proposals') throw new Error('Moderation closes when voting begins.');
+        r.proposals = r.proposals.filter((p) => p.id !== c.proposalId);
+        break;
+      }
+    }
+    return { ok: true };
+  });
+  app.post<{ Params: { id: string } }>('/api/rooms/:id/demo-command', async (req) => {
+    const r = own(req.params.id, req.cookies.pw_session);
+    if (r.mode !== 'demo') throw new Error('Synthetic chat is disabled for live matches.');
+    const c = CommandSchema.parse(req.body);
+    return { message: r.demoCommand(c.text, c.team, 'demo-operator') };
+  });
+  app.post<{ Params: { id: string } }>('/api/rooms/:id/invite', async (req) => {
+    const r = own(req.params.id, req.cookies.pw_session);
+    if (r.mode !== 'live') throw new Error('Create a live match first.');
+    const token = randomBytes(24).toString('hex');
+    invites.set(token, { roomId: r.id, team: 'azure', expires: Date.now() + 600000 });
+    return { url: `${webOrigin}/auth/twitch?invite=${token}` };
+  });
+  app.get('/auth/twitch', async (req, reply) => {
+    if (!twitch.clientId || !twitch.clientSecret)
+      return reply.redirect('/dashboard?error=twitch-not-configured');
+    const q = z
+      .object({ room: z.string().uuid().optional(), invite: z.string().max(100).optional() })
+      .parse(req.query);
+    let s = getSession(req.cookies.pw_session);
+    let roomId: string;
+    let team: 'ember' | 'azure' = 'ember';
+    if (q.invite) {
+      const invite = invites.get(q.invite);
+      invites.delete(q.invite);
+      if (!invite || invite.expires < Date.now())
+        throw new Error('Invitation expired. Ask the operator for a new link.');
+      roomId = invite.roomId;
+      team = invite.team;
+      if (!s) {
+        s = newSession();
+        reply.setCookie('pw_session', s.id, cookieOptions);
+      }
+    } else {
+      if (!q.room) throw new Error('Create a live match in the dashboard first.');
+      roomId = own(q.room, s?.id).id;
+    }
+    const r = roomById(roomId);
+    if (r.mode !== 'live') throw new Error('Twitch requires a live match.');
+    const state = randomBytes(32).toString('hex');
+    oauth.set(state, { session: s!.id, roomId, team, expires: Date.now() + 600000 });
+    const params = new URLSearchParams({
+      client_id: twitch.clientId,
+      redirect_uri: twitch.redirectUri,
+      response_type: 'code',
+      scope: SCOPES.join(' '),
+      state,
+      force_verify: 'true',
+    });
+    return reply.redirect(`https://id.twitch.tv/oauth2/authorize?${params}`);
+  });
+  app.get('/auth/twitch/callback', async (req, reply) => {
+    const q = z
+      .object({
+        code: z.string().max(500).optional(),
+        state: z.string().max(100),
+        error: z.string().optional(),
+      })
+      .parse(req.query);
+    let pending: PendingAuth;
+    try {
+      pending = consumeState(oauth, q.state, req.cookies.pw_session ?? '');
+    } catch {
+      return reply
+        .code(400)
+        .send({ error: 'OAuth state mismatch or expired. Restart from the dashboard.' });
+    }
+    if (q.error || !q.code) return reply.redirect('/dashboard?error=twitch-denied');
+    const r = roomById(pending.roomId);
+    const identity = new TwitchIdentity(twitch);
+    try {
+      await identity.exchange(q.code);
+    } catch {
+      return reply.redirect('/dashboard?error=twitch-auth-failed');
+    }
+    if (
+      [...rooms.values()].some((room) =>
+        room.channels.some(
+          (c) => c.id === identity.userId && (room.id !== r.id || c.team !== pending.team),
+        ),
+      )
+    )
+      throw new Error('This channel is already assigned to a match. Disconnect it first.');
+    const key = `${r.id}:${pending.team}`;
+    const previous = connections.get(key);
+    previous?.client.stop();
+    if (previous) void previous.identity.revoke().catch(() => {});
+    r.channels = r.channels.filter((c) => c.team !== pending.team);
+    const channel = {
+      id: identity.userId,
+      name: identity.login,
+      team: pending.team,
+      status: 'connecting',
+    };
+    r.channels.push(channel);
+    const client = new EventSubClient(
+      identity,
+      (type, event, messageId, timestamp) => {
+        if (type === 'channel.chat.message') {
+          const response = r.receive(event);
+          if (response && !response.startsWith('Unknown') && !response.startsWith('Duplicate'))
+            void identity
+              .say(channel.id, response)
+              .catch(() => r.note('Twitch chat reply failed; gameplay continues.'));
+        } else if (type === 'channel.raid') {
+          const parsed = z
+            .object({ to_broadcaster_user_id: z.string(), viewers: z.number().int().nonnegative() })
+            .safeParse(event);
+          if (parsed.success) {
+            const target = r.channels.find((c) => c.id === parsed.data.to_broadcaster_user_id);
+            if (target) r.raid(target.team, parsed.data.viewers, messageId);
+          }
+        } else if (type.startsWith('channel.shared_chat.')) {
+          const parsed = z
+            .object({ session_id: z.string(), broadcaster_user_id: z.string() })
+            .safeParse(event);
+          if (parsed.success && r.channels.some((c) => c.id === parsed.data.broadcaster_user_id))
+            r.shared(type, parsed.data.session_id, timestamp);
+        }
+      },
+      (status) => {
+        channel.status = status;
+      },
+    );
+    connections.set(key, { identity, client });
+    client.start();
+    return reply.redirect(`/dashboard?room=${r.id}`);
+  });
+  app.post<{ Params: { id: string } }>('/api/rooms/:id/disconnect', async (req) => {
+    const r = own(req.params.id, req.cookies.pw_session);
+    const { team } = z.object({ team: TeamSchema }).parse(req.body);
+    const key = `${r.id}:${team}`;
+    const c = connections.get(key);
+    c?.client.stop();
+    if (c) await c.identity.revoke().catch(() => {});
+    connections.delete(key);
+    r.channels = r.channels.filter((c) => c.team !== team);
+    return { ok: true };
+  });
+  app.get<{ Params: { id: string } }>('/ws/:id', { websocket: true }, (socket, req) => {
+    if (req.headers.origin && req.headers.origin !== webOrigin) {
+      socket.close(1008, 'Invalid origin');
+      return;
+    }
+    const r = rooms.get(req.params.id);
+    if (!r) {
+      socket.close(1008, 'Match not found');
+      return;
+    }
+    const set = clients.get(r.id) ?? new Set<WebSocket>();
+    if (set.size >= 100) {
+      socket.close(1013, 'Spectator capacity');
+      return;
+    }
+    set.add(socket);
+    clients.set(r.id, set);
+    socket.send(JSON.stringify(r.snapshot()));
+    socket.on('message', () => socket.close(1008, 'Read-only connection'));
+    socket.on('close', () => set.delete(socket));
+  });
+  let frame = 0;
+  const clock =
+    options.clock === false
+      ? undefined
+      : setInterval(() => {
+          for (const r of rooms.values()) {
+            r.tick();
+            if (frame % 2 === 0) {
+              const set = clients.get(r.id);
+              if (set?.size) {
+                const json = JSON.stringify(r.snapshot());
+                for (const socket of set) {
+                  if (socket.bufferedAmount > 1000000) socket.close(1013, 'Slow consumer');
+                  else if (socket.readyState === 1) socket.send(json);
+                }
+              }
+            }
+          }
+          frame++;
+        }, 50);
+  const cleanup = setInterval(() => {
+    const now = Date.now();
+    for (const [id, s] of sessions) if (s.expires < now) sessions.delete(id);
+    for (const [id, s] of oauth) if (s.expires < now) oauth.delete(id);
+    for (const [id, s] of invites) if (s.expires < now) invites.delete(id);
+    for (const [id, r] of rooms)
+      if (now - r.lastAccess > 2 * 3600000 && !clients.get(id)?.size) {
+        r.dispose();
+        rooms.delete(id);
+        for (const team of ['ember', 'azure']) {
+          connections.get(`${id}:${team}`)?.client.stop();
+          connections.delete(`${id}:${team}`);
+        }
+      }
+    for (const set of clients.values()) for (const socket of set) socket.ping();
+  }, 30000);
+  if (existsSync(resolve('dist/web/index.html'))) {
+    await app.register(staticFiles, { root: resolve('dist/web'), prefix: '/' });
+    app.setNotFoundHandler((req, reply) =>
+      req.url.startsWith('/api/')
+        ? reply.code(404).send({ error: 'Not found' })
+        : reply.sendFile('index.html'),
+    );
+  }
+  app.addHook('onClose', async () => {
+    clearInterval(clock);
+    clearInterval(cleanup);
+    for (const r of rooms.values()) r.dispose();
+    for (const c of connections.values()) c.client.stop();
+    for (const set of clients.values()) for (const s of set) s.close();
+  });
+  return { app, rooms };
+}
