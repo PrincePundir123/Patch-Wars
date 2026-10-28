@@ -1,4 +1,4 @@
-import {z} from 'zod';
+﻿import {z} from 'zod';
 import WebSocket from 'ws';
 const id=z.string().min(1).max(100);
 export const ChatEventSchema=z.object({broadcaster_user_id:id,chatter_user_id:id,chatter_user_name:z.string().max(100),message_id:id,message:z.object({text:z.string().max(500)}),source_broadcaster_user_id:id.nullish(),source_message_id:id.nullish()});
@@ -35,15 +35,16 @@ const Envelope=z.object({metadata:z.object({message_id:id,message_type:z.enum(['
 export function safeReconnect(url:string){const u=new URL(url);return u.protocol==='wss:'&&u.hostname==='eventsub.wss.twitch.tv'&&!u.username&&!u.password;}
 export class EventSubClient {
  private socket:WebSocket|null=null;private sockets=new Set<WebSocket>();private stopped=false;private retry:ReturnType<typeof setTimeout>|undefined;private watchdog:ReturnType<typeof setInterval>|undefined;private validateTimer:ReturnType<typeof setInterval>|undefined;private lastMessage=Date.now();private timeout=30000;private dedupe=new Deduplicator();private backoff=1000;
- constructor(private identity:TwitchIdentity,private onEvent:(type:string,event:unknown,id:string)=>void,private status:(s:string)=>void){}
+ constructor(private identity:TwitchIdentity,private onEvent:(type:string,event:unknown,id:string,timestamp:number)=>void,private status:(s:string)=>void){}
  start(){this.stopped=false;this.connect('wss://eventsub.wss.twitch.tv/ws',false);this.watchdog=setInterval(()=>{if(Date.now()-this.lastMessage>this.timeout+5000)this.socket?.terminate();},5000);this.validateTimer=setInterval(()=>{void this.identity.validate().catch(()=>{this.status('authorization expired');this.stop();});},55*60000);}
- private connect(url:string,migrate:boolean){if(this.stopped)return;const old=this.socket;const ws=new WebSocket(url,{maxPayload:65536,handshakeTimeout:10000});this.sockets.add(ws);let welcomed=false;
+ private connect(url:string,migrate:boolean){if(this.stopped)return;const old=this.socket;const ws=new WebSocket(url,{maxPayload:65536,handshakeTimeout:10000});this.sockets.add(ws);if(!migrate){this.socket=ws;this.lastMessage=Date.now();}let welcomed=false;
  ws.on('message',data=>{void (async()=>{const parsed=Envelope.safeParse(JSON.parse(data.toString()));if(!parsed.success)return;const m=parsed.data;this.lastMessage=Date.now();if(m.metadata.message_type==='session_welcome'){const session=m.payload.session;if(!session)throw new Error('Missing session');this.socket=ws;welcomed=true;this.timeout=(session.keepalive_timeout_seconds??30)*1000;this.backoff=1000;if(migrate)old?.close();else await this.subscribe(session.id);this.status('connected');}
  else if(m.metadata.message_type==='session_reconnect'){const next=m.payload.session?.reconnect_url;if(next&&safeReconnect(next))this.connect(next,true);else ws.terminate();}
  else if(m.metadata.message_type==='revocation'){this.status('authorization revoked');this.stop();}
- else if(m.metadata.message_type==='notification'){if(Math.abs(Date.now()-Date.parse(m.metadata.message_timestamp))>600000)return;if(this.dedupe.accept(m.metadata.message_id))this.onEvent(m.payload.subscription?.type??'',m.payload.event,m.metadata.message_id);}})().catch(()=>{this.status('connection error');ws.terminate();});});
+ else if(m.metadata.message_type==='notification'){const timestamp=Date.parse(m.metadata.message_timestamp);if(!Number.isFinite(timestamp)||Math.abs(Date.now()-timestamp)>600000)return;if(this.dedupe.accept(m.metadata.message_id))this.onEvent(m.payload.subscription?.type??'',m.payload.event,m.metadata.message_id,timestamp);}})().catch(()=>{this.status('connection error');ws.terminate();});});
  ws.on('error',()=>{this.status('reconnecting');});ws.on('close',()=>{this.sockets.delete(ws);if(this.stopped)return;if(this.socket===ws||(!welcomed&&!this.socket)){this.socket=null;this.status('reconnecting');clearTimeout(this.retry);this.retry=setTimeout(()=>this.connect('wss://eventsub.wss.twitch.tv/ws',false),this.backoff);this.backoff=Math.min(this.backoff*2,30000);}else if(migrate&&!welcomed)old?.terminate();});
  }
  private async subscribe(sessionId:string){const transport={method:'websocket',session_id:sessionId};const user=this.identity.userId;await this.identity.api('eventsub/subscriptions',{type:'channel.chat.message',version:'1',condition:{broadcaster_user_id:user,user_id:user},transport});for(const type of ['channel.raid','channel.shared_chat.begin','channel.shared_chat.update','channel.shared_chat.end']){try{await this.identity.api('eventsub/subscriptions',{type,version:'1',condition:type==='channel.raid'?{to_broadcaster_user_id:user}:{broadcaster_user_id:user},transport});}catch{this.status(`connected; ${type} unavailable`);}}}
  stop(){this.stopped=true;clearTimeout(this.retry);clearInterval(this.watchdog);clearInterval(this.validateTimer);for(const ws of this.sockets)ws.close();this.sockets.clear();this.socket=null;}
 }
+
