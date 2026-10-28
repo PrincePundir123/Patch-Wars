@@ -1,0 +1,276 @@
+[
+  {
+    "name": "@fastify/cookie",
+    "version": "11.1.5",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/fastify/fastify-cookie.git"
+    }
+  },
+  {
+    "name": "@fastify/rate-limit",
+    "version": "10.3.0",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/fastify/fastify-rate-limit.git"
+    }
+  },
+  {
+    "name": "@fastify/static",
+    "version": "10.1.8",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/fastify/fastify-static.git"
+    }
+  },
+  {
+    "name": "@fastify/websocket",
+    "version": "11.3.4",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/fastify/fastify-websocket.git"
+    }
+  },
+  {
+    "name": "@openai/codex-sdk",
+    "version": "0.77.0",
+    "license": "Apache-2.0",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/openai/codex.git",
+      "directory": "sdk/typescript"
+    }
+  },
+  {
+    "name": "dotenv",
+    "version": "16.6.1",
+    "license": "BSD-2-Clause",
+    "repository": {
+      "type": "git",
+      "url": "git://github.com/motdotla/dotenv.git"
+    }
+  },
+  {
+    "name": "fastify",
+    "version": "5.12.7",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/fastify/fastify.git"
+    }
+  },
+  {
+    "name": "pixi.js",
+    "version": "8.22.0",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/pixijs/pixijs.git"
+    }
+  },
+  {
+    "name": "react",
+    "version": "19.3.1",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/react/react.git",
+      "directory": "packages/react"
+    }
+  },
+  {
+    "name": "react-dom",
+    "version": "19.3.1",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/react/react.git",
+      "directory": "packages/react-dom"
+    }
+  },
+  {
+    "name": "react-router-dom",
+    "version": "7.18.5",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/remix-run/react-router",
+      "directory": "packages/react-router-dom"
+    }
+  },
+  {
+    "name": "ws",
+    "version": "8.22.0",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/websockets/ws.git"
+    }
+  },
+  {
+    "name": "zod",
+    "version": "4.6.6",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/colinhacks/zod.git"
+    }
+  },
+  {
+    "name": "zustand",
+    "version": "5.0.16",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/pmndrs/zustand.git"
+    }
+  },
+  {
+    "name": "@eslint/js",
+    "version": "9.39.5",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/eslint/eslint.git",
+      "directory": "packages/js"
+    }
+  },
+  {
+    "name": "@playwright/test",
+    "version": "1.64.1",
+    "license": "Apache-2.0",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/microsoft/playwright.git"
+    }
+  },
+  {
+    "name": "@types/node",
+    "version": "22.20.5",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "directory": "types/node"
+    }
+  },
+  {
+    "name": "@types/react",
+    "version": "19.3.0",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "directory": "types/react"
+    }
+  },
+  {
+    "name": "@types/react-dom",
+    "version": "19.3.0",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "directory": "types/react-dom"
+    }
+  },
+  {
+    "name": "@types/ws",
+    "version": "8.18.2",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "directory": "types/ws"
+    }
+  },
+  {
+    "name": "@vitejs/plugin-react",
+    "version": "4.7.0",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vitejs/vite-plugin-react.git",
+      "directory": "packages/plugin-react"
+    }
+  },
+  {
+    "name": "concurrently",
+    "version": "9.2.5",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/open-cli-tools/concurrently.git"
+    }
+  },
+  {
+    "name": "esbuild",
+    "version": "0.25.12",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/evanw/esbuild.git"
+    }
+  },
+  {
+    "name": "eslint",
+    "version": "9.39.5",
+    "license": "MIT",
+    "repository": "eslint/eslint"
+  },
+  {
+    "name": "prettier",
+    "version": "3.9.10",
+    "license": "MIT",
+    "repository": "prettier/prettier"
+  },
+  {
+    "name": "tsx",
+    "version": "4.23.15",
+    "license": "MIT",
+    "repository": "privatenumber/tsx"
+  },
+  {
+    "name": "typescript",
+    "version": "5.9.3",
+    "license": "Apache-2.0",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/microsoft/TypeScript.git"
+    }
+  },
+  {
+    "name": "typescript-eslint",
+    "version": "8.72.1",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/typescript-eslint/typescript-eslint.git",
+      "directory": "packages/typescript-eslint"
+    }
+  },
+  {
+    "name": "vite",
+    "version": "6.4.5",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vitejs/vite.git",
+      "directory": "packages/vite"
+    }
+  },
+  {
+    "name": "vitest",
+    "version": "3.2.7",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/vitest-dev/vitest.git",
+      "directory": "packages/vitest"
+    }
+  }
+]

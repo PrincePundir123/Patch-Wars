@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-28T22:44:31.416Z",
+  "mode": "local simulated replay in Playwright Chromium",
+  "chatToOverlayMs": 746.5428000000002,
+  "frameSamples": 119,
+  "meanFrameIntervalMs": 39.91428571428572,
+  "p95FrameIntervalMs": 50.099999999999454,
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "note": "One automated local command sample. Includes browser automation overhead; not a live Twitch or GPU-independent benchmark."
+}
