@@ -55,6 +55,7 @@ async function call(path: string, body?: unknown) {
 function render() {
   identity.hidden = !!state?.linked;
   form.hidden = !state?.linked;
+  document.querySelector<HTMLElement>('#extra-controls')!.hidden = !state?.linked;
   energy.textContent = state
     ? `${state.team.toUpperCase()} · ${state.energy} ENERGY`
     : 'CONNECTING';
@@ -77,6 +78,7 @@ function render() {
         const button = document.createElement('button');
         button.type = 'button';
         button.setAttribute('aria-label', `Deploy ${b.name}`);
+        button.title = `${b.name} · ${b.archetype} · ${b.stats.spawnCost} team energy`;
         const art = document.createElement('span');
         art.className = 'portrait';
         const frame = shapes[b.appearance.shape] ?? 4;
