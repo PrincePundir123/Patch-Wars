@@ -53,3 +53,7 @@ pnpm.cmd start
 ```
 
 Open http://localhost:3001. Development cookies are used unless `NODE_ENV=production`; real production requires HTTPS and a long key. Keep the terminal running. If a port is busy, stop the previous project server before starting another.
+
+## Guided first command
+Live matches include a checklist above the arena, direct links to each authorized Twitch channel's chat, and explicit rematch instructions. The checklist distinguishes channel connection, running simulation, received commands and deployed units. Localhost invitations cannot connect another broadcaster's computer; use a publicly reachable deployment for that test.
+

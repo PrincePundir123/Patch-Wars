@@ -1701,3 +1701,63 @@ body:has(.transparent) {
   color: #f1f4ec;
   font-size: 16px;
 }
+.twitch-guide {
+  margin-bottom: 24px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 18px 28px;
+}
+.twitch-guide h2 {
+  margin: 8px 0;
+  font-size: 23px;
+}
+.twitch-guide p {
+  color: var(--muted, #a4aebc);
+  line-height: 1.6;
+  margin: 8px 0;
+}
+.setup-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+.setup-checklist li {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+.setup-checklist span {
+  min-width: 42px;
+  color: #9ba5b4;
+  font-size: 10px;
+  text-transform: uppercase;
+  border: 1px solid #34414c;
+  border-radius: 5px;
+  padding: 4px;
+  text-align: center;
+}
+.setup-checklist [data-complete='true'] span {
+  color: #bcf279;
+  border-color: #bcf27960;
+}
+.guide-note {
+  font-size: 12px;
+  grid-column: 1/-1;
+}
+.channel-row {
+  flex-wrap: wrap;
+}
+.channel-row a {
+  color: #bcf279;
+  font-size: 12px;
+}
+@media (max-width: 700px) {
+  .twitch-guide {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+}

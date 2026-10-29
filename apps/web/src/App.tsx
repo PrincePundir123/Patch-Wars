@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, type FormEvent } from 'react';
 import { Link, Routes, Route, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Arena, UnitIcon } from './Arena.js';
 import { CommandFeedback } from './CommandFeedback.js';
+import { TwitchGuide } from './TwitchGuide.js';
 import { api, useBattle } from './store.js';
 import { STARTERS } from '../../../packages/game-core/src/index.js';
 import type { Snapshot, Team } from '../../../packages/shared/src/index.js';
@@ -768,6 +769,7 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                 </button>
               </div>
             </div>
+            {active.mode === 'live' && <TwitchGuide s={active} />}
             <BattleView s={active} />
             <section className="operator-grid">
               <div className="panel operator-panel">
@@ -827,12 +829,26 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                       Each broadcaster authorizes their own channel. The second community uses a
                       temporary invitation.
                     </p>
+                    {['localhost', '127.0.0.1'].includes(location.hostname) && (
+                      <p className="guide-note">
+                        Local invitation links work only on this computer. For a broadcaster on
+                        another computer, use a public deployment with its own registered Twitch
+                        callback.
+                      </p>
+                    )}
                     {active.channels.map((c) => (
                       <div className="channel-row" key={c.id}>
                         <span className={c.team}>
                           {c.team === 'ember' ? '⬟' : '◆'} {c.name}
                         </span>
                         <span>{c.status}</span>
+                        <a
+                          href={`https://www.twitch.tv/${encodeURIComponent(c.name)}/chat`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Open chat
+                        </a>
                         <button
                           onClick={() => {
                             void api(`/api/rooms/${id}/disconnect`, { team: c.team }).catch((e) =>
