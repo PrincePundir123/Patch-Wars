@@ -139,6 +139,13 @@ test('viewer feedback identifies spawns and explains paused commands', async ({ 
     'true',
   );
   await page.getByRole('button', { name: 'Sound: on', exact: true }).click();
+  // Let the first spawn's simulation-time cooldown expire before freezing time.
+  // Otherwise the paused-command assertion can legitimately receive a cooldown.
+  await expect
+    .poll(async () => (await (await page.request.get(`/api/rooms/${id}`)).json()).game.tick, {
+      intervals: [250, 500],
+    })
+    .toBeGreaterThanOrEqual(snapshot.game.tick + 32);
   await page.getByRole('button', { name: /Pause/, exact: false }).click();
   await page.getByLabel('Simulated chat command').fill('!spawn guardian');
   await page.locator('.command-form button[type=submit]').click();

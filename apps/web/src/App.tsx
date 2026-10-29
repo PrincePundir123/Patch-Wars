@@ -26,6 +26,7 @@ import { WorkspaceShell } from './WorkspaceShell.js';
 import { ArenaDisplay } from './ArenaDisplay.js';
 import { ReadinessPanel } from './ReadinessPanel.js';
 import { CommandGuide } from './CommandGuide.js';
+import { LiveExperience } from './LiveExperience.js';
 import { api, useBattle } from './store.js';
 import type { Snapshot, Team } from '../../../packages/shared/src/index.js';
 import {
@@ -488,13 +489,25 @@ function Results({ s }: { s: Snapshot }) {
     </div>
   );
 }
-function BattleView({ s, overlay = false }: { s: Snapshot; overlay?: boolean }) {
+function BattleView({
+  s,
+  overlay = false,
+  arenaOnly = false,
+}: {
+  s: Snapshot;
+  overlay?: boolean;
+  arenaOnly?: boolean;
+}) {
   const [labels, setLabels] = useState(false);
   const transparent = new URLSearchParams(location.search).get('transparent') === '1';
   return (
     <div className={overlay ? `overlay-view ${transparent ? 'transparent' : ''}` : 'battle-layout'}>
       <div className="battle-main">
-        <ArenaDisplay enabled={!overlay} simulated={s.mode === 'demo'} provider={s.provider}>
+        <ArenaDisplay
+          enabled={!overlay && !arenaOnly}
+          simulated={s.mode === 'demo'}
+          provider={s.provider}
+        >
           <Scoreboard s={s} />
           <div className="arena-wrap">
             <Arena
@@ -530,36 +543,38 @@ function BattleView({ s, overlay = false }: { s: Snapshot; overlay?: boolean }) 
           {!overlay && <BroadcastControls s={s} labels={labels} onLabels={setLabels} />}
         </ArenaDisplay>
       </div>
-      {!overlay && <Voting s={s} />}
-      {!overlay && <UnitLibrary catalog={s.game.catalog} />}
-      <aside className="battle-side">
-        <ForgePanel s={s} />
-        {!overlay && (
-          <section className="panel timeline">
-            <div className="panel-heading">
-              <h2>BATTLE FEED</h2>
-              <span className="tiny-tag">{s.mode === 'demo' ? 'REPLAY' : 'LIVE EVENTS'}</span>
-            </div>
-            <div>
-              {s.commandFeedback?.slice(0, 3).map((e) => (
-                <p key={`command-${e.id}`} className={e.team}>
-                  <code>!{e.command}</code>
-                  <span>{e.message}</span>
-                </p>
-              ))}
-              {s.timeline.slice(0, 6).map((e) => (
-                <p key={e.id}>
-                  <time>
-                    {Math.floor(e.tick / 1200)}:
-                    {String(Math.floor(e.tick / 20) % 60).padStart(2, '0')}
-                  </time>
-                  <span>{e.text}</span>
-                </p>
-              ))}
-            </div>
-          </section>
-        )}
-      </aside>
+      {!overlay && !arenaOnly && <Voting s={s} />}
+      {!overlay && !arenaOnly && <UnitLibrary catalog={s.game.catalog} />}
+      {!arenaOnly && (
+        <aside className="battle-side">
+          <ForgePanel s={s} />
+          {!overlay && (
+            <section className="panel timeline">
+              <div className="panel-heading">
+                <h2>BATTLE FEED</h2>
+                <span className="tiny-tag">{s.mode === 'demo' ? 'REPLAY' : 'LIVE EVENTS'}</span>
+              </div>
+              <div>
+                {s.commandFeedback?.slice(0, 3).map((e) => (
+                  <p key={`command-${e.id}`} className={e.team}>
+                    <code>!{e.command}</code>
+                    <span>{e.message}</span>
+                  </p>
+                ))}
+                {s.timeline.slice(0, 6).map((e) => (
+                  <p key={e.id}>
+                    <time>
+                      {Math.floor(e.tick / 1200)}:
+                      {String(Math.floor(e.tick / 20) % 60).padStart(2, '0')}
+                    </time>
+                    <span>{e.text}</span>
+                  </p>
+                ))}
+              </div>
+            </section>
+          )}
+        </aside>
+      )}
       {overlay && (
         <span className="overlay-mode">
           PATCH WARS · {s.mode === 'demo' ? 'SIMULATED REPLAY' : 'TWITCH MATCH'} ·{' '}
@@ -569,11 +584,17 @@ function BattleView({ s, overlay = false }: { s: Snapshot; overlay?: boolean }) 
     </div>
   );
 }
-function MatchPage({ overlay = false }: { overlay?: boolean }) {
+function MatchPage({ overlay = false, play = false }: { overlay?: boolean; play?: boolean }) {
   const { id } = useParams();
   useRoom(id);
   const s = useBattle((x) => x.snapshot);
   const connection = useBattle((x) => x.connection);
+  if (play && s)
+    return (
+      <LiveExperience s={s}>
+        <BattleView s={s} arenaOnly />
+      </LiveExperience>
+    );
   const content = (
     <>
       {s ? (
@@ -607,7 +628,7 @@ function MatchPage({ overlay = false }: { overlay?: boolean }) {
       )}
     </>
   );
-  return overlay ? (
+  return overlay || play ? (
     content
   ) : (
     <WorkspaceShell hasMatch={!!s} spectator>
@@ -741,6 +762,11 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
               canSimulate={active?.mode === 'demo'}
               channels={active?.channels}
             />
+            {active && (
+              <Link className="button primary compact" to={`/play/${id}`} target="_blank">
+                Live arena <ArrowUpRight size={15} />
+              </Link>
+            )}
             {active && (
               <Link className="button secondary compact" to={`/spectate/${id}`} target="_blank">
                 Spectator view <ArrowUpRight size={15} />
@@ -1163,6 +1189,7 @@ export function App() {
       <Route path="/demo" element={<Dashboard demo />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/spectate/:id" element={<MatchPage />} />
+      <Route path="/play/:id" element={<MatchPage play />} />
       <Route path="/overlay/:id" element={<MatchPage overlay />} />
       <Route
         path="*"
