@@ -54,8 +54,6 @@ export async function buildApp(options: ServerOptions = {}) {
     throw new Error(
       'Unknown FORGE_PROVIDER. Choose fixture, ollama, openai-responses or codex-sdk.',
     );
-  if (!['fixture', 'openai-responses', 'codex-sdk'].includes(provider))
-    throw new Error('Unsupported Forge provider.');
   if (production && (!webOrigin.startsWith('https://') || adminKey.length < 32))
     throw new Error(
       'Production requires HTTPS WEB_ORIGIN and ADMIN_KEY of at least 32 characters.',

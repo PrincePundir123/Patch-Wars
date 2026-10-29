@@ -6,10 +6,10 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 it('carries numeric safety caps into the local grammar schema', () => {
-  const schema = localBlueprintSchema() as {
-    properties: { stats: { properties: { maxHealth: { maximum: number } } } };
-  };
-  expect(schema.properties.stats.properties.maxHealth.maximum).toBe(200);
+  expect(localBlueprintSchema()).toHaveProperty(
+    'properties.stats.properties.maxHealth.maximum',
+    200,
+  );
 });
 const generate = () =>
   new OllamaForgeProvider().generateUnit('a splitting slime', AbortSignal.timeout(2000));

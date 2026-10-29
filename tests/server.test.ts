@@ -2,6 +2,17 @@ import { describe, it, expect } from 'vitest';
 import { buildApp, consumeState } from '../apps/server/src/app.js';
 const origin = 'http://localhost:5173';
 describe('server authorization', () => {
+  it('boots with the local AI provider and rejects unknown providers', async () => {
+    const { app } = await buildApp({ clock: false, provider: 'ollama' });
+    try {
+      expect((await app.inject('/health')).json().provider).toBe('ollama');
+    } finally {
+      await app.close();
+    }
+    await expect(buildApp({ clock: false, provider: 'unknown' })).rejects.toThrow(
+      'Unknown FORGE_PROVIDER',
+    );
+  });
   it('creates an owned demo, refuses spectator mutations and forged origins', async () => {
     const { app } = await buildApp({ clock: false });
     try {
