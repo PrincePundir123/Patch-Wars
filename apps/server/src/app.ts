@@ -5,7 +5,7 @@ import rateLimit from '@fastify/rate-limit';
 import staticFiles from '@fastify/static';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve, relative, sep } from 'node:path';
 import { z } from 'zod';
 import type { WebSocket } from 'ws';
 import { Room } from './room.js';
@@ -50,6 +50,7 @@ export type ServerOptions = {
   clock?: boolean;
   provider?: string;
   twitch?: TwitchConfig;
+  webRoot?: string;
 };
 export async function buildApp(options: ServerOptions = {}) {
   const production = options.production ?? process.env.NODE_ENV === 'production';
@@ -85,7 +86,13 @@ export async function buildApp(options: ServerOptions = {}) {
     bodyLimit: 8192,
   });
   await app.register(cookie);
-  await app.register(rateLimit, { max: 120, timeWindow: '1 minute' });
+  await app.register(rateLimit, {
+    max: 120,
+    timeWindow: '1 minute',
+    // Only the matched public-file/SPA route is exempt. API/auth/socket routes
+    // keep their shared budget, regardless of query strings or file-like suffixes.
+    allowList: (req) => ['GET', 'HEAD'].includes(req.method) && req.routeOptions.url === '/*',
+  });
   await app.register(websocket, { options: { maxPayload: 1024 } });
   const sessions = new Map<string, Session>();
   const rooms = new Map<string, Room>();
@@ -469,13 +476,35 @@ export async function buildApp(options: ServerOptions = {}) {
       }
     for (const set of clients.values()) for (const socket of set) socket.ping();
   }, 30000);
-  if (existsSync(resolve('dist/web/index.html'))) {
-    await app.register(staticFiles, { root: resolve('dist/web'), prefix: '/' });
-    app.setNotFoundHandler((req, reply) =>
-      req.url.startsWith('/api/')
-        ? reply.code(404).send({ error: 'Not found' })
-        : reply.sendFile('index.html'),
-    );
+  const webRoot = options.webRoot ?? resolve('dist/web');
+  if (existsSync(resolve(webRoot, 'index.html'))) {
+    await app.register(staticFiles, {
+      root: webRoot,
+      prefix: '/',
+      cacheControl: false,
+      dotfiles: 'deny',
+      setHeaders(reply, file) {
+        const path = relative(webRoot, file).split(sep).join('/');
+        const hashed = /^assets\/.+-[\w-]{8,}\.(?:js|css|woff2?|png|webp|svg)$/.test(path);
+        reply.header(
+          'Cache-Control',
+          path.endsWith('.html')
+            ? 'no-cache'
+            : hashed
+              ? 'public, max-age=31536000, immutable'
+              : 'public, max-age=3600, must-revalidate',
+        );
+      },
+    });
+    app.setNotFoundHandler((req, reply) => {
+      const path = req.url.split('?')[0]!;
+      if (
+        /^\/(?:api|auth|ws|assets|art)(?:\/|$)/.test(path) ||
+        !['GET', 'HEAD'].includes(req.method)
+      )
+        return reply.code(404).header('Cache-Control', 'no-store').send({ error: 'Not found' });
+      return reply.sendFile('index.html');
+    });
   }
   app.addHook('onClose', async () => {
     clearInterval(clock);
