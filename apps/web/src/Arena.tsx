@@ -39,17 +39,21 @@ export function Arena({
   preview = false,
   transparent = false,
   feedback = [],
+  labels = false,
 }: {
   game?: GameState;
   preview?: boolean;
   transparent?: boolean;
   feedback?: Snapshot['commandFeedback'];
+  labels?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const latest = useRef(game);
   latest.current = game;
   const receipts = useRef(feedback);
   receipts.current = feedback;
+  const showLabels = useRef(labels);
+  showLabels.current = labels;
   const [error, setError] = useState('');
   useEffect(() => {
     let stopped = false;
@@ -145,10 +149,19 @@ export function Arena({
           if (!n) {
             const root = new Container();
             const body = new Graphics();
+            const palette = s.catalog[u.blueprintId]?.appearance.palette;
+            const bodyColor =
+              palette === 'violet'
+                ? 0xc9a4ff
+                : palette === 'lime'
+                  ? 0xb8ef70
+                  : palette === 'gold'
+                    ? 0xffd86b
+                    : COLORS[u.team];
             silhouette(
               body,
               s.catalog[u.blueprintId]?.appearance.shape ?? 'orb',
-              COLORS[u.team],
+              bodyColor,
               u.child,
             );
             const bar = new Graphics();
@@ -177,7 +190,8 @@ export function Arena({
           const highlighted = receipts.current.some(
             (r) => r.entityId === u.id && s.tick - r.tick < 120,
           );
-          n.label.visible = highlighted;
+          n.label.visible = highlighted || showLabels.current;
+          n.bar.ellipse(0, 15, 15, 5).stroke({ color: COLORS[u.team], width: 2, alpha: 0.8 });
           if (highlighted)
             n.bar.circle(0, 0, 25).stroke({ color: COLORS[u.team], width: 3, alpha: 0.85 });
           n.bar.rect(-13, -22, 26, 3).fill(0x080b10);

@@ -103,3 +103,40 @@ test('dashboard shows honest setup and invalid operator error', async ({ page })
   await page.getByRole('button', { name: 'Unlock control room' }).click();
   await expect(page.getByRole('alert')).toContainText('incorrect or not configured');
 });
+
+test('viewer feedback identifies spawns and explains paused commands', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/demo');
+  await expect(page.locator('canvas')).toBeVisible();
+  await page.getByLabel('Simulated chat command').fill('!spawn archer');
+  await page.locator('.command-form button[type=submit]').click();
+  await expect(page.locator('.command-feedback')).toContainText('Archer deployed.');
+  const id = new URL(page.url()).searchParams.get('room');
+  const snapshot = await (await page.request.get(`/api/rooms/${id}`)).json();
+  const receipt = snapshot.commandFeedback.find(
+    (r: { entityId?: number }) => r.entityId !== undefined,
+  );
+  expect(
+    snapshot.game.units.some(
+      (u: { id: number; blueprintId: string }) =>
+        u.id === receipt.entityId && u.blueprintId === 'archer',
+    ),
+  ).toBe(true);
+  await page.getByRole('button', { name: 'Unit labels: off', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Unit labels: on', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await page.getByRole('button', { name: 'Sound: off', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Sound: on', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await page.getByRole('button', { name: 'Sound: on', exact: true }).click();
+  await page.getByRole('button', { name: /Pause/, exact: false }).click();
+  await page.getByLabel('Simulated chat command').fill('!spawn guardian');
+  await page.locator('.command-form button[type=submit]').click();
+  await expect(page.locator('.command-feedback')).toContainText('Battle paused');
+  expect(errors).toEqual([]);
+});

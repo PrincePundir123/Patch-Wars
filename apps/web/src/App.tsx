@@ -4,6 +4,7 @@ import { Arena, UnitIcon } from './Arena.js';
 import { CommandFeedback } from './CommandFeedback.js';
 import { TwitchGuide } from './TwitchGuide.js';
 import { ForgeReveal } from './ForgeReveal.js';
+import { BroadcastControls } from './BroadcastControls.js';
 import { api, useBattle } from './store.js';
 import { STARTERS } from '../../../packages/game-core/src/index.js';
 import type { Snapshot, Team } from '../../../packages/shared/src/index.js';
@@ -204,6 +205,12 @@ function ForgePanel({ s }: { s: Snapshot }) {
         <span className="eyebrow">{f ? 'COMMUNITY CREATION' : 'BUILD SOMETHING UNEXPECTED'}</span>
         <h3>{f?.name ?? (f ? 'Blueprint in progress' : 'Your idea. Their problem.')}</h3>
         <p>{f?.idea ?? 'Pitch a new unit in chat. The community decides what enters the arena.'}</p>
+        {s.provider === 'ollama' && (
+          <p className="guide-note">
+            Local AI can take a minute. Pause the battle from the control room while the Forge
+            works, then resume when approved.
+          </p>
+        )}
       </div>
       <div className={`forge-visual ${f?.status === 'deployed' ? 'revealed' : ''}`}>
         <div className="orbit orbit-one" />
@@ -400,6 +407,7 @@ function Results({ s }: { s: Snapshot }) {
   );
 }
 function BattleView({ s, overlay = false }: { s: Snapshot; overlay?: boolean }) {
+  const [labels, setLabels] = useState(false);
   const transparent = new URLSearchParams(location.search).get('transparent') === '1';
   return (
     <div className={overlay ? `overlay-view ${transparent ? 'transparent' : ''}` : 'battle-layout'}>
@@ -407,7 +415,12 @@ function BattleView({ s, overlay = false }: { s: Snapshot; overlay?: boolean }) 
         <section className="battle-stage">
           <Scoreboard s={s} />
           <div className="arena-wrap">
-            <Arena game={s.game} transparent={transparent} feedback={s.commandFeedback} />
+            <Arena
+              game={s.game}
+              transparent={transparent}
+              feedback={s.commandFeedback}
+              labels={labels}
+            />
             <CommandFeedback s={s} />
             <div className="arena-location">
               <span>◈</span> THE FRACTURE <small>NEUTRAL TERRITORY</small>
@@ -432,6 +445,7 @@ function BattleView({ s, overlay = false }: { s: Snapshot; overlay?: boolean }) 
         </section>
         {!overlay && (
           <>
+            <BroadcastControls s={s} labels={labels} onLabels={setLabels} />
             <Voting s={s} />
             <section className="roster">
               <div className="section-line">

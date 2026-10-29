@@ -1828,3 +1828,40 @@ body:has(.transparent) {
   width: 85px;
   height: 85px;
 }
+.broadcast-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0;
+}
+.broadcast-controls > span {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #9ba5b4;
+}
+.broadcast-controls button {
+  border: 1px solid #394651;
+  background: #17212a;
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #d8e1e9;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.broadcast-controls button[aria-pressed='true'] {
+  color: #bcf279;
+  border-color: #bcf27970;
+}
+.broadcast-controls small {
+  font-size: 11px;
+  color: #9ba5b4;
+}
+@media (prefers-reduced-motion: reduce) {
+  .orbit,
+  .forge-star,
+  .forge-unit {
+    animation: none !important;
+  }
+}

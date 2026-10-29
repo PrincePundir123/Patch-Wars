@@ -60,3 +60,7 @@ Live matches include a checklist above the arena, direct links to each authorize
 
 For free on-device generation, follow [local AI setup](local-ai.md). Ollama is supported alongside fixture and OpenAI Responses providers.
 
+
+## Spectator controls
+Unit labels can be toggled in the dashboard or spectator page. Chat-spawned units are automatically labelled for six simulation seconds; team rings stay orange or blue even when a generated unit has its own palette. Sound is off by default and can be enabled for Forge deployments and match results. OBS keeps a clean control-free view. Reduced-motion preferences suppress the Forge orbit animation.
+
