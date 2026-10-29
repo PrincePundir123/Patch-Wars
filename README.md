@@ -86,6 +86,8 @@ Presentation readiness checks private setup without generating AI output. Lazy r
 
 Open `/stream-demo` for a direct stream-style preview: the battle fills the stage, soldier icons float over it, and chat stays in the same viewport. Mobile docks chat beneath the soldier tray; Hide chat expands the battle without resetting it. Demo activity remains visibly simulated.
 
+A browser session can own four matches. To free a slot, open `/dashboard` and use **Close match** beside a recent match or next to Reset in an active match. Closing stops its battle/Twitch connections and removes the room after confirmation. Reset and closing a browser tab do not free a slot.
+
 ## Free local AI
 
 No OpenAI key is needed with Ollama. See [local AI setup and measured limitations](docs/local-ai.md). The verified development model is `qwen2.5:3b`; `pnpm verify:local-ai` exercises real generation, schema checks and balance. Local generation can take a minute: pause the match during generation, then resume once approved. Demo rooms always remain fixture-based.

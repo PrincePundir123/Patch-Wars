@@ -72,6 +72,12 @@ This is the flow to record as live evidence. An automatic fixture replay does no
 
 To open the web spectator page itself on another device, use a public deployment or active tunnel URL; localhost on a phone refers to that phone. Open the spectator link, try portrait/landscape layouts and expanded viewing, and check that controls remain readable without horizontal scrolling. Keep the host computer/server/tunnel running. Watching the Twitch broadcast on a phone does not require this web access. An actual second broadcaster, Shared Chat and raid still need separate consent and live tests.
 
+## Free a match slot
+
+Each browser session can own up to four matches. Finished or paused matches still occupy slots; Reset reuses a room and does not close it. Open `/dashboard` and use **Close match** beside an entry in **Your recent matches**, or open a match and use **Close match** next to Reset. Confirm only the match you intend to remove. Closing stops its worker and Twitch connections, ends its spectator sockets and frees one slot. Its state cannot be recovered. Closing a browser tab alone does not free the slot.
+
+To clear every local match at once, stop the development server with Ctrl+C and run `pnpm.cmd dev` again. All in-memory matches and Twitch authorizations are cleared, so reconnect Twitch afterward.
+
 ## Automated checks and profiling
 
 Run `pnpm.cmd typecheck`, `pnpm.cmd lint`, `pnpm.cmd test`, `pnpm.cmd build` and the browser suite. Run `pnpm.cmd run profile:ui` with the app running for local renderer/network measurements. These checks complement live rehearsal and cannot establish public hosting, real Twitch participation or submitted hackathon status.

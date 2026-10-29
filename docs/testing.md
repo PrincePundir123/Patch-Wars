@@ -1,6 +1,8 @@
 # Testing
 
-Current verification: **127 automated tests across 25 files** and **23 Chromium browser tests**. Coverage includes the eight existing flows, five expanded-view checks, seven loading/readiness/command/performance checks and three live-view/extension checks. Earlier evidence remains in [Field Studio verification](field-studio-verification.md); latest changes are described in [priority improvements](priority-improvements.md) and [live experience](live-experience.md). Follow the [manual rehearsal](manual-rehearsal.md) for demo and actual Twitch/OBS checks.
+Current automated verification: **128 tests across 26 files**. The latest full browser run passed 23 cases for the stream stage; the subsequent match-close fix passed nine focused browser cases (the eight existing app flows plus the new close/cancel/spectator/replacement flow). The browser suite now contains 24 cases. Earlier evidence remains in [Field Studio verification](field-studio-verification.md); latest changes are described in [priority improvements](priority-improvements.md) and [live experience](live-experience.md). Follow the [manual rehearsal](manual-rehearsal.md) for demo and actual Twitch/OBS checks.
+
+Match closure tests fill all four owned slots, reject an additional room, reject non-owner and forged-origin closure, close an owner's room, verify worker disposal and spectator socket termination, and create a replacement without changing the four-room cap. Browser verification checks cancel/confirm, unavailable spectator state and close controls in the recent-match list. Typecheck, lint and build passed. Actual live-channel token revocation was not externally exercised in this follow-up.
 
 ```sh
 pnpm typecheck
