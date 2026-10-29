@@ -483,7 +483,7 @@ function BattleView({ s, overlay = false }: { s: Snapshot; overlay?: boolean }) 
   return (
     <div className={overlay ? `overlay-view ${transparent ? 'transparent' : ''}` : 'battle-layout'}>
       <div className="battle-main">
-        <ArenaDisplay enabled={!overlay} simulated={s.mode === 'demo'}>
+        <ArenaDisplay enabled={!overlay} simulated={s.mode === 'demo'} provider={s.provider}>
           <Scoreboard s={s} />
           <div className="arena-wrap">
             <Arena

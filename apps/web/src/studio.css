@@ -273,6 +273,7 @@ input[type='checkbox'] {
   font-size: clamp(32px, 3.5vw, 46px);
   margin: 5px 0;
   color: #1e2a24;
+  font-weight: 700;
 }
 .page-heading p {
   color: var(--muted);
@@ -497,17 +498,22 @@ summary {
   font-size: clamp(21px, 2.1vw, 32px);
   color: #f4f0e6;
   overflow-wrap: anywhere;
+  line-height: 1.15;
 }
 .team-detail small {
   color: #b6c6b9;
   font-size: 9px;
   letter-spacing: 0.7px;
   overflow-wrap: anywhere;
+  display: block;
+  line-height: 1.4;
 }
 .base-label {
   color: #c0cec1;
   font-size: 8px;
   letter-spacing: 0.3px;
+  display: block;
+  line-height: 1.4;
 }
 .team-score > strong {
   font-size: 24px;
@@ -802,7 +808,16 @@ details.blueprint summary,
   font-size: 11px;
   margin: 0;
 }
+.library-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 18px 0;
+}
 .library-heading {
+  flex: 1;
+  flex-wrap: wrap;
   margin: 18px 0;
 }
 .library-heading h2 {
@@ -814,6 +829,8 @@ details.blueprint summary,
 }
 .library-tools {
   justify-content: flex-end;
+  margin: 0;
+  flex: 0 1 400px;
 }
 .unit-search {
   background: #fffcf7;
@@ -1330,6 +1347,13 @@ body:has(.overlay-view.transparent),
   }
 }
 @media (max-width: 760px) {
+  .library-top {
+    display: block;
+    margin: 18px 0;
+  }
+  .library-tools {
+    margin-bottom: 16px;
+  }
   .battle-layout {
     display: flex;
     flex-direction: column;

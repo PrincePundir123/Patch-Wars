@@ -35,34 +35,36 @@ export function UnitLibrary({ catalog }: { catalog?: Record<string, Blueprint> }
   }
   return (
     <section className="roster unit-library" id="units" aria-labelledby="unit-library-title">
-      <div className="library-heading">
-        <div>
-          <span className="eyebrow">KNOW YOUR ARMY</span>
-          <h2 id="unit-library-title">Every unit has a role.</h2>
+      <div className="library-top">
+        <div className="library-heading">
+          <div>
+            <span className="eyebrow">KNOW YOUR ARMY</span>
+            <h2 id="unit-library-title">Every unit has a role.</h2>
+          </div>
+          <code>!spawn &lt;unit&gt;</code>
         </div>
-        <code>!spawn &lt;unit&gt;</code>
-      </div>
-      <div className="library-tools">
-        <label className="unit-search">
-          <MagnifyingGlass size={18} />
-          <span className="sr-only">Search units</span>
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Find your next move"
-          />
-        </label>
-        <label>
-          <span className="sr-only">Filter unit role</span>
-          <select value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="all">All roles</option>
-            <option value="tank">Tank</option>
-            <option value="ranged">Ranged</option>
-            <option value="assassin">Assassin</option>
-            <option value="support">Support</option>
-            <option value="summoner">Summoner</option>
-          </select>
-        </label>
+        <div className="library-tools">
+          <label className="unit-search">
+            <MagnifyingGlass size={18} />
+            <span className="sr-only">Search units</span>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Find your next move"
+            />
+          </label>
+          <label>
+            <span className="sr-only">Filter unit role</span>
+            <select value={role} onChange={(e) => setRole(e.target.value)}>
+              <option value="all">All roles</option>
+              <option value="tank">Tank</option>
+              <option value="ranged">Ranged</option>
+              <option value="assassin">Assassin</option>
+              <option value="support">Support</option>
+              <option value="summoner">Summoner</option>
+            </select>
+          </label>
+        </div>
       </div>
       <div className="unit-card-grid">
         {filtered.map((b) => (

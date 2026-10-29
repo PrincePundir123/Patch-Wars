@@ -8,10 +8,12 @@ export function ArenaDisplay({
   children,
   enabled,
   simulated,
+  provider,
 }: {
   children: ReactNode;
   enabled: boolean;
   simulated: boolean;
+  provider: string;
 }) {
   const stage = useRef<HTMLElement>(null);
   const theaterButton = useRef<HTMLButtonElement>(null);
@@ -114,8 +116,9 @@ export function ArenaDisplay({
       {enabled && (
         <div className="arena-display-bar">
           <span>
-            {simulated ? 'SIMULATED REPLAY' : 'TWITCH MATCH'}
-            <small> · BATTLEFIELD</small>
+            {simulated ? 'SIMULATED REPLAY' : 'TWITCH MATCH'} ·{' '}
+            {provider === 'fixture' ? 'FIXTURE FORGE' : provider}
+            <small>{immersive ? ' · ESC TO RETURN' : ' · BATTLEFIELD'}</small>
           </span>
           <div>
             <button
