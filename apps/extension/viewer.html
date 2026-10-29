@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>PATCH WARS — Deploy</title>
+    <link rel="stylesheet" href="viewer.css" />
+    <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
+    <script defer src="viewer.js"></script>
+  </head>
+  <body>
+    <main id="extension-controls" aria-label="PATCH WARS unit controls">
+      <div class="extension-top">
+        <strong>PATCH WARS</strong><span id="energy">CONNECTING</span
+        ><button id="identity" hidden>Share identity to play</button>
+      </div>
+      <p id="status" role="status">Connecting to Twitch…</p>
+      <div id="units" aria-label="Deploy units"></div>
+      <form id="command-form">
+        <label for="command">Game command</label>
+        <div>
+          <input
+            id="command"
+            placeholder="!forge a moss guardian"
+            maxlength="220"
+            required
+          /><button id="send">Send</button>
+        </div>
+      </form>
+      <small id="hint">Uses shared team energy. No payment. Twitch chat commands still work.</small>
+    </main>
+  </body>
+</html>
