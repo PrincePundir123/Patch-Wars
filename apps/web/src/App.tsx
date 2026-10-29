@@ -3,22 +3,20 @@ import { Link, Routes, Route, useNavigate, useParams, useSearchParams } from 're
 import { Arena, UnitIcon } from './Arena.js';
 import { UnitLibrary } from './UnitLibrary.js';
 import { UnitPortrait } from './UnitPortrait.js';
-import {
-  ArrowUpRight,
-  Sword,
-  Sparkle,
-  Play,
-  Pause,
-  ArrowsClockwise,
-  Copy,
-  Shield,
-  Broadcast,
-  UsersThree,
-  ChatCircleDots,
-  Check,
-  Trophy,
-  X,
-} from '@phosphor-icons/react';
+import { ArrowUpRight } from '@phosphor-icons/react/dist/csr/ArrowUpRight';
+import { Sword } from '@phosphor-icons/react/dist/csr/Sword';
+import { Sparkle } from '@phosphor-icons/react/dist/csr/Sparkle';
+import { Play } from '@phosphor-icons/react/dist/csr/Play';
+import { Pause } from '@phosphor-icons/react/dist/csr/Pause';
+import { ArrowsClockwise } from '@phosphor-icons/react/dist/csr/ArrowsClockwise';
+import { Copy } from '@phosphor-icons/react/dist/csr/Copy';
+import { Shield } from '@phosphor-icons/react/dist/csr/Shield';
+import { Broadcast } from '@phosphor-icons/react/dist/csr/Broadcast';
+import { UsersThree } from '@phosphor-icons/react/dist/csr/UsersThree';
+import { ChatCircleDots } from '@phosphor-icons/react/dist/csr/ChatCircleDots';
+import { Check } from '@phosphor-icons/react/dist/csr/Check';
+import { Trophy } from '@phosphor-icons/react/dist/csr/Trophy';
+import { X } from '@phosphor-icons/react/dist/csr/X';
 import { CommandFeedback } from './CommandFeedback.js';
 import { TwitchGuide } from './TwitchGuide.js';
 import { ForgeReveal } from './ForgeReveal.js';
@@ -143,7 +141,7 @@ function Landing() {
               </Link>
             </div>
             <div className="hero-foot">
-              <span>TWITCH CONNECTED</span>
+              <span>TWITCH INTEGRATION</span>
               <span>LOCAL AI SUPPORTED</span>
               <span>OBS READY</span>
             </div>
@@ -358,7 +356,10 @@ function ForgePanel({ s }: { s: Snapshot }) {
   );
 }
 function Scoreboard({ s }: { s: Snapshot }) {
-  const time = Math.max(0, Math.ceil((s.game.durationTicks - s.game.tick) / 20));
+  const time =
+    s.game.phase === 'results'
+      ? Math.round(s.game.tick / 20)
+      : Math.max(0, Math.ceil((s.game.durationTicks - s.game.tick) / 20));
   return (
     <div className="scoreboard">
       {(['ember', 'azure'] as Team[]).map((team, i) => (
@@ -392,7 +393,7 @@ function Scoreboard({ s }: { s: Snapshot }) {
         <strong>
           {Math.floor(time / 60)}:{String(time % 60).padStart(2, '0')}
         </strong>
-        <small>ELIMINATIONS</small>
+        <small>{s.game.phase === 'results' ? 'MATCH TIME' : 'ELIMINATIONS'}</small>
       </div>
     </div>
   );
@@ -404,11 +405,13 @@ function Voting({ s }: { s: Snapshot }) {
       <div className="panel-heading">
         <h2>COMMUNITY BLUEPRINTS</h2>
         <span className="tiny-tag">
-          {s.roundPhase === 'voting'
-            ? 'VOTING OPEN'
-            : s.roundPhase === 'processing'
-              ? 'VOTE COMPLETE'
-              : 'PROPOSALS OPEN'}
+          {s.game.phase === 'results'
+            ? 'MATCH COMPLETE'
+            : s.roundPhase === 'voting'
+              ? 'VOTING OPEN'
+              : s.roundPhase === 'processing'
+                ? 'VOTE COMPLETE'
+                : 'PROPOSALS OPEN'}
         </span>
       </div>
       <div className="proposal-list">
@@ -442,9 +445,11 @@ function Voting({ s }: { s: Snapshot }) {
       <div className="vote-footer">
         <span>ONE VIEWER. ONE VOTE.</span>
         <span>
-          {s.roundPhase === 'processing'
-            ? 'FORGE IN PROGRESS'
-            : `${Math.max(0, Math.ceil((s.roundEndsAtTick - s.game.tick) / 20))}s REMAINING`}
+          {s.game.phase === 'results'
+            ? 'ROUND CLOSED'
+            : s.roundPhase === 'processing'
+              ? 'FORGE IN PROGRESS'
+              : `${Math.max(0, Math.ceil((s.roundEndsAtTick - s.game.tick) / 20))}s REMAINING`}
         </span>
       </div>
     </section>

@@ -2410,3 +2410,50 @@ details.blueprint summary {
     margin-top: 24px;
   }
 }
+.arena-message,
+.results {
+  inset: auto;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(520px, 85%);
+  height: auto;
+  min-height: 0;
+  padding: 28px 32px;
+  box-shadow: 0 16px 45px #0006;
+}
+@media (max-width: 620px) {
+  .arena-message,
+  .results {
+    padding: 13px 18px;
+    width: 88%;
+    max-width: 88%;
+  }
+}
+html:has(.overlay-view.transparent),
+body:has(.overlay-view.transparent) {
+  background: transparent;
+}
+.overlay-view .forge-unit .unit-icon {
+  width: 100px;
+  height: 100px;
+}
+.overlay-view .forge-unit {
+  height: 100px;
+  transform: translateY(-9px);
+}
+.workspace-nav a {
+  min-height: 40px;
+}
+.dialog-close {
+  min-width: 44px;
+  min-height: 44px;
+}
+@media (max-width: 620px) {
+  .controls .button {
+    min-height: 44px;
+  }
+  .workspace-nav a {
+    min-height: 44px;
+  }
+}

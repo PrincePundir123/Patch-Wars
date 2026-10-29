@@ -1,5 +1,10 @@
 ﻿import { useEffect, useRef, useState } from 'react';
-import { Copy, X, MagnifyingGlass, Lightning, Heart, Sword } from '@phosphor-icons/react';
+import { Copy } from '@phosphor-icons/react/dist/csr/Copy';
+import { X } from '@phosphor-icons/react/dist/csr/X';
+import { MagnifyingGlass } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
+import { Lightning } from '@phosphor-icons/react/dist/csr/Lightning';
+import { Heart } from '@phosphor-icons/react/dist/csr/Heart';
+import { Sword } from '@phosphor-icons/react/dist/csr/Sword';
 import type { Blueprint } from '../../../packages/shared/src/index.js';
 import { STARTERS } from '../../../packages/game-core/src/index.js';
 import { UnitPortrait } from './UnitPortrait.js';

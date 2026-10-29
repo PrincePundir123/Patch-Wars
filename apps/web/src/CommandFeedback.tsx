@@ -12,7 +12,7 @@ export function CommandFeedback({ s }: { s: Snapshot }) {
   }, [latest?.id, s.roomId]);
   return (
     <div className={`command-feedback ${latest?.team ?? ''}`} aria-live="polite" aria-atomic="true">
-      {visible && latest && (
+      {visible && latest && s.game.phase !== 'results' && (
         <>
           <small>
             {s.mode === 'demo' ? 'SIMULATED CHAT' : 'TWITCH CHAT'} · {s.teamNames[latest.team]} · !

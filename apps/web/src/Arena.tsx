@@ -1,23 +1,30 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  Application,
-  Graphics,
-  Container,
-  Text,
-  Assets,
-  Sprite,
-  Texture,
-  Rectangle,
-  loadTextures,
-} from 'pixi.js';
+import { Application, Graphics, Container, Text, Sprite, Texture, Rectangle } from 'pixi.js';
 import { UnitPortrait } from './UnitPortrait.js';
 // Pixi's static shader/uniform polyfills support a CSP without unsafe-eval.
 import 'pixi.js/unsafe-eval';
 import type { GameState, Entity, Snapshot } from '../../../packages/shared/src/index.js';
 import { createGame, startGame, step } from '../../../packages/game-core/src/index.js';
 const COLORS = { ember: 0xff8255, azure: 0x65c9ff };
-// Keep image loading compatible with the existing script-src 'self' CSP.
-loadTextures.config.preferWorkers = false;
+// Shared same-origin images avoid blob workers and keep the existing CSP intact.
+const textures = new Map<string, Promise<Texture>>();
+function loadArtwork(url: string) {
+  let pending = textures.get(url);
+  if (!pending) {
+    pending = new Promise<Texture>((resolve, reject) => {
+      const image = new Image();
+      image.decoding = 'async';
+      image.onload = () => resolve(Texture.from(image));
+      image.onerror = () => {
+        textures.delete(url);
+        reject(new Error('Artwork unavailable.'));
+      };
+      image.src = url;
+    });
+    textures.set(url, pending);
+  }
+  return pending;
+}
 function silhouette(g: Graphics, shape: string, color: number, child = false) {
   const s = child ? 0.65 : 1;
   g.scale.set(s);
@@ -73,7 +80,14 @@ export function Arena({
     const app = new Application();
     const nodes = new Map<
       number,
-      { root: Container; body: Graphics; bar: Graphics; label: Text; sprite?: Sprite }
+      {
+        root: Container;
+        body: Graphics;
+        bar: Graphics;
+        label: Text;
+        sprite?: Sprite;
+        appearance: string;
+      }
     >();
     const local = createGame(83, 600);
     startGame(local);
@@ -96,11 +110,11 @@ export function Arena({
         return;
       }
       const [arenaAsset, unitAsset] = await Promise.allSettled([
-        transparent ? Promise.resolve(null) : Assets.load<Texture>('/art/fracture-arena.webp'),
-        Assets.load<Texture>('/art/unit-atlas.webp'),
+        transparent ? Promise.resolve(null) : loadArtwork('/art/fracture-arena.webp'),
+        loadArtwork('/art/unit-atlas.webp'),
       ]);
       if (stopped) {
-        app.destroy(true);
+        if (app.renderer) app.destroy(true);
         return;
       }
       const frames = new Map<string, Texture>();
@@ -175,6 +189,15 @@ export function Arena({
           }
         for (const u of s.units) {
           let n = nodes.get(u.id);
+          const blueprint = s.catalog[u.blueprintId];
+          const appearance = `${u.blueprintId}:${u.team}:${blueprint?.appearance.shape}:${blueprint?.appearance.palette}:${u.child}`;
+          // Resets can reuse entity IDs for a different blueprint or team.
+          if (n && n.appearance !== appearance) {
+            layer.removeChild(n.root);
+            n.root.destroy({ children: true });
+            nodes.delete(u.id);
+            n = undefined;
+          }
           if (!n) {
             const root = new Container();
             const body = new Graphics();
@@ -199,6 +222,8 @@ export function Arena({
             if (sprite) {
               sprite.anchor.set(0.5, 0.72);
               sprite.width = sprite.height = u.child ? 42 : 66;
+              if (u.team === 'azure') sprite.scale.x = -Math.abs(sprite.scale.x);
+              if (palette && palette !== 'team') sprite.tint = bodyColor;
               body.visible = false;
               root.addChild(sprite);
             }
@@ -217,7 +242,7 @@ export function Arena({
             root.addChild(body, bar, label);
             root.position.set(u.x, u.y);
             layer.addChild(root);
-            n = { root, body, bar, label, sprite };
+            n = { root, body, bar, label, sprite, appearance };
             nodes.set(u.id, n);
           }
           n.root.x += (u.x - n.root.x) * (reduced ? 1 : 0.25);

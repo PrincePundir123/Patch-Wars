@@ -7,7 +7,7 @@ test('measures local chat-to-overlay presentation and browser frame intervals', 
   await expect(page.locator('canvas')).toBeVisible();
   await page.getByLabel('Simulated chat command').fill('!forge a moss turtle with a shield');
   const start = performance.now();
-  await page.getByRole('button', { name: 'Send ↗', exact: true }).click();
+  await page.getByRole('button', { name: 'Send', exact: true }).click();
   await expect(
     page.locator('.proposal-content').getByText('a moss turtle with a shield', { exact: true }),
   ).toBeVisible();
@@ -73,10 +73,12 @@ test('replay forges and deploys a splitting unit; controls and OBS work', async 
   await expect(page.locator('canvas')).toBeVisible();
   await expect(page.getByText('UNIT DEPLOYED', { exact: true })).toBeVisible({ timeout: 45000 });
   await expect(page.getByText('200', { exact: true })).toBeVisible();
+  await page.getByText('Validated behavior', { exact: true }).click();
   await expect(page.getByText(/death → split/)).toBeVisible();
-  await page.getByRole('button', { name: 'Ⅱ Pause', exact: true }).click();
-  await expect(page.getByRole('button', { name: '▶ Resume', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: '▣ Copy OBS link', exact: true }).click();
+  await page.getByText('Validated behavior', { exact: true }).click();
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Resume', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Copy OBS link', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Overlay URL copied');
   const id = new URL(page.url()).searchParams.get('room');
   await page.screenshot({ path: 'docs/screenshots/dashboard.png', fullPage: true });
@@ -90,10 +92,10 @@ test('replay forges and deploys a splitting unit; controls and OBS work', async 
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'docs/screenshots/mobile-dashboard.png', fullPage: true });
-  await page.getByRole('button', { name: '↺ Reset', exact: true }).click();
-  await expect(page.getByRole('button', { name: '▶ Start battle', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: '▶ Start battle', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Ⅱ Pause', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Reset', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Start battle', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Start battle', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Pause', exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
 test('dashboard shows honest setup and invalid operator error', async ({ page }) => {
@@ -139,4 +141,93 @@ test('viewer feedback identifies spawns and explains paused commands', async ({ 
   await page.locator('.command-form button[type=submit]').click();
   await expect(page.locator('.command-feedback')).toContainText('Battle paused');
   expect(errors).toEqual([]);
+});
+
+test('redesigned roster filters and accessible unit dialog preserve actual stats', async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto('/');
+  await page.getByLabel('Search units').fill('archer');
+  await expect(page.getByRole('button', { name: 'Inspect Archer', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Inspect Guardian', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Inspect Archer', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('heading', { name: 'Archer', exact: true })).toBeVisible();
+  await expect(dialog.locator('dd')).toHaveText(['65', '12', '4']);
+  await dialog.getByRole('button', { name: '!spawn archer', exact: true }).click();
+  await expect(dialog).toContainText('Command copied');
+  await page.keyboard.press('Escape');
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Inspect Archer', exact: true })).toBeFocused();
+  await page.getByLabel('Search units').fill('');
+  await page.getByLabel('Filter unit role').selectOption('support');
+  await expect(page.getByRole('button', { name: 'Inspect Healer', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Inspect Archer', exact: true })).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Inspect Healer', exact: true }).click();
+  await expect(dialog).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: 'docs/screenshots/mobile-unit-details.png' });
+});
+
+test('settings and proposal moderation retain their existing server effects', async ({ page }) => {
+  await page.goto('/demo');
+  await expect(page.locator('canvas')).toBeVisible();
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.getByLabel('Ember name', { exact: true }).fill('Ember Crew');
+  await page.getByLabel('Duration (seconds)', { exact: true }).fill('240');
+  await page.getByRole('button', { name: 'Save settings', exact: true }).click();
+  await expect(page.locator('.team-detail h2').filter({ hasText: 'Ember Crew' })).toBeVisible();
+  const id = new URL(page.url()).searchParams.get('room');
+  let snapshot = await (await page.request.get(`/api/rooms/${id}`)).json();
+  expect(snapshot.game.durationTicks).toBe(4800);
+  // Resume before proposing: the existing command handler rejects paused commands.
+  await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await page.getByLabel('Simulated chat command').fill('!forge a quiet turtle with a shield');
+  await page.locator('.command-form button[type=submit]').click();
+  await expect(
+    page.locator('.proposal-content').getByText('a quiet turtle with a shield', { exact: true }),
+  ).toBeVisible();
+  snapshot = await (await page.request.get(`/api/rooms/${id}`)).json();
+  const proposal = snapshot.proposals.find(
+    (p: { idea: string }) => p.idea === 'a quiet turtle with a shield',
+  );
+  await page
+    .getByRole('button', { name: `Remove ${proposal.id.toUpperCase()}`, exact: true })
+    .click();
+  await expect(
+    page.locator('.proposal-content').getByText('a quiet turtle with a shield', { exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole('checkbox', { name: 'Chat commands', exact: true }).uncheck();
+  await page.getByRole('button', { name: 'Save settings', exact: true }).click();
+  await page.getByLabel('Simulated chat command').fill('!spawn archer');
+  await page.locator('.command-form button[type=submit]').click();
+  await expect(page.locator('.command-feedback')).toContainText('Chat commands are paused');
+});
+
+test('host setup retains operator unlock, live creation and Twitch invitation boundaries', async ({
+  page,
+}) => {
+  test.skip(
+    !process.env.PLAYWRIGHT_BASE_URL,
+    'Isolated production instance has a dedicated local verification key.',
+  );
+  await page.goto('/dashboard');
+  await expect(
+    page.getByRole('heading', { name: 'Your battlefield starts here.', exact: true }),
+  ).toBeVisible();
+  await page.screenshot({ path: 'docs/screenshots/setup.png', fullPage: true });
+  await page.getByLabel('Operator key').fill('ui-redesign-verification-key-local-only');
+  await page.getByRole('button', { name: 'Unlock control room', exact: true }).click();
+  await page.getByRole('button', { name: 'Create Twitch match', exact: true }).click();
+  await expect(
+    page.getByRole('link', { name: 'Connect Ember with Twitch', exact: true }),
+  ).toHaveAttribute('href', /auth\/twitch\?room=/);
+  await page.getByRole('button', { name: 'Start battle', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Connect Twitch');
+  await page.getByRole('button', { name: 'Invite Azure broadcaster', exact: true }).click();
+  await expect(page.locator('#invite')).toHaveValue(/auth\/twitch\?invite=/);
+  // The invitation is private: do not capture it in screenshots.
 });
