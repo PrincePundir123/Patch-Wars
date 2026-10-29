@@ -86,6 +86,8 @@ Presentation readiness checks private setup without generating AI output. Lazy r
 
 Open `/stream-demo` for a direct stream-style preview: the battle fills the stage, soldier icons float over it, and chat stays in the same viewport. Mobile docks chat beneath the soldier tray; Hide chat expands the battle without resetting it. Demo activity remains visibly simulated.
 
+The dashboard and spectator page's existing **Theater view** and **Fullscreen** buttons also open this complete layout in place. They keep the same room URL, canvas, unit-label and sound state; Escape/Exit theater returns to the original workspace. The old battlefield-only expanded layout has been replaced.
+
 A browser session can own four matches. To free a slot, open `/dashboard` and use **Close match** beside a recent match or next to Reset in an active match. Closing stops its battle/Twitch connections and removes the room after confirmation. Reset and closing a browser tab do not free a slot.
 
 ## Free local AI
