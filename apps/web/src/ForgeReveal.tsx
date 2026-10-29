@@ -1,5 +1,5 @@
 import type { Ability, Snapshot } from '../../../packages/shared/src/index.js';
-import { UnitIcon } from './Arena.js';
+import { UnitIcon } from './UnitIcon.js';
 
 export function abilityText(a: Ability): string {
   switch (a.op) {

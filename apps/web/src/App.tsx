@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, type FormEvent } from 'react';
 import { Link, Routes, Route, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Arena, UnitIcon } from './Arena.js';
+import { Arena } from './LazyArena.js';
+import { UnitIcon } from './UnitIcon.js';
 import { UnitLibrary } from './UnitLibrary.js';
 import { UnitPortrait } from './UnitPortrait.js';
 import { ArrowUpRight } from '@phosphor-icons/react/dist/csr/ArrowUpRight';

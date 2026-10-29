@@ -54,6 +54,7 @@ test('landing and mobile layout', async ({ page }) => {
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await expect(page.getByRole('heading', { name: /Two communities/ })).toBeVisible();
+  await page.locator('.hero-stage').scrollIntoViewIfNeeded();
   await expect(page.locator('canvas')).toBeVisible();
   await page.screenshot({ path: 'docs/screenshots/landing.png', fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });

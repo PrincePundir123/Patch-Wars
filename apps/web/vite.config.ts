@@ -7,7 +7,20 @@ export default defineConfig(({ mode }) => {
   return {
     root: resolve('apps/web'),
     plugins: [react()],
-    build: { outDir: resolve('dist/web'), emptyOutDir: true },
+    build: {
+      outDir: resolve('dist/web'),
+      emptyOutDir: true,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('commonjsHelpers') || id.includes('vite/preload-helper'))
+              return 'runtime';
+            // Keep Pixi's shared renderer dependencies out of the eager React entry.
+            if (id.includes('/node_modules/pixi.js/')) return 'pixi';
+          },
+        },
+      },
+    },
     server: {
       host: '127.0.0.1',
       port: 5173,

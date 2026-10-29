@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Application, Graphics, Container, Text, Sprite, Texture, Rectangle } from 'pixi.js';
-import { UnitPortrait } from './UnitPortrait.js';
 // Pixi's static shader/uniform polyfills support a CSP without unsafe-eval.
 import 'pixi.js/unsafe-eval';
-import type { GameState, Entity, Snapshot } from '../../../packages/shared/src/index.js';
+import type { GameState, Snapshot } from '../../../packages/shared/src/index.js';
 import { createGame, startGame, step } from '../../../packages/game-core/src/index.js';
 const COLORS = { ember: 0xff8255, azure: 0x65c9ff };
 // Shared same-origin images avoid blob workers and keep the existing CSP intact.
@@ -304,12 +303,5 @@ export function Arena({
         </p>
       )}
     </div>
-  );
-}
-export function UnitIcon({ shape, team = 'ember' }: { shape: string; team?: Entity['team'] }) {
-  return (
-    <span className={`unit-icon ${team}`}>
-      <UnitPortrait shape={shape} />
-    </span>
   );
 }

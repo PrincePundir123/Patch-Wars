@@ -6,7 +6,7 @@ import { Lightning } from '@phosphor-icons/react/dist/csr/Lightning';
 import { Heart } from '@phosphor-icons/react/dist/csr/Heart';
 import { Sword } from '@phosphor-icons/react/dist/csr/Sword';
 import type { Blueprint } from '../../../packages/shared/src/index.js';
-import { STARTERS } from '../../../packages/game-core/src/index.js';
+import { STARTERS } from '../../../packages/game-core/src/catalog.js';
 import { UnitPortrait } from './UnitPortrait.js';
 import { abilityText } from './ForgeReveal.js';
 export function UnitLibrary({ catalog }: { catalog?: Record<string, Blueprint> }) {
