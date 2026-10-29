@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-29T03:52:05.778Z",
+  "mode": "Synthetic normalized chat -> real Ollama worker -> validation -> 200 battles -> paused reveal -> deployment. Not a real Twitch test.",
+  "provider": "ollama",
+  "elapsedMs": 29098,
+  "attempts": 2,
+  "status": "deployed",
+  "blueprint": {
+    "schemaVersion": 1,
+    "id": "forged-60",
+    "name": "Guardian Guardian",
+    "description": "A sturdy guardian that starts with a protective shield, dealing damage and healing allies on hit.",
+    "archetype": "tank",
+    "stats": {
+      "maxHealth": 120,
+      "attackDamage": 12,
+      "attackRange": 30,
+      "attackCooldownTicks": 20,
+      "moveSpeed": 1,
+      "spawnCost": 6
+    },
+    "appearance": {
+      "shape": "cross",
+      "palette": "gold",
+      "effectPreset": "spark"
+    },
+    "abilities": [
+      {
+        "op": "shield",
+        "event": "spawn",
+        "amount": 20
+      }
+    ],
+    "weaknesses": [
+      "Shield is vulnerable to splash damage."
+    ],
+    "sourcePrompt": "A sturdy guardian that starts with a protective shield, dealing damage and healing allies on hit."
+  },
+  "report": {
+    "engagements": 200,
+    "winRate": 0.265,
+    "passed": true,
+    "durationMs": 813,
+    "peakEntities": 15,
+    "damageDealt": 76290,
+    "damageReceived": 99958,
+    "meanLifespanTicks": 677,
+    "efficiency": 12.72
+  },
+  "deployedUnits": 2
+}

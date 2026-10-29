@@ -1,4 +1,5 @@
-﻿import {
+import { ZodError } from 'zod';
+import {
   BlueprintSchema,
   type Blueprint,
   type BalanceReport,
@@ -246,4 +247,21 @@ export async function balance(b: Blueprint, engagements = 200): Promise<BalanceR
     meanLifespanTicks: Math.round(lifespan / engagements),
     efficiency: Math.round((damageDealt / engagements / 30) * 100) / 100,
   };
+}
+
+export function retryFeedback(error: unknown) {
+  if (error instanceof ZodError)
+    return (
+      'Fix these validation failures: ' +
+      error.issues
+        .map((i) => `${i.path.join('.')}: ${i.message}`)
+        .join('; ')
+        .slice(0, 1200)
+    );
+  if (error instanceof Error && error.message.startsWith('Balance rejected:'))
+    return (
+      error.message +
+      ' Target 25 to 75 percent wins against equal-cost starter armies. If too weak, increase health/damage or reduce energy cost; if too strong, do the reverse.'
+    );
+  return 'Previous draft failed validation. Follow the schema, integer stat caps and bounded ability rules exactly.';
 }

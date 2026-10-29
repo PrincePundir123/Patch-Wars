@@ -6,6 +6,7 @@ import {
   balance,
   moderate,
   type ForgeProvider,
+  retryFeedback,
 } from './pipeline.js';
 import { CodexForgeProvider } from './codex.js';
 import { OllamaForgeProvider } from './ollama.js';
@@ -47,11 +48,7 @@ try {
       break;
     } catch (error) {
       if (attempt === 2 || signal.aborted || provider === 'fixture') throw error;
-      feedback =
-        error instanceof Error && error.message.startsWith('Balance rejected:')
-          ? error.message +
-            ' Target 25 to 75 percent wins against equal-cost starter armies. Adjust stats and cost.'
-          : 'Previous draft failed validation. Follow the schema, integer stat caps and bounded ability rules exactly.';
+      feedback = retryFeedback(error);
     }
   }
   if (!accepted) throw new Error('Generation failed.');

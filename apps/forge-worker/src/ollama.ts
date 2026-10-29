@@ -13,6 +13,9 @@ export function localBlueprintSchema() {
     Object.values(item).forEach(clean);
   };
   clean(schema);
+  // Small local models use one signature mechanic for reliable generation.
+  const abilities = schema.properties?.abilities;
+  if (abilities && typeof abilities === 'object') abilities.maxItems = 1;
   return schema;
 }
 
@@ -52,7 +55,7 @@ export class OllamaForgeProvider implements ForgeProvider {
           stream: false,
           keep_alive: '5m',
           format: localBlueprintSchema(),
-          options: { temperature: 0.2, num_predict: 1600, num_ctx: 4096 },
+          options: { temperature: 0, num_predict: 1600, num_ctx: 4096 },
           messages: [
             {
               role: 'system',

@@ -29,3 +29,7 @@ Initial tests on this 16 GB Intel UHD machine rejected two splitting-slime draft
 Only loopback HTTP origins are accepted; redirects, URL credentials and cloud model names are rejected. Responses are capped at 64 KB, blueprints at 10 KB and generation at 1,600 output tokens per attempt. Worker timeouts and room quotas also apply. A model failure stays visible; it is never relabelled as successful fixture generation. Host Ollama beside the backend if deploying this provider; do not expose its unauthenticated port publicly.
 
 Sources: https://docs.ollama.com/api/chat and https://docs.ollama.com/capabilities/structured-outputs (checked October 29, 2026 using Exa).
+
+## Full worker verification
+
+The final local adapter limits output to one signature ability per unit and provides specific validation feedback on retry. `pnpm exec tsx scripts/verify-local-forge.ts` exercises synthetic normalized chat through voting, a real Ollama worker, validation, balance, paused reveal and two deployed units. The verified run completed in 29,098 ms across two attempts; see [evidence](evaluation/local-forge-flow.json). This does not replace recording the same flow with actual Twitch viewers.

@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { writeFile } from 'node:fs/promises';
 import { OllamaForgeProvider } from '../apps/forge-worker/src/ollama.js';
-import { validateBlueprint, balance } from '../apps/forge-worker/src/pipeline.js';
+import { validateBlueprint, balance, retryFeedback } from '../apps/forge-worker/src/pipeline.js';
 const started = performance.now();
 const idea =
   process.argv.slice(2).join(' ') ||
@@ -59,8 +59,6 @@ for (let attempt = 1; attempt <= 2; attempt++) {
       process.exitCode = 1;
       break;
     }
-    feedback = message.startsWith('Balance rejected:')
-      ? message
-      : 'Follow the schema and bounded stat caps exactly. Previous draft failed validation.';
+    feedback = retryFeedback(e);
   }
 }
