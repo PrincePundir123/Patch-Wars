@@ -418,7 +418,9 @@ export async function buildApp(options: ServerOptions = {}) {
       reply.setCookie('pw_session', s.id, cookieOptions);
     }
     if ([...rooms.values()].filter((r) => r.owner === s!.id).length >= 4)
-      throw new Error('You already have four matches. Restart an existing match.');
+      throw new Error(
+        'You already have four matches. Open the dashboard and close an existing match to free a slot.',
+      );
     const room = new Room(
       s.id,
       mode,
@@ -432,6 +434,23 @@ export async function buildApp(options: ServerOptions = {}) {
   app.get<{ Params: { id: string } }>('/api/rooms/:id', async (req) =>
     roomById(req.params.id).snapshot(),
   );
+  app.post<{ Params: { id: string } }>('/api/rooms/:id/close', async (req) => {
+    const room = own(req.params.id, req.cookies.pw_session);
+    room.dispose();
+    rooms.delete(room.id);
+    for (const [state, pending] of oauth) if (pending.roomId === room.id) oauth.delete(state);
+    for (const [token, invite] of invites) if (invite.roomId === room.id) invites.delete(token);
+    for (const team of ['ember', 'azure']) {
+      const key = `${room.id}:${team}`;
+      const connection = connections.get(key);
+      connection?.client.stop();
+      if (connection) void connection.identity.revoke().catch(() => {});
+      connections.delete(key);
+    }
+    for (const socket of clients.get(room.id) ?? []) socket.close(1008, 'Match closed');
+    clients.delete(room.id);
+    return { ok: true };
+  });
   app.post<{ Params: { id: string } }>('/api/rooms/:id/control', async (req) => {
     const r = own(req.params.id, req.cookies.pw_session);
     const c = ControlSchema.parse(req.body);

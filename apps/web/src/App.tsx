@@ -106,6 +106,7 @@ function useRoom(id?: string) {
         if (closed) return;
         setConnection('reconnecting');
         if (e.code === 1008) {
+          setSnapshot(null);
           setConnection('offline');
           return;
         }
@@ -723,6 +724,29 @@ function Dashboard({ demo = false, stream = false }: { demo?: boolean; stream?: 
       setNotice(`Overlay URL: ${location.origin}/overlay/${id}?transparent=1`);
     }
   }
+  async function closeMatch(roomId: string) {
+    if (
+      !window.confirm(
+        'Close this match? This stops the battle, disconnects its Twitch channels and frees one slot. Its state cannot be recovered.',
+      )
+    )
+      return;
+    setBusy(true);
+    setError('');
+    try {
+      await api(`/api/rooms/${roomId}/close`, {});
+      if (roomId === id) {
+        creating.current = true;
+        setParams({});
+      }
+      setMe(await api<Me>('/api/me'));
+      setNotice('Match closed. A slot is now available.');
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
   async function unlock(e: FormEvent) {
     e.preventDefault();
     try {
@@ -868,13 +892,23 @@ function Dashboard({ demo = false, stream = false }: { demo?: boolean; stream?: 
               <div className="existing-rooms">
                 <h3>Your recent matches</h3>
                 {me.rooms.map((r) => (
-                  <button
-                    className="button secondary compact"
-                    key={r.id}
-                    onClick={() => setParams({ room: r.id })}
-                  >
-                    {r.mode.toUpperCase()} · {r.id.slice(0, 8)} ↗
-                  </button>
+                  <div className="quick-controls" key={r.id}>
+                    <button
+                      className="button secondary compact"
+                      key={r.id}
+                      onClick={() => setParams({ room: r.id })}
+                    >
+                      {r.mode.toUpperCase()} · {r.id.slice(0, 8)} ↗
+                    </button>
+                    <button
+                      className="button secondary compact"
+                      disabled={busy}
+                      aria-label={`Close ${r.mode} match ${r.id.slice(0, 8)}`}
+                      onClick={() => void closeMatch(r.id)}
+                    >
+                      Close match
+                    </button>
+                  </div>
                 ))}
               </div>
             ) : null}
@@ -932,6 +966,13 @@ function Dashboard({ demo = false, stream = false }: { demo?: boolean; stream?: 
                 </button>
                 <button className="button secondary compact" onClick={() => void copyOverlay()}>
                   <Copy size={15} /> Copy OBS link
+                </button>
+                <button
+                  className="button secondary compact"
+                  disabled={busy}
+                  onClick={() => void closeMatch(active.roomId)}
+                >
+                  <X size={15} /> Close match
                 </button>
               </div>
             </div>
