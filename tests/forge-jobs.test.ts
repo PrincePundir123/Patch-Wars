@@ -45,6 +45,22 @@ const approved = {
   attempt: 1,
 };
 describe('Forge job lifecycle', () => {
+  it('gives a live approved unit three simulation seconds for its reveal', () => {
+    const r = ready();
+    r.mode = 'live';
+    r.launchForge();
+    state.workers[0]!.emit('message', approved);
+    expect(r.forge?.deploymentTick).toBe(60);
+    for (let i = 0; i < 59; i++) r.tick();
+    expect(r.forge?.status).toBe('approved');
+    r.paused = true;
+    r.tick();
+    expect(r.game.tick).toBe(59);
+    r.paused = false;
+    r.tick();
+    expect(r.forge?.status).toBe('deployed');
+    r.dispose();
+  });
   it('rejects timeout and ignores a late approval from the cancelled worker', async () => {
     vi.useFakeTimers();
     const r = ready(12, 10);

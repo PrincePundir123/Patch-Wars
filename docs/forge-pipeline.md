@@ -23,3 +23,7 @@ The broad initial acceptance interval is 25–75%, not a universal fairness guar
 Live providers get at most two attempts; fixture failures reject immediately. Limits are one worker/room, 90 seconds, twelve jobs/hour and twelve jobs/room lifetime, preserved across resets. Responses output is capped at 2,400 tokens/attempt. Set a provider-account monetary budget; dollar billing enforcement is not claimed.
 
 Failures reject the job and preserve combat. UI stages come from actual worker/server transitions. Approved blueprints are revalidated, get server-owned IDs, and spawn twice for the winning team. Demo deployment uses tick 540, waiting just before it if necessary for deterministic replay. Live combat never waits.
+
+## Broadcast reveal
+Approved blueprints show a unit card, readable ability descriptions, weaknesses and exact balance metrics. Live matches wait 60 simulation ticks (three seconds) after approval before deployment; pausing freezes this countdown. A full arena keeps the unit queued. The deterministic replay retains its tick-540 deployment. Fixture and model labels are always explicit.
+

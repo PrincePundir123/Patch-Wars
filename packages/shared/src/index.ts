@@ -158,6 +158,7 @@ export type ForgeJob = {
   error?: string;
   steps: { status: string; at: number }[];
   attempts: number;
+  deploymentTick?: number;
 };
 export type Snapshot = {
   type: 'snapshot';

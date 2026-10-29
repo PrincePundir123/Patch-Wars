@@ -138,7 +138,7 @@ export class Room {
       return;
     step(this.game);
     if (this.mode === 'demo') this.replay();
-    if (this.pending && (this.mode === 'live' || this.game.tick >= 540)) this.deploy();
+    if (this.pending && this.game.tick >= (this.forge?.deploymentTick ?? 540)) this.deploy();
     if ((this.game.phase as string) === 'results') {
       this.cancelJob();
       this.note(
@@ -345,6 +345,7 @@ export class Room {
             this.forge.blueprint = b;
             this.forge.report = m.report;
             this.forge.name = b.name;
+            this.forge.deploymentTick = this.mode === 'demo' ? 540 : this.game.tick + 60;
             this.updateForge('approved');
           } catch {
             this.updateForge('rejected', 'Worker output failed final validation.');

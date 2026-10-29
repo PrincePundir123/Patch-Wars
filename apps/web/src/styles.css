@@ -1761,3 +1761,70 @@ body:has(.transparent) {
     padding: 18px;
   }
 }
+.forge-reveal {
+  margin-top: 18px;
+  padding: 16px;
+  background: #131c22;
+  border: 1px solid #b9ef7135;
+  border-radius: 10px;
+}
+.reveal-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.reveal-heading h4 {
+  margin: 4px 0;
+  font-size: 21px;
+}
+.reveal-heading small {
+  font-size: 9px;
+  color: #b9ef71;
+  letter-spacing: 1px;
+}
+.forge-reveal p,
+.forge-reveal li {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #bcc5cf;
+}
+.forge-reveal ul {
+  padding-left: 18px;
+}
+.unit-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.unit-stats div {
+  background: #0e141a;
+  border-radius: 6px;
+  padding: 10px;
+}
+.unit-stats dt {
+  font-size: 10px;
+  color: #9ba5b4;
+}
+.unit-stats dd {
+  margin: 4px 0 0;
+  font-weight: 700;
+  font-size: 20px;
+}
+.unit-weakness {
+  border-top: 1px solid #ffffff15;
+  padding-top: 10px;
+}
+.deploy-countdown {
+  padding: 12px;
+  border-radius: 6px;
+  background: #b9ef7115;
+  color: #c7fa91;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.forge-unit .unit-icon {
+  font-size: 60px;
+  width: 85px;
+  height: 85px;
+}

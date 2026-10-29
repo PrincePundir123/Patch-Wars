@@ -3,6 +3,7 @@ import { Link, Routes, Route, useNavigate, useParams, useSearchParams } from 're
 import { Arena, UnitIcon } from './Arena.js';
 import { CommandFeedback } from './CommandFeedback.js';
 import { TwitchGuide } from './TwitchGuide.js';
+import { ForgeReveal } from './ForgeReveal.js';
 import { api, useBattle } from './store.js';
 import { STARTERS } from '../../../packages/game-core/src/index.js';
 import type { Snapshot, Team } from '../../../packages/shared/src/index.js';
@@ -207,7 +208,9 @@ function ForgePanel({ s }: { s: Snapshot }) {
       <div className={`forge-visual ${f?.status === 'deployed' ? 'revealed' : ''}`}>
         <div className="orbit orbit-one" />
         <div className="orbit orbit-two" />
-        <span className="forge-unit">{f?.status === 'deployed' ? '◉' : '✦'}</span>
+        <span className="forge-unit">
+          {f?.blueprint ? <UnitIcon shape={f.blueprint.appearance.shape} /> : '✦'}
+        </span>
         <span className="forge-visual-label">
           {f?.status === 'deployed'
             ? 'UNIT DEPLOYED'
@@ -273,6 +276,7 @@ function ForgePanel({ s }: { s: Snapshot }) {
               <p>{f.blueprint.weaknesses.join(' ')}</p>
             </div>
           )}
+          <ForgeReveal s={s} />
           <ErrorBox text={f.error ?? ''} />
         </>
       ) : (
