@@ -25,3 +25,9 @@ Local moderation is conservative and English-oriented, not comprehensive multili
 State/tokens disappear on restart. No plaintext credential database exists. Use one HTTPS backend behind a trusted proxy. The Dockerfile has not been executed in this Windows environment.
 
 The production dependency audit originally flagged @fastify/static and Zod; they were upgraded and the subsequent audit found no known vulnerabilities. Repeat before deployment. This is not a penetration-test or complete-security claim.
+
+## Development-origin policy
+
+Development permits WEB_ORIGIN and the exact http://localhost:5173 / http://127.0.0.1:5173 origins. Production permits only WEB_ORIGIN. There are no wildcard domains, arbitrary local ports or trusted forwarded-host exceptions. Mutations without Origin remain blocked; read-only non-browser WebSocket tooling retains its existing behavior. Origin acceptance does not grant operator access or ownership.
+
+An explicit OAuth origin is accepted only from this allowlist and is bound to one-use state. Exchange uses that same callback. Public-origin invitations remain one-use and do not share operator cookies between domains. Canonical origin configuration rejects credentials, non-HTTP schemes, paths, query strings and fragments.

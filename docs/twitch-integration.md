@@ -33,5 +33,11 @@ Raids use validated destination identity and deduped delivery ID. Strength is `m
 Authorize a channel, record a real spawn command, propose/vote/forge, reconnect the browser, invite a second broadcaster and verify source attribution. Record real Twitch footage with the provider label visible. Fixtures do not satisfy this acceptance.
 
 ## Visible command feedback
+
 Recognized commands produce a bounded eight-item receipt feed without viewer identity or raw proposal text. Successful spawns identify the exact entity for a six-second battlefield label and team-colored ring. Paused and completed matches explain how to resume. The receipt banner also appears in OBS; fixtures remain labelled simulated.
 
+## Multiple development addresses
+
+Local development permits only the configured origin and the exact localhost:5173 / 127.0.0.1:5173 aliases. HTTP mutation and WebSocket origin checks share one policy. Production permits only the configured origin. Untrusted Origin or forwarded-host values cannot expand the allowlist.
+
+OAuth links include a validated explicit browser origin so callback cookies remain on the initiating address. The callback URI is bound to one-use state and reused for token exchange. Every browser callback must be registered in the Twitch developer application. Legacy links without an explicit origin keep TWITCH_REDIRECT_URI behavior; generated invitations use the canonical configured origin.

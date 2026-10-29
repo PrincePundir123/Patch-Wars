@@ -9,6 +9,7 @@ import { resolve } from 'node:path';
 import { z } from 'zod';
 import type { WebSocket } from 'ws';
 import { Room } from './room.js';
+import { originPolicy } from './origins.js';
 import { ControlSchema, CommandSchema, TeamSchema } from '../../../packages/shared/src/index.js';
 import {
   TwitchIdentity,
@@ -17,7 +18,13 @@ import {
   type TwitchConfig,
 } from '../../../packages/twitch-adapter/src/index.js';
 type Session = { id: string; operator: boolean; expires: number };
-type PendingAuth = { session: string; roomId: string; team: 'ember' | 'azure'; expires: number };
+type PendingAuth = {
+  session: string;
+  roomId: string;
+  team: 'ember' | 'azure';
+  expires: number;
+  redirectUri?: string;
+};
 export const safeEqual = (a: string, b: string) => {
   const left = Buffer.from(a);
   const right = Buffer.from(b);
@@ -46,7 +53,11 @@ export type ServerOptions = {
 };
 export async function buildApp(options: ServerOptions = {}) {
   const production = options.production ?? process.env.NODE_ENV === 'production';
-  const webOrigin = options.webOrigin ?? process.env.WEB_ORIGIN ?? 'http://localhost:5173';
+  const origins = originPolicy(
+    options.webOrigin ?? process.env.WEB_ORIGIN ?? 'http://localhost:5173',
+    production,
+  );
+  const webOrigin = origins.canonical;
   const adminKey = options.adminKey ?? process.env.ADMIN_KEY ?? '';
   const demo = options.demo ?? process.env.DEMO_MODE !== 'false';
   const provider = options.provider ?? process.env.FORGE_PROVIDER ?? 'fixture';
@@ -93,8 +104,10 @@ export async function buildApp(options: ServerOptions = {}) {
       );
     if (req.url.startsWith('/api') || req.url.startsWith('/auth'))
       reply.header('Cache-Control', 'no-store');
-    if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && req.headers.origin !== webOrigin)
-      return reply.code(403).send({ error: 'Request origin is not allowed.' });
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !origins.allows(req.headers.origin))
+      return reply.code(403).send({
+        error: `Request origin is not allowed. Open ${webOrigin}${production ? '.' : ' or http://localhost:5173.'}`,
+      });
   });
   app.setErrorHandler((error, _req, reply) => {
     if (error instanceof z.ZodError)
@@ -257,14 +270,25 @@ export async function buildApp(options: ServerOptions = {}) {
     if (r.mode !== 'live') throw new Error('Create a live match first.');
     const token = randomBytes(24).toString('hex');
     invites.set(token, { roomId: r.id, team: 'azure', expires: Date.now() + 600000 });
-    return { url: `${webOrigin}/auth/twitch?invite=${token}` };
+    return {
+      url: `${webOrigin}/auth/twitch?invite=${token}&origin=${encodeURIComponent(webOrigin)}`,
+    };
   });
   app.get('/auth/twitch', async (req, reply) => {
     if (!twitch.clientId || !twitch.clientSecret)
       return reply.redirect('/dashboard?error=twitch-not-configured');
     const q = z
-      .object({ room: z.string().uuid().optional(), invite: z.string().max(100).optional() })
+      .object({
+        room: z.string().uuid().optional(),
+        invite: z.string().max(100).optional(),
+        origin: z.string().max(300).optional(),
+      })
       .parse(req.query);
+    if (q.origin && !origins.allows(q.origin))
+      throw Object.assign(new Error('Twitch authorization origin is not allowed.'), {
+        statusCode: 403,
+      });
+    const redirectUri = q.origin ? `${q.origin}/auth/twitch/callback` : twitch.redirectUri;
     let s = getSession(req.cookies.pw_session);
     let roomId: string;
     let team: 'ember' | 'azure' = 'ember';
@@ -286,10 +310,10 @@ export async function buildApp(options: ServerOptions = {}) {
     const r = roomById(roomId);
     if (r.mode !== 'live') throw new Error('Twitch requires a live match.');
     const state = randomBytes(32).toString('hex');
-    oauth.set(state, { session: s!.id, roomId, team, expires: Date.now() + 600000 });
+    oauth.set(state, { session: s!.id, roomId, team, expires: Date.now() + 600000, redirectUri });
     const params = new URLSearchParams({
       client_id: twitch.clientId,
-      redirect_uri: twitch.redirectUri,
+      redirect_uri: redirectUri,
       response_type: 'code',
       scope: SCOPES.join(' '),
       state,
@@ -315,7 +339,10 @@ export async function buildApp(options: ServerOptions = {}) {
     }
     if (q.error || !q.code) return reply.redirect('/dashboard?error=twitch-denied');
     const r = roomById(pending.roomId);
-    const identity = new TwitchIdentity(twitch);
+    const identity = new TwitchIdentity({
+      ...twitch,
+      redirectUri: pending.redirectUri ?? twitch.redirectUri,
+    });
     try {
       await identity.exchange(q.code);
     } catch {
@@ -386,7 +413,7 @@ export async function buildApp(options: ServerOptions = {}) {
     return { ok: true };
   });
   app.get<{ Params: { id: string } }>('/ws/:id', { websocket: true }, (socket, req) => {
-    if (req.headers.origin && req.headers.origin !== webOrigin) {
+    if (req.headers.origin && !origins.allows(req.headers.origin)) {
       socket.close(1008, 'Invalid origin');
       return;
     }

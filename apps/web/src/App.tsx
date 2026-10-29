@@ -951,6 +951,11 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                       Each broadcaster authorizes their own channel. The second community uses a
                       temporary invitation.
                     </p>
+                    <p className="guide-note oauth-callback-note">
+                      Register this address in your Twitch application's OAuth Redirect URLs:{' '}
+                      <code>{`${location.origin}/auth/twitch/callback`}</code>. Use the same address
+                      throughout authorization.
+                    </p>
                     {['localhost', '127.0.0.1'].includes(location.hostname) && (
                       <p className="guide-note">
                         Local invitation links work only on this computer. For a broadcaster on
@@ -983,7 +988,10 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                       </div>
                     ))}
                     <div className="quick-controls">
-                      <a className="button secondary compact" href={`/auth/twitch?room=${id}`}>
+                      <a
+                        className="button secondary compact"
+                        href={`/auth/twitch?room=${id}&origin=${encodeURIComponent(location.origin)}`}
+                      >
                         Connect Ember with Twitch
                       </a>
                       <button
