@@ -31,3 +31,9 @@ The 20 Hz authoritative simulation is unchanged. Browser sockets opt into compac
 Rendering now stops for hidden/offscreen canvases and resumes against the latest authoritative state. Desktop rendering targets at most 60 FPS; coarse-pointer devices target 30 with a 1.5 resolution cap; reduced-motion rendering targets 20. These are budgets, not achieved-frame-rate promises. Interpolation is time-based, unchanged health/status graphics are cached and identical event graphics are not rebuilt every display frame. DOM profiling counters update at most once a second and when activity changes.
 
 `pnpm run profile:ui` profiles local fixture rooms in Chromium laptop and phone emulation, measuring renderer work, paused-bar redraws, offscreen suspension and actual compact bytes versus reconstructed legacy bytes. It writes docs/evaluation/optimization.json. It does not create saved match summaries, send Twitch commands or start paid generation.
+
+## 5. Viewer command reference
+
+How to play is available from the landing page, setup/dashboard and spectator page. Its native modal dialog documents all nine parser-supported commands with copy buttons, clear attack/defend behavior, proposal/vote rules, energy and cooldown guidance. Connected-channel chat links are included when available. The guide never sends a command or starts generation; clipboard denial falls back to readable instructions. Escape closes the dialog and restores focus. OBS remains control-free.
+
+Tests pass each documented example through the real parser and verify attack/defend unit behavior. Browser checks compare paused match state before/after copying, inspect phone fit and focus return, and simulate clipboard denial.

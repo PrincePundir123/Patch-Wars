@@ -1,5 +1,48 @@
 import { test, expect } from '@playwright/test';
 
+test('command guide copies examples, fits phones and never sends a game command', async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto('/demo');
+  await expect(page.locator('canvas')).toBeVisible();
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  const id = new URL(page.url()).searchParams.get('room');
+  const before = await (await page.request.get(`/api/rooms/${id}`)).json();
+  const trigger = page.getByRole('button', { name: 'How to play', exact: true });
+  await trigger.click();
+  await expect(
+    page.getByRole('dialog', { name: 'Your chat is the controller.', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Copy !spawn archer', exact: true }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('!spawn archer');
+  await expect(page.locator('.command-copy-status')).toContainText('Copied !spawn archer');
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: 'docs/screenshots/command-guide.png' });
+  await page.keyboard.press('Escape');
+  await expect(trigger).toBeFocused();
+  const after = await (await page.request.get(`/api/rooms/${id}`)).json();
+  expect(after.game).toEqual(before.game);
+});
+
+test('command guide explains clipboard denial without issuing a command', async ({ page }) => {
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, 'clipboard', {
+      value: {
+        writeText: async () => {
+          throw new Error('Denied');
+        },
+      },
+    }),
+  );
+  await page.goto('/');
+  await page.getByRole('button', { name: 'How to play', exact: true }).click();
+  await page.getByRole('button', { name: 'Copy !attack', exact: true }).click();
+  await expect(page.locator('.command-copy-status')).toContainText('Type !attack');
+});
+
 test('offscreen rendering suspends while server combat continues and resumes in view', async ({
   page,
 }) => {

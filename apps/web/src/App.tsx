@@ -25,6 +25,7 @@ import { BroadcastControls } from './BroadcastControls.js';
 import { WorkspaceShell } from './WorkspaceShell.js';
 import { ArenaDisplay } from './ArenaDisplay.js';
 import { ReadinessPanel } from './ReadinessPanel.js';
+import { CommandGuide } from './CommandGuide.js';
 import { api, useBattle } from './store.js';
 import type { Snapshot, Team } from '../../../packages/shared/src/index.js';
 import {
@@ -148,6 +149,9 @@ function Landing() {
               <Link className="button secondary" to="/demo">
                 <Play size={16} weight="fill" /> Watch the demo
               </Link>
+            </div>
+            <div className="hero-command-help">
+              <CommandGuide />
             </div>
             <div className="hero-foot">
               <span>TWITCH INTEGRATION</span>
@@ -582,10 +586,13 @@ function MatchPage({ overlay = false }: { overlay?: boolean }) {
                   Watch the war unfold<span>.</span>
                 </h1>
               </div>
-              <span className="status-pill">
-                <i />
-                {connection} · {s.mode === 'demo' ? 'SIMULATED REPLAY' : 'TWITCH MATCH'}
-              </span>
+              <div className="heading-actions">
+                <CommandGuide simulated={s.mode === 'demo'} channels={s.channels} />
+                <span className="status-pill">
+                  <i />
+                  {connection} · {s.mode === 'demo' ? 'SIMULATED REPLAY' : 'TWITCH MATCH'}
+                </span>
+              </div>
             </div>
           )}
           <BattleView s={s} overlay={overlay} />
@@ -724,6 +731,7 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
             </p>
           </div>
           <div className="heading-actions">
+            <CommandGuide simulated={active?.mode === 'demo'} channels={active?.channels} />
             {active && (
               <Link className="button secondary compact" to={`/spectate/${id}`} target="_blank">
                 Spectator view <ArrowUpRight size={15} />

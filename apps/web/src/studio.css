@@ -1,4 +1,138 @@
 /* Field Studio: approved visual target. Game and server contracts stay unchanged. */
+.hero-command-help {
+  margin: -10px 0 24px;
+}
+.hero-command-help .button {
+  background: none;
+  border-color: #c4cdc1;
+}
+.command-dialog {
+  width: min(820px, calc(100% - 28px));
+  max-height: calc(100dvh - 32px);
+  padding: 26px;
+  overflow-y: auto;
+  color: #232b28;
+  background: #fcfaf5;
+  border: 1px solid #a7b49d;
+  border-radius: 10px;
+}
+.command-dialog::backdrop {
+  background: #102017c9;
+  backdrop-filter: blur(4px);
+}
+.command-dialog-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding-right: 36px;
+}
+.command-dialog h2 {
+  font-size: 32px;
+  margin: 6px 0 12px;
+  line-height: 1.2;
+}
+.command-guide-intro,
+.command-demo-note {
+  max-width: 65ch;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #57694e;
+}
+.command-demo-note {
+  color: #70537e;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #f0eaf3;
+  border-radius: 5px;
+}
+.command-group {
+  margin-top: 24px;
+}
+.command-group h3 {
+  font:
+    600 12px Arial,
+    sans-serif;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #586e4b;
+  margin-bottom: 10px;
+}
+.command-group > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 22px;
+}
+.command-group article {
+  border-top: 1px solid #d9dfd1;
+  padding-top: 8px;
+  min-width: 0;
+}
+.command-group article > div {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+.command-group code {
+  color: #3e5d38;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.command-group button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 44px;
+  min-width: 66px;
+  padding: 8px;
+  border: 1px solid #c3cfb8;
+  color: #3e5b35;
+  background: #f1f4e9;
+  font-size: 11px;
+}
+.command-group p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #5e6f54;
+  padding-top: 4px;
+}
+.command-guide-rules {
+  margin-top: 22px;
+  border-top: 1px solid #d9dfd1;
+  padding-top: 16px;
+  font-size: 12px;
+  color: #5e6f54;
+}
+.command-guide-rules p {
+  margin-top: 6px;
+  line-height: 1.7;
+}
+.command-guide-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.command-copy-status {
+  color: #4f6b40;
+  font-size: 12px;
+  line-height: 1.7;
+  min-height: 40px;
+  margin-top: 14px;
+}
+@media (max-width: 620px) {
+  .command-dialog {
+    padding: 22px 18px;
+  }
+  .command-group > div {
+    grid-template-columns: 1fr;
+  }
+  .command-dialog h2 {
+    font-size: 28px;
+  }
+}
 .readiness-panel {
   margin: 0 0 16px;
   border: 1px solid #d9ddd3;
