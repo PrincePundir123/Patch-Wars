@@ -506,6 +506,7 @@ function BattleView({
       <div className="battle-main">
         <ArenaDisplay
           enabled={!overlay && !arenaOnly}
+          snapshot={s}
           simulated={s.mode === 'demo'}
           provider={s.provider}
         >

@@ -33,6 +33,11 @@ test('theater fills a laptop viewport without remounting the arena or changing m
   const enter = page.getByRole('button', { name: 'Theater view', exact: true });
   await enter.click();
   await expect(page.getByRole('dialog', { name: 'Expanded battlefield' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Deploy Archer', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Stream chat', exact: true })).toBeVisible();
+  await expect(page.locator('.deployment-dock')).toBeVisible();
+  expect(new URL(page.url()).searchParams.get('room')).toBe(id);
+  await expect(page.locator('canvas')).toHaveAttribute('data-retained', 'yes');
   await fillsViewport(page);
   await expect(page.locator('.studio-sidebar')).toHaveJSProperty('inert', true);
   await expect(page.getByRole('button', { name: 'Unit labels: on', exact: true })).toHaveAttribute(
@@ -40,9 +45,9 @@ test('theater fills a laptop viewport without remounting the arena or changing m
     'true',
   );
   // Focus stays inside the expanded stage and Escape returns it to its trigger.
-  await page.getByRole('button', { name: 'Exit theater', exact: true }).focus();
+  await page.locator('.live-header .live-brand').focus();
   await page.keyboard.press('Shift+Tab');
-  await expect(page.getByRole('button', { name: 'Sound: off', exact: true })).toBeFocused();
+  await expect(page.locator('.live-command-form input')).toBeFocused();
   await page.screenshot({ path: 'docs/screenshots/studio-theater.png' });
   await page.keyboard.press('Escape');
   await expect(enter).toBeFocused();
@@ -78,6 +83,38 @@ test('native fullscreen enters and exits through the standard browser API', asyn
   await page.evaluate(() => document.exitFullscreen());
   await expect(page.getByRole('button', { name: 'Exit theater', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Exit theater', exact: true }).click();
+});
+
+test('the existing dashboard theater exposes live chat and soldier controls on the same match URL', async ({
+  page,
+}) => {
+  const id = await pausedReplay(page);
+  // Only the connection display is mocked; snapshots, ownership and renderer are real.
+  await page.route('https://www.twitch.tv/embed/**', (route) =>
+    route.fulfill({ contentType: 'text/html', body: '<p>Mocked external Twitch chat</p>' }),
+  );
+  await page.routeWebSocket(`**/ws/${id}?format=compact`, (socket) => {
+    const server = socket.connectToServer();
+    server.onMessage((message) => {
+      const snapshot = JSON.parse(String(message));
+      snapshot.mode = 'live';
+      snapshot.channels = [{ id: '100', name: 'testchannel', team: 'ember', status: 'connected' }];
+      socket.send(JSON.stringify(snapshot));
+    });
+  });
+  await page.goto(`/dashboard?room=${id}`);
+  await page.getByRole('button', { name: 'Theater view', exact: true }).click();
+  const stage = page.getByRole('dialog', { name: 'Expanded battlefield', exact: true });
+  await expect(stage.getByRole('button', { name: 'Deploy Archer', exact: true })).toBeVisible();
+  await expect(
+    stage.getByRole('link', { name: 'Sign in with Twitch to deploy', exact: true }),
+  ).toBeVisible();
+  await expect(stage.getByTitle('testchannel Twitch chat')).toHaveAttribute(
+    'src',
+    /parent=localhost/,
+  );
+  expect(new URL(page.url()).pathname).toBe('/dashboard');
+  expect(new URL(page.url()).searchParams.get('room')).toBe(id);
 });
 
 for (const failure of ['unsupported', 'denied'] as const) {

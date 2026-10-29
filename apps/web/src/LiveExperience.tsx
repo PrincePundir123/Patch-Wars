@@ -1,11 +1,32 @@
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode, type RefObject } from 'react';
 import { Link } from 'react-router-dom';
 import type { Snapshot, Team } from '../../../packages/shared/src/index.js';
 import { UnitPortrait } from './UnitPortrait.js';
 import { api } from './store.js';
 
-export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNode }) {
-  const root = useRef<HTMLElement>(null);
+export function LiveExperience({
+  s,
+  children,
+  embedded = false,
+  expanded = true,
+  onExit,
+  onFullscreen,
+  fullscreenActive = false,
+  exitButtonRef,
+  displayNotice = '',
+}: {
+  s: Snapshot;
+  children: ReactNode;
+  embedded?: boolean;
+  expanded?: boolean;
+  onExit?: () => void;
+  onFullscreen?: () => void;
+  fullscreenActive?: boolean;
+  exitButtonRef?: RefObject<HTMLButtonElement | null>;
+  displayNotice?: string;
+}) {
+  const root = useRef<HTMLDivElement>(null);
+  const inline = embedded && !expanded;
   const [login, setLogin] = useState<string | null>(null);
   const [channelId, setChannelId] = useState('');
   const [team, setTeam] = useState<Team>('ember');
@@ -21,18 +42,19 @@ export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNo
   const currentTeam = s.mode === 'demo' ? team : (channel?.team ?? 'ember');
   const blocked = s.paused || s.game.phase !== 'battle' || !s.commandsEnabled;
   useEffect(() => {
+    if (inline) return;
     void api<{ login: string | null }>('/api/viewer')
       .then((v) => setLogin(v.login))
       .catch(() => {});
-  }, []);
+  }, [inline]);
   useEffect(() => {
     if (!cooldown) return;
     const timer = setTimeout(() => setCooldown(false), 1600);
     return () => clearTimeout(timer);
   }, [cooldown]);
   useEffect(() => {
-    setEmbed(s.mode === 'live' && !!channel?.id);
-  }, [channel?.id, s.mode]);
+    setEmbed(!inline && s.mode === 'live' && !!channel?.id);
+  }, [channel?.id, s.mode, inline]);
   async function send(command: string) {
     if (busy || cooldown) return;
     setBusy(true);
@@ -70,11 +92,12 @@ export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNo
   }
   const canSend = s.mode === 'demo' || !!login;
   return (
-    <main
-      className={`live-experience stream-stage${communityOpen ? '' : ' chat-hidden'}`}
+    <div
+      role={embedded ? undefined : 'main'}
+      className={`live-experience ${inline ? 'inline-experience' : 'stream-stage'}${communityOpen ? '' : ' chat-hidden'}`}
       ref={root}
     >
-      <header className="live-header">
+      <header className="live-header" hidden={inline}>
         <Link to="/" className="live-brand">
           PATCH <span>WARS</span>
         </Link>
@@ -83,6 +106,11 @@ export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNo
           {s.mode === 'demo' ? 'SIMULATED REPLAY · FIXTURE FORGE' : 'TWITCH MATCH'}
         </span>
         <div className="live-header-actions">
+          {embedded && (
+            <button ref={exitButtonRef} onClick={onExit}>
+              Exit theater
+            </button>
+          )}
           <Link to={`/spectate/${s.roomId}`}>Match details</Link>
           <button
             aria-expanded={communityOpen}
@@ -91,13 +119,18 @@ export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNo
           >
             {communityOpen ? 'Hide chat' : 'Show chat'}
           </button>
-          <button onClick={() => void fullscreen()}>Fullscreen</button>
+          <button
+            aria-pressed={embedded ? fullscreenActive : undefined}
+            onClick={() => (onFullscreen ? onFullscreen() : void fullscreen())}
+          >
+            {embedded && fullscreenActive ? 'Exit fullscreen' : 'Fullscreen'}
+          </button>
         </div>
       </header>
       <div className="live-columns">
         <section className="live-battle-column" aria-label="Live battle and deployment">
           <div className="live-battle">{children}</div>
-          <section className="deployment-dock" aria-label="Deploy units">
+          <section className="deployment-dock" aria-label="Deploy units" hidden={inline}>
             <div className="deployment-heading">
               <div>
                 <span className="eyebrow">REINFORCEMENTS</span>
@@ -185,8 +218,12 @@ export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNo
                 </button>
               ))}
             </div>
-            <div className="deployment-status" role="status">
-              {receipt ||
+            <div
+              className={`deployment-status${displayNotice ? ' display-notice' : ''}`}
+              role="status"
+            >
+              {displayNotice ||
+                receipt ||
                 (blocked
                   ? s.paused
                     ? 'Battle paused. The host needs to resume.'
@@ -205,7 +242,7 @@ export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNo
           id="stream-community"
           className="live-community"
           aria-label="Community chat and Forge"
-          hidden={!communityOpen}
+          hidden={inline || !communityOpen}
         >
           <div className="live-community-tabs">
             <button aria-pressed={tab === 'chat'} onClick={() => setTab('chat')}>
@@ -343,6 +380,6 @@ export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNo
           )}
         </aside>
       </div>
-    </main>
+    </div>
   );
 }

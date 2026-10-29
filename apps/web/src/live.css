@@ -93,25 +93,25 @@
   isolation: isolate;
 }
 .live-battle-column,
-.live-battle {
+.stream-stage .live-battle {
   position: absolute;
   inset: 0;
   min-width: 0;
   min-height: 0;
 }
-.live-battle {
+.stream-stage .live-battle {
   background: #18271e url('/art/fracture-arena.webp') center/cover no-repeat;
 }
-.live-battle::before {
+.stream-stage .live-battle::before {
   content: '';
   position: absolute;
   inset: 0;
   background: #0c201a7a;
   backdrop-filter: blur(12px);
 }
-.live-battle .battle-layout,
-.live-battle .battle-main,
-.live-battle .battle-stage {
+.stream-stage .live-battle .battle-layout,
+.stream-stage .live-battle .battle-main,
+.stream-stage .live-battle .battle-stage {
   position: absolute;
   inset: 0;
   display: block;
@@ -123,7 +123,7 @@
   background: transparent;
   overflow: hidden;
 }
-.live-battle .arena-wrap {
+.stream-stage .live-battle .arena-wrap {
   position: absolute;
   inset: 0 var(--chat-space) 0 0;
   min-height: 0;
@@ -133,7 +133,7 @@
   overflow: hidden;
   background: transparent;
 }
-.live-battle .arena-canvas {
+.stream-stage .live-battle .arena-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -141,11 +141,11 @@
   min-height: 0;
   aspect-ratio: auto;
 }
-.live-battle .arena-canvas canvas {
+.stream-stage .live-battle .arena-canvas canvas {
   display: block;
   object-fit: contain;
 }
-.live-battle .scoreboard {
+.stream-stage .live-battle .scoreboard {
   position: absolute;
   top: 14px;
   left: 16px;
@@ -160,30 +160,30 @@
   box-shadow: 0 6px 20px #0003;
   backdrop-filter: blur(8px);
 }
-.live-battle .team-detail h2 {
+.stream-stage .live-battle .team-detail h2 {
   font-size: 27px;
   color: #fff0d1;
   margin-bottom: 6px;
 }
-.live-battle .team-detail small,
-.live-battle .base-label {
+.stream-stage .live-battle .team-detail small,
+.stream-stage .live-battle .base-label {
   color: #b9c9ba;
   font-size: 8px;
 }
-.live-battle .team-emblem {
+.stream-stage .live-battle .team-emblem {
   width: 24px;
 }
-.live-battle .match-clock {
+.stream-stage .live-battle .match-clock {
   top: 10px;
 }
-.live-battle .match-clock strong {
+.stream-stage .live-battle .match-clock strong {
   color: #f7eacb;
   font-size: 28px;
 }
-.live-battle .match-clock small {
+.stream-stage .live-battle .match-clock small {
   font-size: 7px;
 }
-.live-battle .broadcast-controls {
+.stream-stage .live-battle .broadcast-controls {
   position: absolute;
   top: 108px;
   left: 16px;
@@ -195,11 +195,11 @@
   background: transparent;
   color: #e4dec9;
 }
-.live-battle .broadcast-controls small,
-.live-battle .broadcast-controls > span {
+.stream-stage .live-battle .broadcast-controls small,
+.stream-stage .live-battle .broadcast-controls > span {
   display: none;
 }
-.live-battle .broadcast-controls button {
+.stream-stage .live-battle .broadcast-controls button {
   min-height: 30px;
   padding: 5px 9px;
   border: 1px solid #74836b85;
@@ -208,13 +208,13 @@
   color: #f0e5c8;
   font-size: 10px;
 }
-.live-battle .arena-location {
+.stream-stage .live-battle .arena-location {
   top: 158px;
   left: 16px;
   font-size: 8px;
   background: #12241dc9;
 }
-.live-battle .arena-bottom {
+.stream-stage .live-battle .arena-bottom {
   position: absolute;
   bottom: 183px;
   left: 18px;
@@ -230,23 +230,23 @@
   font-size: 8px;
   text-shadow: 0 1px 3px #000;
 }
-.live-battle .arena-bottom > span:last-child {
+.stream-stage .live-battle .arena-bottom > span:last-child {
   display: none;
 }
-.live-battle .command-feedback {
+.stream-stage .live-battle .command-feedback {
   top: 146px;
   max-width: 420px;
   width: calc(100% - 60px);
   z-index: 3;
 }
-.live-battle .command-feedback:has(strong) {
+.stream-stage .live-battle .command-feedback:has(strong) {
   padding: 8px 14px;
   background: #14251ee8;
 }
-.live-battle .command-feedback strong {
+.stream-stage .live-battle .command-feedback strong {
   font-size: 12px;
 }
-.live-battle .command-feedback small {
+.stream-stage .live-battle .command-feedback small {
   font-size: 8px;
 }
 .deployment-dock {
@@ -629,7 +629,7 @@
     width: 66px;
     height: 58px;
   }
-  .live-battle .scoreboard {
+  .stream-stage .live-battle .scoreboard {
     top: 20px;
   }
 }
@@ -645,7 +645,7 @@
   .live-header-actions {
     gap: 8px;
   }
-  .live-battle .team-emblem {
+  .stream-stage .live-battle .team-emblem {
     display: none;
   }
   .deployment-account {
@@ -661,7 +661,7 @@
     width: 48px;
     height: 44px;
   }
-  .live-battle .team-detail h2 {
+  .stream-stage .live-battle .team-detail h2 {
     font-size: 22px;
   }
 }
@@ -695,52 +695,52 @@
   .live-header button {
     padding: 4px 8px;
   }
-  .live-battle .arena-wrap {
+  .stream-stage .live-battle .arena-wrap {
     bottom: var(--mobile-chat);
   }
   .live-experience.chat-hidden .arena-wrap {
     bottom: 0;
   }
-  .live-battle .scoreboard {
+  .stream-stage .live-battle .scoreboard {
     top: 8px;
     left: 8px;
     right: 8px;
     min-height: 66px;
     padding: 9px 10px;
   }
-  .live-battle .team-emblem,
-  .live-battle .base-label {
+  .stream-stage .live-battle .team-emblem,
+  .stream-stage .live-battle .base-label {
     display: none;
   }
-  .live-battle .team-detail h2 {
+  .stream-stage .live-battle .team-detail h2 {
     font-size: 21px;
   }
-  .live-battle .team-detail small {
+  .stream-stage .live-battle .team-detail small {
     font-size: 7px;
   }
-  .live-battle .match-clock {
+  .stream-stage .live-battle .match-clock {
     top: 8px;
   }
-  .live-battle .match-clock strong {
+  .stream-stage .live-battle .match-clock strong {
     font-size: 23px;
   }
-  .live-battle .match-clock span,
-  .live-battle .match-clock small {
+  .stream-stage .live-battle .match-clock span,
+  .stream-stage .live-battle .match-clock small {
     font-size: 6px;
   }
-  .live-battle .broadcast-controls {
+  .stream-stage .live-battle .broadcast-controls {
     top: 82px;
     left: 8px;
   }
-  .live-battle .broadcast-controls button {
+  .stream-stage .live-battle .broadcast-controls button {
     min-height: 27px;
     font-size: 9px;
     padding: 4px 7px;
   }
-  .live-battle .arena-location {
+  .stream-stage .live-battle .arena-location {
     display: none;
   }
-  .live-battle .arena-bottom {
+  .stream-stage .live-battle .arena-bottom {
     display: none;
   }
   .deployment-dock {
@@ -876,13 +876,13 @@
     font-size: 10px;
     margin: 6px 0;
   }
-  .live-battle .command-feedback {
+  .stream-stage .live-battle .command-feedback {
     top: 113px;
   }
-  .live-battle .command-feedback strong {
+  .stream-stage .live-battle .command-feedback strong {
     font-size: 11px;
   }
-  .live-battle .command-feedback small {
+  .stream-stage .live-battle .command-feedback small {
     font-size: 7px;
   }
   .chat-fallback {
@@ -899,25 +899,25 @@
   .live-header {
     height: 36px;
   }
-  .live-battle .scoreboard {
+  .stream-stage .live-battle .scoreboard {
     top: 7px;
     min-height: 63px;
     padding: 6px 12px;
   }
-  .live-battle .team-detail h2,
-  .live-battle .match-clock strong {
+  .stream-stage .live-battle .team-detail h2,
+  .stream-stage .live-battle .match-clock strong {
     font-size: 22px;
   }
-  .live-battle .team-detail small,
-  .live-battle .base-label,
-  .live-battle .team-emblem {
+  .stream-stage .live-battle .team-detail small,
+  .stream-stage .live-battle .base-label,
+  .stream-stage .live-battle .team-emblem {
     display: none;
   }
-  .live-battle .broadcast-controls {
+  .stream-stage .live-battle .broadcast-controls {
     top: 80px;
   }
-  .live-battle .arena-location,
-  .live-battle .arena-bottom {
+  .stream-stage .live-battle .arena-location,
+  .stream-stage .live-battle .arena-bottom {
     display: none;
   }
   .deployment-dock {
@@ -956,7 +956,7 @@
     top: 7px;
     bottom: 8px;
   }
-  .live-battle .command-feedback {
+  .stream-stage .live-battle .command-feedback {
     top: 110px;
   }
   .live-chat-heading {
@@ -973,4 +973,23 @@
   .deployment-card:hover:not(:disabled) {
     transform: none;
   }
+}
+/* Keep one mounted canvas while the existing theater/fullscreen controls change layout. */
+.live-experience.inline-experience,
+.inline-experience > .live-columns,
+.inline-experience .live-battle-column,
+.inline-experience .live-battle {
+  display: contents;
+}
+.battle-stage.stream-enabled.immersive-stage {
+  display: block;
+  padding: 0;
+}
+.battle-stage.stream-enabled.immersive-stage > .arena-display-bar {
+  display: none;
+}
+.battle-stage.stream-enabled.immersive-stage > .stream-stage {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 }

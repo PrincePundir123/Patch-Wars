@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { CornersOut } from '@phosphor-icons/react/dist/csr/CornersOut';
 import { CornersIn } from '@phosphor-icons/react/dist/csr/CornersIn';
 import { Monitor } from '@phosphor-icons/react/dist/csr/Monitor';
+import type { Snapshot } from '../../../packages/shared/src/index.js';
+import { LiveExperience } from './LiveExperience.js';
 
 // Presentation only: children (including Pixi and audio) stay mounted in every mode.
 export function ArenaDisplay({
@@ -9,14 +11,17 @@ export function ArenaDisplay({
   enabled,
   simulated,
   provider,
+  snapshot,
 }: {
   children: ReactNode;
   enabled: boolean;
   simulated: boolean;
   provider: string;
+  snapshot?: Snapshot;
 }) {
   const stage = useRef<HTMLElement>(null);
   const theaterButton = useRef<HTMLButtonElement>(null);
+  const exitButton = useRef<HTMLButtonElement>(null);
   const [theater, setTheater] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [notice, setNotice] = useState('');
@@ -47,7 +52,7 @@ export function ArenaDisplay({
       }
       branch = branch.parentElement;
     }
-    theaterButton.current?.focus({ preventScroll: true });
+    exitButton.current?.focus({ preventScroll: true });
     const keys = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !document.fullscreenElement) {
         event.preventDefault();
@@ -56,7 +61,7 @@ export function ArenaDisplay({
       if (event.key !== 'Tab') return;
       const targets = Array.from(
         root.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), a[href], input:not([disabled]), [tabindex="0"]',
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), summary, iframe, [tabindex="0"]',
         ),
       ).filter((el) => el.getClientRects().length > 0);
       const first = targets[0],
@@ -107,7 +112,7 @@ export function ArenaDisplay({
   return (
     <section
       ref={stage}
-      className={`battle-stage${immersive ? ' immersive-stage' : ''}`}
+      className={`battle-stage${enabled && snapshot ? ' stream-enabled' : ''}${immersive ? ' immersive-stage' : ''}`}
       id="battle"
       role={immersive ? 'dialog' : undefined}
       aria-modal={immersive ? true : undefined}
@@ -133,14 +138,29 @@ export function ArenaDisplay({
               {fullscreen ? 'Exit fullscreen' : 'Fullscreen'}
             </button>
           </div>
-          {notice && (
+          {notice && !immersive && (
             <p className="display-notice" role="status">
               {notice}
             </p>
           )}
         </div>
       )}
-      {children}
+      {enabled && snapshot ? (
+        <LiveExperience
+          s={snapshot}
+          embedded
+          expanded={immersive}
+          onExit={() => void toggleTheater()}
+          onFullscreen={() => void toggleFullscreen()}
+          fullscreenActive={fullscreen}
+          exitButtonRef={exitButton}
+          displayNotice={notice}
+        >
+          {children}
+        </LiveExperience>
+      ) : (
+        children
+      )}
     </section>
   );
 }
