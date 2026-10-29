@@ -15,8 +15,14 @@ export function CommandFeedback({ s }: { s: Snapshot }) {
       {visible && latest && s.game.phase !== 'results' && (
         <>
           <small>
-            {s.mode === 'demo' ? 'SIMULATED CHAT' : 'TWITCH CHAT'} · {s.teamNames[latest.team]} · !
-            {latest.command}
+            {s.mode === 'demo'
+              ? 'SIMULATED CHAT'
+              : latest.source === 'extension'
+                ? 'TWITCH EXTENSION'
+                : latest.source === 'viewer'
+                  ? 'VIEWER CONTROLS'
+                  : 'TWITCH CHAT'}{' '}
+            · {s.teamNames[latest.team]} · !{latest.command}
           </small>
           <strong>{latest.message}</strong>
         </>

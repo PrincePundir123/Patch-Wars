@@ -185,6 +185,7 @@ export type Snapshot = {
     message: string;
     tick: number;
     entityId?: number;
+    source?: 'twitch' | 'viewer' | 'extension' | 'demo';
   }[];
 };
 export type ReadinessCheck = {

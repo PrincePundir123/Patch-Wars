@@ -160,7 +160,7 @@ export class Room {
       }
     }
   }
-  receive(raw: unknown) {
+  receive(raw: unknown, source: 'twitch' | 'viewer' | 'extension' = 'twitch') {
     let message: ChatMessage;
     try {
       message = normalizeChat(raw);
@@ -169,9 +169,15 @@ export class Room {
     }
     const channel = this.channels.find((c) => c.id === message.channelId);
     if (!channel) return 'Channel is not participating.';
-    return this.command(message, channel.team);
+    return this.command(message, channel.team, source);
   }
-  command(m: ChatMessage, team: Team) {
+  command(
+    m: ChatMessage,
+    team: Team,
+    source: NonNullable<Snapshot['commandFeedback'][number]['source']> = this.mode === 'demo'
+      ? 'demo'
+      : 'twitch',
+  ) {
     if (!parseCommand(m.text)) return 'Unknown command or invalid arguments.';
     const before = this.game.nextId;
     const message = this.applyCommand(m, team);
@@ -182,6 +188,7 @@ export class Room {
         command: parseCommand(m.text)!.command,
         message,
         tick: this.game.tick,
+        source,
         ...(this.game.nextId > before ? { entityId: before } : {}),
       });
       this.commandFeedback = this.commandFeedback.slice(0, 8);

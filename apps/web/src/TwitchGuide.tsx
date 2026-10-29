@@ -2,8 +2,9 @@ import type { Snapshot } from '../../../packages/shared/src/index.js';
 
 export function TwitchGuide({ s }: { s: Snapshot }) {
   const connected = s.channels.some((c) => c.status.startsWith('connected'));
-  const received = s.commandFeedback.length > 0;
-  const deployed = s.commandFeedback.some((r) => r.entityId !== undefined);
+  const twitchFeedback = s.commandFeedback.filter((r) => !r.source || r.source === 'twitch');
+  const received = twitchFeedback.length > 0;
+  const deployed = twitchFeedback.some((r) => r.entityId !== undefined);
   const active = s.game.phase === 'battle' && !s.paused;
   return (
     <section className="twitch-guide panel" aria-label="Twitch match checklist">

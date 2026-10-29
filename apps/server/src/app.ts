@@ -11,6 +11,7 @@ import type { WebSocket } from 'ws';
 import { Room } from './room.js';
 import { originPolicy } from './origins.js';
 import { createProviderProbe } from './readiness.js';
+import { verifyExtensionToken } from './extension-auth.js';
 import type { ReadinessReport } from '../../../packages/shared/src/index.js';
 import { compactSnapshot } from '../../../packages/shared/src/snapshot-wire.js';
 import { ControlSchema, CommandSchema, TeamSchema } from '../../../packages/shared/src/index.js';
@@ -27,6 +28,7 @@ type PendingAuth = {
   team: 'ember' | 'azure';
   expires: number;
   redirectUri?: string;
+  purpose?: 'viewer';
 };
 export const safeEqual = (a: string, b: string) => {
   const left = Buffer.from(a);
@@ -54,6 +56,7 @@ export type ServerOptions = {
   provider?: string;
   twitch?: TwitchConfig;
   webRoot?: string;
+  extension?: { clientId: string; secret: string };
 };
 export async function buildApp(options: ServerOptions = {}) {
   const production = options.production ?? process.env.NODE_ENV === 'production';
@@ -94,10 +97,20 @@ export async function buildApp(options: ServerOptions = {}) {
     timeWindow: '1 minute',
     // Only the matched public-file/SPA route is exempt. API/auth/socket routes
     // keep their shared budget, regardless of query strings or file-like suffixes.
-    allowList: (req) => ['GET', 'HEAD'].includes(req.method) && req.routeOptions.url === '/*',
+    allowList: (req) =>
+      ['GET', 'HEAD'].includes(req.method) &&
+      ['/*', '/extension/*'].includes(req.routeOptions.url ?? ''),
   });
   await app.register(websocket, { options: { maxPayload: 1024 } });
   const sessions = new Map<string, Session>();
+  const viewers = new Map<string, { identity: TwitchIdentity; checkedAt: number }>();
+  const extension = options.extension ?? {
+    clientId: process.env.TWITCH_EXTENSION_CLIENT_ID ?? '',
+    secret: process.env.TWITCH_EXTENSION_SECRET ?? '',
+  };
+  const extensionOrigin = /^[a-z0-9]+$/i.test(extension.clientId)
+    ? `https://${extension.clientId.toLowerCase()}.ext-twitch.tv`
+    : '';
   const rooms = new Map<string, Room>();
   const oauth = new Map<string, PendingAuth>();
   const invites = new Map<string, { roomId: string; team: 'azure'; expires: number }>();
@@ -108,16 +121,36 @@ export async function buildApp(options: ServerOptions = {}) {
   const probeProvider = createProviderProbe();
   app.decorate('rooms', rooms);
   app.addHook('onRequest', async (req, reply) => {
+    const extensionAsset = req.url.split('?')[0]!.startsWith('/extension/');
+    const extensionApi = req.url.split('?')[0]!.startsWith('/api/extension/');
+    const extensionRequest =
+      extensionApi &&
+      !!extensionOrigin &&
+      (req.headers.origin === extensionOrigin || origins.allows(req.headers.origin));
+    if (extensionRequest) {
+      reply
+        .header('Access-Control-Allow-Origin', req.headers.origin!)
+        .header('Vary', 'Origin')
+        .header('Access-Control-Allow-Headers', 'Authorization, Content-Type')
+        .header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      if (req.method === 'OPTIONS') return reply.code(204).send();
+    }
     reply
       .header('X-Content-Type-Options', 'nosniff')
       .header('Referrer-Policy', 'no-referrer')
       .header(
         'Content-Security-Policy',
-        "default-src 'self'; connect-src 'self' ws: wss:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'self'",
+        extensionAsset
+          ? `default-src 'self'; connect-src 'self' ${webOrigin} ws: wss:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' https://extension-files.twitch.tv; frame-ancestors 'self' https://www.twitch.tv https://dashboard.twitch.tv https://*.ext-twitch.tv`
+          : "default-src 'self'; connect-src 'self' ws: wss:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-src https://www.twitch.tv https://player.twitch.tv; frame-ancestors 'self'",
       );
     if (req.url.startsWith('/api') || req.url.startsWith('/auth'))
       reply.header('Cache-Control', 'no-store');
-    if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !origins.allows(req.headers.origin))
+    if (
+      !['GET', 'HEAD', 'OPTIONS'].includes(req.method) &&
+      !origins.allows(req.headers.origin) &&
+      !extensionRequest
+    )
       return reply.code(403).send({
         error: `Request origin is not allowed. Open ${webOrigin}${production ? '.' : ' or http://localhost:5173.'}`,
       });
@@ -189,6 +222,124 @@ export async function buildApp(options: ServerOptions = {}) {
         .map((r) => ({ id: r.id, mode: r.mode })),
     };
   });
+  const liveChannel = (roomId: string, channelId: string) => {
+    const room = roomById(roomId);
+    const channel = room.channels.find(
+      (c) => c.id === channelId && c.status.startsWith('connected'),
+    );
+    if (room.mode !== 'live' || !channel)
+      throw Object.assign(new Error('This channel has no connected live match.'), {
+        statusCode: 409,
+      });
+    return { room, channel };
+  };
+  const viewerCommand = z
+    .object({ channelId: z.string().regex(/^\d+$/), text: z.string().min(1).max(220) })
+    .strict();
+  app.get('/api/viewer', async (req) => {
+    const session = getSession(req.cookies.pw_session);
+    const viewer = session ? viewers.get(session.id) : undefined;
+    return { login: viewer?.identity.login ?? null };
+  });
+  app.post<{ Params: { id: string } }>('/api/rooms/:id/viewer-command', async (req) => {
+    const session = getSession(req.cookies.pw_session);
+    const viewer = session ? viewers.get(session.id) : undefined;
+    if (!viewer)
+      throw Object.assign(new Error('Sign in with Twitch to deploy units.'), { statusCode: 401 });
+    if (Date.now() - viewer.checkedAt > 300000) {
+      await viewer.identity.validate();
+      viewer.checkedAt = Date.now();
+    }
+    const body = viewerCommand.parse(req.body);
+    const { room, channel } = liveChannel(req.params.id, body.channelId);
+    return {
+      message: room.receive(
+        {
+          broadcaster_user_id: channel.id,
+          chatter_user_id: viewer.identity.userId,
+          chatter_user_name: viewer.identity.login,
+          message_id: `viewer:${randomBytes(16).toString('hex')}`,
+          message: { text: body.text },
+        },
+        'viewer',
+      ),
+    };
+  });
+  app.post('/api/viewer/logout', async (req) => {
+    const session = getSession(req.cookies.pw_session);
+    const viewer = session ? viewers.get(session.id) : undefined;
+    if (session) viewers.delete(session.id);
+    if (viewer) await viewer.identity.revoke().catch(() => {});
+    return { ok: true };
+  });
+  const extensionIdentity = (authorization?: string) => {
+    if (!extension.clientId || !extension.secret)
+      throw Object.assign(new Error('The streamer has not configured the Twitch extension.'), {
+        statusCode: 503,
+      });
+    return verifyExtensionToken(
+      authorization?.startsWith('Bearer ') ? authorization.slice(7) : '',
+      extension.secret,
+    );
+  };
+  app.get('/api/extension/state', async (req) => {
+    const identity = extensionIdentity(req.headers.authorization);
+    const matches = [...rooms.values()].filter(
+      (r) =>
+        r.mode === 'live' &&
+        r.channels.some((c) => c.id === identity.channel_id && c.status.startsWith('connected')),
+    );
+    if (matches.length !== 1)
+      throw Object.assign(new Error('The streamer needs to connect a live match.'), {
+        statusCode: 404,
+      });
+    const { room, channel } = liveChannel(matches[0]!.id, identity.channel_id);
+    const snapshot = room.snapshot();
+    return {
+      roomId: room.id,
+      team: channel.team,
+      phase: snapshot.game.phase,
+      paused: snapshot.paused,
+      energy: snapshot.game.energy[channel.team],
+      commandsEnabled: snapshot.commandsEnabled,
+      linked: !!identity.user_id,
+      catalog: snapshot.game.catalog,
+      proposals: snapshot.proposals,
+      roundPhase: snapshot.roundPhase,
+      feedback: snapshot.commandFeedback.slice(0, 3),
+    };
+  });
+  app.post('/api/extension/command', async (req) => {
+    const identity = extensionIdentity(req.headers.authorization);
+    if (!identity.user_id)
+      throw Object.assign(new Error('Share your Twitch identity to deploy units.'), {
+        statusCode: 403,
+      });
+    const body = z
+      .object({
+        roomId: z.string().uuid(),
+        text: z.string().min(1).max(220),
+        requestId: z.string().uuid(),
+      })
+      .strict()
+      .parse(req.body);
+    const { room, channel } = liveChannel(body.roomId, identity.channel_id);
+    return {
+      message: room.receive(
+        {
+          broadcaster_user_id: channel.id,
+          chatter_user_id: identity.user_id,
+          chatter_user_name: 'Extension viewer',
+          message_id: `extension:${identity.user_id}:${body.requestId}`,
+          message: { text: body.text },
+        },
+        'extension',
+      ),
+    };
+  });
+  app.options('/api/extension/*', async (_req, reply) =>
+    reply.code(403).send({ error: 'Extension origin is not allowed.' }),
+  );
   app.get<{ Params: { id: string } }>(
     '/api/rooms/:id/readiness',
     async (req): Promise<ReadinessReport> => {
@@ -336,6 +487,36 @@ export async function buildApp(options: ServerOptions = {}) {
       url: `${webOrigin}/auth/twitch?invite=${token}&origin=${encodeURIComponent(webOrigin)}`,
     };
   });
+  app.get('/auth/twitch/viewer', async (req, reply) => {
+    const q = z.object({ room: z.string().uuid(), origin: z.string().max(300) }).parse(req.query);
+    if (!origins.allows(q.origin))
+      throw Object.assign(new Error('Twitch authorization origin is not allowed.'), {
+        statusCode: 403,
+      });
+    if (!twitch.clientId || !twitch.clientSecret)
+      return reply.redirect(`/play/${q.room}?error=twitch-not-configured`);
+    const room = roomById(q.room);
+    if (room.mode !== 'live') throw new Error('Use the demo controls for simulated matches.');
+    if (oauth.size >= 2000) throw new Error('Authorization capacity reached.');
+    let session = getSession(req.cookies.pw_session);
+    if (!session) {
+      session = newSession();
+      reply.setCookie('pw_session', session.id, cookieOptions);
+    }
+    const redirectUri = `${q.origin}/auth/twitch/callback`;
+    const state = randomBytes(32).toString('hex');
+    oauth.set(state, {
+      session: session.id,
+      roomId: room.id,
+      team: 'ember',
+      expires: Date.now() + 600000,
+      redirectUri,
+      purpose: 'viewer',
+    });
+    return reply.redirect(
+      `https://id.twitch.tv/oauth2/authorize?${new URLSearchParams({ client_id: twitch.clientId, redirect_uri: redirectUri, response_type: 'code', scope: SCOPES.join(' '), state, force_verify: 'true' })}`,
+    );
+  });
   app.get('/auth/twitch', async (req, reply) => {
     if (!twitch.clientId || !twitch.clientSecret)
       return reply.redirect('/dashboard?error=twitch-not-configured');
@@ -399,7 +580,8 @@ export async function buildApp(options: ServerOptions = {}) {
         .code(400)
         .send({ error: 'OAuth state mismatch or expired. Restart from the dashboard.' });
     }
-    if (q.error || !q.code) return reply.redirect('/dashboard?error=twitch-denied');
+    const destination = pending.purpose === 'viewer' ? `/play/${pending.roomId}` : '/dashboard';
+    if (q.error || !q.code) return reply.redirect(`${destination}?error=twitch-denied`);
     const r = roomById(pending.roomId);
     const identity = new TwitchIdentity({
       ...twitch,
@@ -408,7 +590,13 @@ export async function buildApp(options: ServerOptions = {}) {
     try {
       await identity.exchange(q.code);
     } catch {
-      return reply.redirect('/dashboard?error=twitch-auth-failed');
+      return reply.redirect(`${destination}?error=twitch-auth-failed`);
+    }
+    if (pending.purpose === 'viewer') {
+      const previous = viewers.get(pending.session);
+      if (previous) void previous.identity.revoke().catch(() => {});
+      viewers.set(pending.session, { identity, checkedAt: Date.now() });
+      return reply.redirect(`/play/${r.id}`);
     }
     if (
       [...rooms.values()].some((room) =>
@@ -537,7 +725,11 @@ export async function buildApp(options: ServerOptions = {}) {
         }, 50);
   const cleanup = setInterval(() => {
     const now = Date.now();
-    for (const [id, s] of sessions) if (s.expires < now) sessions.delete(id);
+    for (const [id, s] of sessions)
+      if (s.expires < now) {
+        sessions.delete(id);
+        viewers.delete(id);
+      }
     for (const [id, s] of oauth) if (s.expires < now) oauth.delete(id);
     for (const [id, s] of invites) if (s.expires < now) invites.delete(id);
     for (const [id, r] of rooms)
@@ -552,6 +744,17 @@ export async function buildApp(options: ServerOptions = {}) {
     for (const set of clients.values()) for (const socket of set) socket.ping();
   }, 30000);
   const webRoot = options.webRoot ?? resolve('dist/web');
+  const extensionRoot = resolve('dist/extension');
+  if (existsSync(resolve(extensionRoot, 'viewer.html'))) {
+    await app.register(staticFiles, {
+      root: extensionRoot,
+      prefix: '/extension/',
+      decorateReply: false,
+      cacheControl: false,
+      dotfiles: 'deny',
+      setHeaders: (reply) => reply.header('Cache-Control', 'no-cache'),
+    });
+  }
   if (existsSync(resolve(webRoot, 'index.html'))) {
     await app.register(staticFiles, {
       root: webRoot,
@@ -574,7 +777,7 @@ export async function buildApp(options: ServerOptions = {}) {
     app.setNotFoundHandler((req, reply) => {
       const path = req.url.split('?')[0]!;
       if (
-        /^\/(?:api|auth|ws|assets|art)(?:\/|$)/.test(path) ||
+        /^\/(?:api|auth|ws|assets|art|extension)(?:\/|$)/.test(path) ||
         !['GET', 'HEAD'].includes(req.method)
       )
         return reply.code(404).header('Cache-Control', 'no-store').send({ error: 'Not found' });
