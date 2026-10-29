@@ -1,13 +1,21 @@
 .live-experience {
+  --chat-width: 296px;
+  --chat-space: 324px;
   height: 100dvh;
-  min-height: 560px;
+  min-height: 480px;
   display: flex;
   flex-direction: column;
-  background: #0d1718;
-  color: #edf0e8;
+  background: #101c19;
+  color: #f3eddb;
   overflow: hidden;
   font-family: Arial, sans-serif;
   color-scheme: dark;
+}
+.live-experience.chat-hidden {
+  --chat-space: 0px;
+}
+.live-experience [hidden] {
+  display: none !important;
 }
 .live-experience a {
   color: inherit;
@@ -22,107 +30,108 @@
   cursor: pointer;
 }
 .live-experience button:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 .live-experience :focus-visible {
-  outline: 2px solid #e7bd6c;
+  outline: 2px solid #f0ca7c;
   outline-offset: 3px;
 }
 .live-header {
-  height: 56px;
+  height: 46px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 22px;
-  padding: 0 24px;
-  border-bottom: 1px solid #32413e;
-  background: #101f1e;
+  gap: 20px;
+  padding: 0 18px;
+  border-bottom: 1px solid #445345;
+  background: #101b18;
 }
 .live-brand {
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 800;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.4px;
 }
 .live-brand span {
   font-weight: 400;
-  color: #b5c5bd;
+  color: #c0cbbb;
 }
 .live-badge {
-  font-size: 10px;
+  font-size: 9px;
   letter-spacing: 1px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 .live-badge i {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #92c9a7;
+  background: #9ad0ae;
 }
 .live-badge.demo {
-  color: #e4bf7c;
+  color: #e9c585;
 }
 .live-header-actions {
   margin-left: auto;
   display: flex;
-  gap: 18px;
+  gap: 14px;
   align-items: center;
-  font-size: 12px;
+  font-size: 11px;
 }
-.live-header button,
-.live-chat-placeholder button,
-.live-login {
-  border: 1px solid #64766a;
-  background: #243b32;
-  color: #f4eedb;
-  border-radius: 6px;
-  padding: 9px 13px;
+.live-header button {
+  border: 1px solid #59654c;
+  background: #26372b;
+  color: #f6ecd4;
+  border-radius: 5px;
+  padding: 6px 10px;
 }
 .live-columns {
+  position: relative;
   flex: 1;
   min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  isolation: isolate;
 }
-.live-battle-column {
+.live-battle-column,
+.live-battle {
+  position: absolute;
+  inset: 0;
   min-width: 0;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
 }
 .live-battle {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-  background: #142823;
+  background: #18271e url('/art/fracture-arena.webp') center/cover no-repeat;
 }
-.live-battle .battle-layout {
-  display: block;
-  height: 100%;
-  margin: 0;
+.live-battle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #0c201a7a;
+  backdrop-filter: blur(12px);
 }
-.live-battle .battle-main {
-  height: 100%;
-  display: block;
-}
+.live-battle .battle-layout,
+.live-battle .battle-main,
 .live-battle .battle-stage {
+  position: absolute;
+  inset: 0;
+  display: block;
   height: 100%;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+  margin: 0;
   border: 0;
   border-radius: 0;
-  background: #142823;
+  background: transparent;
   overflow: hidden;
 }
 .live-battle .arena-wrap {
-  flex: 1;
+  position: absolute;
+  inset: 0 var(--chat-space) 0 0;
   min-height: 0;
   aspect-ratio: auto;
-  overflow: hidden;
   border: 0;
   border-radius: 0;
+  overflow: hidden;
+  background: transparent;
 }
 .live-battle .arena-canvas {
   position: absolute;
@@ -137,75 +146,149 @@
   object-fit: contain;
 }
 .live-battle .scoreboard {
-  background: #142823;
-  color: #f5edda;
-  flex-shrink: 0;
-  padding: 10px 24px;
-  min-height: 86px;
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  right: calc(var(--chat-space) + 16px);
+  z-index: 4;
+  min-height: 82px;
+  padding: 12px 18px;
+  background: #12241de8;
+  color: #f4e9cf;
+  border: 1px solid #8b906353;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px #0003;
+  backdrop-filter: blur(8px);
 }
 .live-battle .team-detail h2 {
-  color: #f5edda;
-  font-size: 28px;
+  font-size: 27px;
+  color: #fff0d1;
+  margin-bottom: 6px;
+}
+.live-battle .team-detail small,
+.live-battle .base-label {
+  color: #b9c9ba;
+  font-size: 8px;
+}
+.live-battle .team-emblem {
+  width: 24px;
+}
+.live-battle .match-clock {
+  top: 10px;
 }
 .live-battle .match-clock strong {
-  color: #f5edda;
+  color: #f7eacb;
   font-size: 28px;
 }
-.live-battle .arena-bottom {
-  flex-shrink: 0;
-  background: #142823;
-  color: #c3d1c7;
-  padding: 9px 20px;
-  font-size: 9px;
+.live-battle .match-clock small {
+  font-size: 7px;
 }
 .live-battle .broadcast-controls {
-  background: #142823;
-  color: #c3d1c7;
-  padding: 5px 16px;
-  flex-shrink: 0;
+  position: absolute;
+  top: 108px;
+  left: 16px;
+  z-index: 4;
+  display: flex;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #e4dec9;
 }
-.live-battle .broadcast-controls small {
+.live-battle .broadcast-controls small,
+.live-battle .broadcast-controls > span {
   display: none;
 }
 .live-battle .broadcast-controls button {
-  color: #e3e9de;
-  border-color: #526259;
-  background: #223a30;
   min-height: 30px;
-  padding: 4px 10px;
-  font-size: 11px;
+  padding: 5px 9px;
+  border: 1px solid #74836b85;
+  border-radius: 5px;
+  background: #14251ee8;
+  color: #f0e5c8;
+  font-size: 10px;
+}
+.live-battle .arena-location {
+  top: 158px;
+  left: 16px;
+  font-size: 8px;
+  background: #12241dc9;
+}
+.live-battle .arena-bottom {
+  position: absolute;
+  bottom: 183px;
+  left: 18px;
+  right: calc(var(--chat-space) + 18px);
+  z-index: 3;
+  display: flex;
+  gap: 15px;
+  justify-content: flex-start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #e1ebda;
+  font-size: 8px;
+  text-shadow: 0 1px 3px #000;
+}
+.live-battle .arena-bottom > span:last-child {
+  display: none;
+}
+.live-battle .command-feedback {
+  top: 146px;
+  max-width: 420px;
+  width: calc(100% - 60px);
+  z-index: 3;
+}
+.live-battle .command-feedback:has(strong) {
+  padding: 8px 14px;
+  background: #14251ee8;
+}
+.live-battle .command-feedback strong {
+  font-size: 12px;
+}
+.live-battle .command-feedback small {
+  font-size: 8px;
 }
 .deployment-dock {
-  flex-shrink: 0;
-  border-top: 1px solid #536147;
-  background: #172720;
-  padding: 9px 20px 7px;
+  position: absolute;
+  left: 16px;
+  right: auto;
+  bottom: 16px;
+  z-index: 5;
+  width: max-content;
+  max-width: calc(100% - var(--chat-space) - 32px);
+  padding: 10px 12px 8px;
+  border: 1px solid #a4a07280;
+  border-radius: 12px;
+  background: #14251ee8;
+  box-shadow: 0 8px 25px #0005;
+  backdrop-filter: blur(10px);
 }
 .deployment-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 7px;
+  margin-bottom: 6px;
 }
 .deployment-heading .eyebrow {
-  font-size: 9px;
-  color: #d6b579;
+  font-size: 8px;
   letter-spacing: 1.6px;
+  color: #d9bd80;
 }
 .deployment-heading h2 {
   font:
-    22px Georgia,
+    15px Georgia,
     serif;
-  color: #f7edda;
-  margin: 4px 0 0;
+  margin: 2px 0 0;
+  color: #f7eacb;
 }
 .deployment-account {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 11px;
-  color: #c8d1c5;
+  gap: 10px;
+  font-size: 10px;
+  color: #c4cbb9;
 }
 .deployment-account label {
   display: flex;
@@ -213,434 +296,681 @@
   gap: 6px;
 }
 .deployment-account select {
-  background: #263d31;
-  color: #f1e9d4;
-  border: 1px solid #586851;
+  min-height: 26px;
+  height: 26px;
+  padding: 4px 6px;
+  border: 1px solid #6b795a;
   border-radius: 4px;
-  padding: 6px;
+  background: #24392b;
+  color: #f5e7c7;
+  font-size: 10px;
 }
 .deployment-account button {
-  background: none;
+  padding: 0;
   border: 0;
-  color: #ddc48f;
+  background: none;
   text-decoration: underline;
+  color: #e7cb8e;
+  font-size: 10px;
 }
 .deployment-account strong {
-  font-size: 20px;
+  font-size: 18px;
   white-space: nowrap;
 }
 .deployment-account small {
-  font-size: 9px;
+  font-size: 8px;
+}
+.live-login {
+  padding: 6px 9px;
+  border: 1px solid #a6a16f;
+  border-radius: 5px;
+  background: #3c482d;
+  color: #fff1ca;
+  font-size: 10px;
 }
 .deployment-units {
   display: flex;
-  gap: 9px;
+  gap: 10px;
   overflow-x: auto;
-  padding: 2px 2px 7px;
+  padding: 3px 2px 5px;
+  scrollbar-width: thin;
 }
 .deployment-card {
   position: relative;
-  flex: 1 0 106px;
-  min-height: 88px;
+  flex: 0 0 78px;
+  min-height: 83px;
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
   flex-direction: column;
-  border: 1px solid #56664f;
-  border-radius: 7px;
-  background: linear-gradient(160deg, #314b37, #24382d);
-  color: #f7efd9;
-  padding: 8px;
-  isolation: isolate;
+  align-items: center;
+  padding: 5px 3px;
+  border: 1px solid #7e8860;
+  border-radius: 9px;
+  background: linear-gradient(#344632e8, #233326ed);
+  color: #fff0cd;
 }
 .deployment-card:hover:not(:disabled) {
-  border-color: #e4c181;
-  background: #3d543b;
+  border-color: #f3d08b;
+  box-shadow: 0 0 0 1px #ebc577;
+  transform: translateY(-2px);
 }
 .deployment-card .unit-portrait {
-  position: absolute;
-  width: 70px;
-  height: 54px;
-  top: -3px;
-  left: calc(50% - 35px);
-  z-index: -1;
+  position: relative;
+  display: block;
+  width: 56px;
+  height: 48px;
+  background-color: #14251e;
+  border: 1px solid #7d8a62;
+  border-radius: 50%;
+  background-size: 300% 200%;
 }
 .deployment-card > span:last-child {
   display: flex;
   flex-direction: column;
-  width: 100%;
-  margin-top: 42px;
-  gap: 3px;
+  align-items: center;
+  gap: 2px;
+  margin-top: 3px;
 }
 .deployment-card small {
   text-transform: uppercase;
-  color: #b9c8b6;
-  font-size: 8px;
-  letter-spacing: 1px;
+  font-size: 7px;
+  letter-spacing: 0.8px;
+  color: #b8c7a7;
 }
 .deployment-card strong {
-  font-family: Georgia, serif;
-  font-size: 16px;
+  font:
+    12px Georgia,
+    serif;
 }
 .deployment-cost {
   position: absolute;
-  top: 6px;
-  right: 7px;
-  font-size: 10px;
-  padding: 4px;
-  background: #12241fe8;
-  border: 1px solid #6f7957;
-  border-radius: 4px;
+  top: 1px;
+  right: 1px;
+  z-index: 1;
+  font-size: 9px;
+  padding: 3px 4px;
+  border: 1px solid #aaa16d;
+  border-radius: 5px;
+  background: #1a2819;
+  color: #f4d78a;
 }
 .deployment-status {
-  min-height: 21px;
-  padding-top: 3px;
-  font-size: 11px;
-  color: #d6c696;
+  min-height: 16px;
+  margin-top: 4px;
+  color: #ddc994;
+  font-size: 10px;
+  line-height: 1.4;
 }
 .live-community {
-  border-left: 1px solid #35443c;
-  background: #111f1d;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  bottom: 16px;
+  width: var(--chat-width);
+  z-index: 6;
   display: flex;
   flex-direction: column;
-  min-height: 0;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid #8b90636b;
+  border-radius: 10px;
+  background: #11211ef0;
+  box-shadow: 0 8px 24px #0005;
+  backdrop-filter: blur(10px);
 }
 .live-community-tabs {
   display: flex;
-  height: 52px;
+  height: 43px;
   flex-shrink: 0;
-  border-bottom: 1px solid #35443c;
+  border-bottom: 1px solid #52604480;
 }
 .live-community-tabs button {
   flex: 1;
+  padding: 5px;
   border: 0;
   border-bottom: 2px solid transparent;
   background: none;
-  color: #adbbb2;
-  font-size: 12px;
+  color: #c4cdbd;
+  font-size: 11px;
 }
 .live-community-tabs button[aria-pressed='true'] {
-  border-bottom-color: #d8bb81;
-  color: #f2e9d4;
+  border-bottom-color: #e4c382;
+  color: #fff1ce;
 }
 .live-community-tabs span {
-  font-size: 10px;
+  font-size: 9px;
   padding: 2px 4px;
   border-radius: 3px;
-  background: #2c4233;
+  background: #3d5034;
 }
 .live-chat-heading {
-  padding: 15px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
-  font-size: 12px;
-  border-bottom: 1px solid #2e3e35;
+  padding: 11px 14px;
+  border-bottom: 1px solid #43513a66;
+  font-size: 11px;
 }
 .live-chat-heading a {
   font-size: 10px;
-  color: #dbc18b;
+  color: #e4c382;
 }
 .twitch-chat-shell {
-  flex: 1;
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-height: 0;
 }
 .twitch-chat-shell iframe {
   width: 100%;
   flex: 1;
-  min-height: 240px;
+  min-height: 80px;
   border: 0;
+  background: #18181b;
 }
 .chat-fallback {
-  padding: 8px 14px;
-  font-size: 10px;
-  color: #9eafa4;
   margin: 0;
+  padding: 6px 10px;
+  color: #b8c5ac;
+  font-size: 9px;
+  line-height: 1.5;
+}
+.chat-fallback button {
+  border: 0;
+  background: none;
+  color: #e4c382;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 9px;
 }
 .live-chat-placeholder {
   flex: 1;
+  padding: 22px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  padding: 28px;
 }
 .live-chat-placeholder > span {
-  font-size: 9px;
-  color: #cab27c;
-  letter-spacing: 1.5px;
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: #d0b980;
 }
 .live-chat-placeholder h2,
 .live-forge h2 {
   font:
-    28px/1.2 Georgia,
+    24px/1.2 Georgia,
     serif;
-  color: #f1e7d2;
-  margin: 13px 0;
+  color: #f2e4c5;
+  margin: 12px 0;
 }
 .live-chat-placeholder p,
 .live-forge > p {
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.7;
-  color: #aebeb2;
+  color: #b8c5ac;
+}
+.live-chat-placeholder button {
+  padding: 8px 11px;
+  border: 1px solid #859567;
+  border-radius: 5px;
+  background: #32472f;
+  color: #f7e3af;
 }
 .live-activity {
   flex: 1;
-  min-height: 100px;
+  min-height: 0;
   overflow: auto;
-  padding: 10px 16px;
+  padding: 8px 13px;
 }
 .live-activity > p {
   display: flex;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid #2d3c32;
-  font-size: 12px;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid #61704940;
+  font-size: 11px;
   line-height: 1.6;
 }
 .live-activity small {
   color: #aebeaa;
 }
 .live-activity .live-simulation-note {
-  color: #d4bd8b;
-  font-size: 11px;
+  font-size: 10px;
+  color: #d9c28c;
 }
 .live-command-form {
-  padding: 15px;
-  border-top: 1px solid #35443c;
+  flex-shrink: 0;
+  padding: 10px 12px;
+  border-top: 1px solid #61704966;
 }
 .live-command-form label {
-  font-size: 11px;
-  color: #d4c8a4;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  font-size: 10px;
+  color: #e3cea0;
 }
 .live-command-form > div {
   display: flex;
   gap: 6px;
 }
 .live-command-form input {
-  min-width: 0;
   width: 100%;
-  background: #0c1815;
-  border: 1px solid #465943;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid #697751;
   border-radius: 5px;
-  padding: 11px;
-  color: #f0eed9;
-  font-size: 12px;
+  background: #0c1914;
+  color: #f9eccb;
+  font-size: 11px;
 }
 .live-command-form button,
 .live-proposal button {
-  border: 1px solid #66734d;
-  background: #33482e;
-  color: #f4e5b9;
+  padding: 7px 9px;
+  border: 1px solid #a79e69;
   border-radius: 5px;
-  padding: 8px;
+  background: #3f4e2e;
+  color: #fff0c3;
   font-size: 11px;
 }
 .live-command-form small {
   display: block;
-  font-size: 10px;
-  line-height: 1.6;
-  margin-top: 8px;
-  color: #a7b4a4;
+  margin-top: 6px;
+  color: #aeba9d;
+  font-size: 9px;
+  line-height: 1.5;
 }
 .live-forge {
-  padding: 24px 18px;
   flex: 1;
   min-height: 0;
   overflow: auto;
+  padding: 18px 14px;
+}
+.live-forge .eyebrow {
+  font-size: 9px;
+  color: #d6b77b;
 }
 .live-forge-phase {
   display: inline-block;
-  text-transform: uppercase;
-  color: #d8bd86;
-  background: #293c2f;
-  border: 1px solid #536142;
-  padding: 6px 10px;
-  font-size: 10px;
+  padding: 5px 8px;
+  border: 1px solid #8a8e57;
   border-radius: 4px;
+  background: #35432b;
+  color: #efcf86;
+  text-transform: uppercase;
+  font-size: 9px;
 }
 .live-proposal {
-  border-top: 1px solid #394b3b;
   padding: 12px 0;
-  font-size: 12px;
+  border-top: 1px solid #61704966;
+  font-size: 11px;
   line-height: 1.6;
 }
 .live-proposal p {
   margin: 0 0 8px;
 }
 .live-forge-empty {
-  padding-top: 20px;
+  padding-top: 15px;
 }
 @media (min-width: 1700px) {
-  .live-columns {
-    grid-template-columns: minmax(0, 1fr) 360px;
+  .live-experience {
+    --chat-width: 320px;
+    --chat-space: 350px;
+  }
+  .deployment-dock {
+    max-width: calc(100% - var(--chat-space) - 32px);
   }
   .deployment-card {
-    flex-basis: 145px;
+    flex-basis: 88px;
+    min-height: 94px;
   }
-}
-@media (max-width: 1000px) {
-  .live-columns {
-    grid-template-columns: minmax(0, 1fr) 280px;
-  }
-  .live-header {
-    padding: 0 14px;
-    gap: 12px;
-  }
-  .deployment-heading {
-    align-items: flex-start;
-  }
-  .deployment-account {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    max-width: 230px;
-  }
-  .deployment-card {
-    flex-basis: 110px;
-  }
-  .deployment-heading h2 {
-    font-size: 20px;
+  .deployment-card .unit-portrait {
+    width: 66px;
+    height: 58px;
   }
   .live-battle .scoreboard {
-    padding: 12px 15px;
+    top: 20px;
+  }
+}
+@media (max-width: 900px) and (min-width: 701px) {
+  .live-experience {
+    --chat-width: 254px;
+    --chat-space: 280px;
+  }
+  .live-header {
+    padding: 0 12px;
+    gap: 12px;
+  }
+  .live-header-actions {
+    gap: 8px;
   }
   .live-battle .team-emblem {
     display: none;
   }
-}
-@media (max-width: 700px) {
-  .live-experience {
-    height: auto;
-    min-height: 100dvh;
-    overflow: visible;
-  }
-  .live-header {
-    height: auto;
-    min-height: 62px;
-    padding: 12px;
+  .deployment-account {
+    gap: 6px;
     flex-wrap: wrap;
-    gap: 8px;
+    justify-content: flex-end;
+    max-width: 260px;
   }
-  .live-brand {
-    font-size: 18px;
+  .deployment-card {
+    flex-basis: 68px;
   }
-  .live-badge {
-    font-size: 8px;
-  }
-  .live-header-actions {
-    gap: 10px;
-    font-size: 11px;
-  }
-  .live-columns {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-  .live-battle-column {
-    min-height: 0;
-  }
-  .live-battle {
-    height: 420px;
-    flex: none;
-  }
-  .live-battle .scoreboard {
-    min-height: 85px;
+  .deployment-card .unit-portrait {
+    width: 48px;
+    height: 44px;
   }
   .live-battle .team-detail h2 {
     font-size: 22px;
   }
-  .live-battle .match-clock strong {
-    font-size: 24px;
-  }
-  .live-battle .arena-bottom {
-    font-size: 8px;
-    padding: 8px;
-  }
-  .live-battle .arena-bottom > span:last-child {
-    display: none;
-  }
-  .deployment-dock {
-    padding: 12px;
-  }
-  .deployment-account {
-    max-width: 200px;
-    font-size: 10px;
-  }
-  .deployment-account strong {
-    font-size: 16px;
-  }
-  .deployment-account small {
-    font-size: 8px;
-  }
-  .deployment-card {
-    flex-basis: 106px;
-  }
-  .live-community {
-    border-left: 0;
-    border-top: 1px solid #4f5a43;
-    min-height: 450px;
-  }
-  .twitch-chat-shell iframe {
-    height: 400px;
-    flex: auto;
-  }
-  .live-activity {
-    max-height: 320px;
-  }
-  .live-forge {
-    max-height: 400px;
-  }
-  .live-experience:fullscreen {
-    height: 100dvh;
-    overflow: auto;
-  }
 }
-@media (max-height: 600px) and (min-width: 701px) {
+@media (max-width: 700px) {
   .live-experience {
-    min-height: 400px;
+    --chat-space: 0px;
+    --mobile-chat: clamp(190px, 28dvh, 250px);
+    min-height: 560px;
   }
   .live-header {
-    height: 44px;
+    height: 66px;
+    padding: 7px 10px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 5px 9px;
+  }
+  .live-brand {
+    font-size: 14px;
+  }
+  .live-badge {
+    justify-self: end;
+    font-size: 7px;
+    letter-spacing: 0.3px;
+  }
+  .live-header-actions {
+    grid-column: 1/-1;
+    justify-self: end;
+    gap: 12px;
+    font-size: 10px;
+  }
+  .live-header button {
+    padding: 4px 8px;
+  }
+  .live-battle .arena-wrap {
+    bottom: var(--mobile-chat);
+  }
+  .live-experience.chat-hidden .arena-wrap {
+    bottom: 0;
   }
   .live-battle .scoreboard {
-    min-height: 65px;
-    padding: 6px 18px;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    min-height: 66px;
+    padding: 9px 10px;
   }
-  .live-battle .team-detail h2,
-  .live-battle .match-clock strong {
-    font-size: 23px;
-  }
-  .live-battle .team-detail small,
+  .live-battle .team-emblem,
   .live-battle .base-label {
     display: none;
   }
+  .live-battle .team-detail h2 {
+    font-size: 21px;
+  }
+  .live-battle .team-detail small {
+    font-size: 7px;
+  }
+  .live-battle .match-clock {
+    top: 8px;
+  }
+  .live-battle .match-clock strong {
+    font-size: 23px;
+  }
+  .live-battle .match-clock span,
+  .live-battle .match-clock small {
+    font-size: 6px;
+  }
+  .live-battle .broadcast-controls {
+    top: 82px;
+    left: 8px;
+  }
+  .live-battle .broadcast-controls button {
+    min-height: 27px;
+    font-size: 9px;
+    padding: 4px 7px;
+  }
+  .live-battle .arena-location {
+    display: none;
+  }
+  .live-battle .arena-bottom {
+    display: none;
+  }
   .deployment-dock {
-    padding: 6px 14px;
+    bottom: calc(var(--mobile-chat) + 8px);
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-width: none;
+    padding: 7px 9px;
+    border-radius: 9px;
+  }
+  .live-experience.chat-hidden .deployment-dock {
+    bottom: 10px;
   }
   .deployment-heading {
+    gap: 6px;
     margin-bottom: 4px;
   }
   .deployment-heading .eyebrow {
     display: none;
   }
   .deployment-heading h2 {
-    font-size: 18px;
+    font-size: 13px;
+  }
+  .deployment-account {
+    max-width: 240px;
+    gap: 5px;
+    font-size: 9px;
+  }
+  .deployment-account label {
+    gap: 4px;
+  }
+  .deployment-account select {
+    font-size: 9px;
+    padding: 3px;
+  }
+  .deployment-account strong {
+    font-size: 14px;
+  }
+  .deployment-account small {
+    font-size: 7px;
+  }
+  .deployment-account > span {
+    display: none;
+  }
+  .live-login {
+    padding: 5px;
+    font-size: 9px;
+  }
+  .deployment-units {
+    gap: 7px;
   }
   .deployment-card {
-    min-height: 83px;
+    flex-basis: 63px;
+    min-height: 72px;
+    border-radius: 7px;
+    padding: 3px;
   }
   .deployment-card .unit-portrait {
-    height: 56px;
+    width: 44px;
+    height: 39px;
   }
-  .deployment-card > span:last-child {
-    margin-top: 44px;
+  .deployment-card strong {
+    font-size: 11px;
+  }
+  .deployment-card small {
+    font-size: 6px;
+  }
+  .deployment-cost {
+    font-size: 8px;
+    padding: 2px;
+  }
+  .deployment-status {
+    font-size: 9px;
+    min-height: 13px;
+    line-height: 1.4;
+  }
+  .live-community {
+    top: auto;
+    right: 8px;
+    left: 8px;
+    bottom: 8px;
+    width: auto;
+    height: calc(var(--mobile-chat) - 16px);
+    border-radius: 8px;
+  }
+  .live-community-tabs {
+    height: 31px;
+  }
+  .live-community-tabs button {
+    font-size: 10px;
+  }
+  .live-chat-heading {
+    padding: 7px 10px;
+    font-size: 10px;
+  }
+  .live-command-form {
+    padding: 6px 9px;
+  }
+  .live-command-form label {
+    display: none;
+  }
+  .live-command-form small {
+    font-size: 8px;
+    margin-top: 3px;
+  }
+  .live-command-form input {
+    padding: 6px;
+    font-size: 10px;
+  }
+  .live-command-form button {
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+  .live-activity {
+    padding: 5px 10px;
+  }
+  .live-activity > p {
+    font-size: 10px;
+    padding: 6px 0;
+  }
+  .live-activity .live-simulation-note {
+    font-size: 9px;
+  }
+  .live-forge {
+    padding: 10px;
+  }
+  .live-forge h2 {
+    font-size: 20px;
+    margin: 6px 0;
+  }
+  .live-forge > p {
+    font-size: 10px;
+    margin: 6px 0;
+  }
+  .live-battle .command-feedback {
+    top: 113px;
+  }
+  .live-battle .command-feedback strong {
+    font-size: 11px;
+  }
+  .live-battle .command-feedback small {
+    font-size: 7px;
+  }
+  .chat-fallback {
+    font-size: 8px;
+    padding: 3px 7px;
+  }
+}
+@media (max-height: 520px) and (min-width: 701px) {
+  .live-experience {
+    min-height: 320px;
+    --chat-width: 250px;
+    --chat-space: 278px;
+  }
+  .live-header {
+    height: 36px;
+  }
+  .live-battle .scoreboard {
+    top: 7px;
+    min-height: 63px;
+    padding: 6px 12px;
+  }
+  .live-battle .team-detail h2,
+  .live-battle .match-clock strong {
+    font-size: 22px;
+  }
+  .live-battle .team-detail small,
+  .live-battle .base-label,
+  .live-battle .team-emblem {
+    display: none;
+  }
+  .live-battle .broadcast-controls {
+    top: 80px;
+  }
+  .live-battle .arena-location,
+  .live-battle .arena-bottom {
+    display: none;
+  }
+  .deployment-dock {
+    bottom: 8px;
+    padding: 6px 9px;
+  }
+  .deployment-heading .eyebrow {
+    display: none;
+  }
+  .deployment-heading h2 {
+    font-size: 13px;
+  }
+  .deployment-card {
+    flex-basis: 62px;
+    min-height: 65px;
+    padding: 3px;
+  }
+  .deployment-card .unit-portrait {
+    height: 34px;
+    width: 42px;
   }
   .deployment-card small {
     display: none;
+  }
+  .deployment-card strong {
+    font-size: 11px;
+  }
+  .deployment-units {
+    padding-bottom: 2px;
+  }
+  .deployment-status {
+    font-size: 9px;
+    min-height: 12px;
+  }
+  .live-community {
+    top: 7px;
+    bottom: 8px;
+  }
+  .live-battle .command-feedback {
+    top: 110px;
+  }
+  .live-chat-heading {
+    padding: 8px;
+  }
+  .live-command-form {
+    padding: 7px 9px;
+  }
+  .live-command-form small {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .deployment-card:hover:not(:disabled) {
+    transform: none;
   }
 }

@@ -15,6 +15,7 @@ export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNo
   const [cooldown, setCooldown] = useState(false);
   const [tab, setTab] = useState<'chat' | 'forge'>('chat');
   const [embed, setEmbed] = useState(false);
+  const [communityOpen, setCommunityOpen] = useState(true);
   const channels = s.channels.filter((c) => c.status.startsWith('connected'));
   const channel = channels.find((c) => c.id === channelId) ?? channels[0];
   const currentTeam = s.mode === 'demo' ? team : (channel?.team ?? 'ember');
@@ -30,8 +31,8 @@ export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNo
     return () => clearTimeout(timer);
   }, [cooldown]);
   useEffect(() => {
-    setEmbed(false);
-  }, [channel?.id]);
+    setEmbed(s.mode === 'live' && !!channel?.id);
+  }, [channel?.id, s.mode]);
   async function send(command: string) {
     if (busy || cooldown) return;
     setBusy(true);
@@ -69,7 +70,10 @@ export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNo
   }
   const canSend = s.mode === 'demo' || !!login;
   return (
-    <main className="live-experience" ref={root}>
+    <main
+      className={`live-experience stream-stage${communityOpen ? '' : ' chat-hidden'}`}
+      ref={root}
+    >
       <header className="live-header">
         <Link to="/" className="live-brand">
           PATCH <span>WARS</span>
@@ -80,6 +84,13 @@ export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNo
         </span>
         <div className="live-header-actions">
           <Link to={`/spectate/${s.roomId}`}>Match details</Link>
+          <button
+            aria-expanded={communityOpen}
+            aria-controls="stream-community"
+            onClick={() => setCommunityOpen((open) => !open)}
+          >
+            {communityOpen ? 'Hide chat' : 'Show chat'}
+          </button>
           <button onClick={() => void fullscreen()}>Fullscreen</button>
         </div>
       </header>
@@ -89,8 +100,8 @@ export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNo
           <section className="deployment-dock" aria-label="Deploy units">
             <div className="deployment-heading">
               <div>
-                <span className="eyebrow">YOUR NEXT MOVE</span>
-                <h2>Deploy your army</h2>
+                <span className="eyebrow">REINFORCEMENTS</span>
+                <h2>Choose a soldier</h2>
               </div>
               <div className="deployment-account">
                 {s.mode === 'demo' ? (
@@ -154,6 +165,7 @@ export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNo
                   key={b.id}
                   className={`deployment-card role-${b.archetype}`}
                   aria-label={`Deploy ${b.name}`}
+                  title={`${b.name} · ${b.archetype} · ${b.stats.spawnCost} team energy`}
                   disabled={
                     !canSend ||
                     (s.mode === 'live' && !channel) ||
@@ -189,7 +201,12 @@ export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNo
             </div>
           </section>
         </section>
-        <aside className="live-community" aria-label="Community chat and Forge">
+        <aside
+          id="stream-community"
+          className="live-community"
+          aria-label="Community chat and Forge"
+          hidden={!communityOpen}
+        >
           <div className="live-community-tabs">
             <button aria-pressed={tab === 'chat'} onClick={() => setTab('chat')}>
               Stream chat
@@ -237,7 +254,8 @@ export function LiveExperience({ s, children }: { s: Snapshot; children: ReactNo
                     </div>
                   )}
                   <p className="chat-fallback">
-                    If embedded chat is blocked by your browser, use Open chat above.
+                    Chat blocked? Use Open chat above.{' '}
+                    {embed && <button onClick={() => setEmbed(false)}>Unload chat</button>}
                   </p>
                 </div>
               ) : (

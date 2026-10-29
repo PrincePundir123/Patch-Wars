@@ -643,7 +643,7 @@ type Me = {
   provider: string;
   rooms: { id: string; mode: string }[];
 };
-function Dashboard({ demo = false }: { demo?: boolean }) {
+function Dashboard({ demo = false, stream = false }: { demo?: boolean; stream?: boolean }) {
   const [params, setParams] = useSearchParams();
   const id = params.get('room') ?? undefined;
   useRoom(id);
@@ -677,6 +677,7 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
       const r = await api<{ id: string }>('/api/rooms', { mode });
       setParams({ room: r.id });
       if (mode === 'demo') await api(`/api/rooms/${r.id}/control`, { action: 'start' });
+      if (stream && mode === 'demo') navigate(`/play/${r.id}`, { replace: true });
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -1187,6 +1188,7 @@ export function App() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/demo" element={<Dashboard demo />} />
+      <Route path="/stream-demo" element={<Dashboard key="stream-demo" demo stream />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/spectate/:id" element={<MatchPage />} />
       <Route path="/play/:id" element={<MatchPage play />} />

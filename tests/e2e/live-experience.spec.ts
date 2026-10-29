@@ -5,10 +5,9 @@ test('live arena deploys through the existing demo command handler and fits desk
   page,
 }) => {
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page.goto('/demo');
-  await expect(page.locator('canvas')).toBeVisible();
-  const room = new URL(page.url()).searchParams.get('room')!;
-  await page.goto(`/play/${room}`);
+  await page.goto('/stream-demo');
+  await expect(page).toHaveURL(/\/play\/[0-9a-f-]+$/);
+  const room = new URL(page.url()).pathname.split('/').at(-1)!;
   await expect(page.locator('.live-experience canvas')).toBeVisible();
   await expect(page.getByText('SIMULATED REPLAY · FIXTURE FORGE', { exact: true })).toBeVisible();
   const before = await (await page.request.get(`/api/rooms/${room}`)).json();
@@ -32,12 +31,27 @@ test('live arena deploys through the existing demo command handler and fits desk
   ).toBeVisible();
   await page.getByRole('button', { name: 'Stream chat', exact: true }).click();
   await expect(page.locator('.live-activity')).toContainText('Archer deployed.');
+  const stage = await page.locator('.live-battle').boundingBox();
   const dock = await page.locator('.deployment-dock').boundingBox();
+  expect(stage!.height).toBeGreaterThan(700);
+  expect(dock!.y).toBeGreaterThan(stage!.y);
   expect(dock!.y + dock!.height).toBeLessThanOrEqual(769);
+  await page.locator('canvas').evaluate((node) => {
+    node.dataset.retained = 'yes';
+  });
+  await page.getByRole('button', { name: 'Hide chat', exact: true }).click();
+  await expect(page.locator('.live-community')).toBeHidden();
+  await page.getByRole('button', { name: 'Show chat', exact: true }).click();
+  await expect(page.locator('.live-community')).toBeVisible();
+  await expect(page.locator('canvas')).toHaveAttribute('data-retained', 'yes');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'docs/screenshots/live-arena-desktop.png' });
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  const mobileDock = await page.locator('.deployment-dock').boundingBox();
+  const mobileChat = await page.locator('.live-community').boundingBox();
+  expect(mobileDock!.y + mobileDock!.height).toBeLessThanOrEqual(mobileChat!.y + 1);
+  expect(mobileChat!.y + mobileChat!.height).toBeLessThanOrEqual(844);
   await page.screenshot({ path: 'docs/screenshots/live-arena-mobile.png', fullPage: true });
 });
 
@@ -70,11 +84,14 @@ test('live arena keeps Twitch sign-in and channel chat separate from operator pe
     new RegExp(`/auth/twitch/viewer\\?room=${room}&origin=`),
   );
   await expect(page.getByRole('button', { name: 'Deploy Archer', exact: true })).toBeDisabled();
-  await page.getByRole('button', { name: 'Load Twitch chat', exact: true }).click();
   await expect(page.getByTitle('testchannel Twitch chat')).toHaveAttribute(
     'src',
     /parent=localhost/,
   );
+  await page.getByRole('button', { name: 'Unload chat', exact: true }).click();
+  await expect(page.getByTitle('testchannel Twitch chat')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Load Twitch chat', exact: true }).click();
+  await expect(page.getByTitle('testchannel Twitch chat')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Open chat', exact: false })).toHaveAttribute(
     'href',
     'https://www.twitch.tv/popout/testchannel/chat',
