@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, type FormEvent } from 'react';
 import { Link, Routes, Route, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Arena, UnitIcon } from './Arena.js';
+import { CommandFeedback } from './CommandFeedback.js';
 import { api, useBattle } from './store.js';
 import { STARTERS } from '../../../packages/game-core/src/index.js';
 import type { Snapshot, Team } from '../../../packages/shared/src/index.js';
@@ -401,7 +402,8 @@ function BattleView({ s, overlay = false }: { s: Snapshot; overlay?: boolean }) 
         <section className="battle-stage">
           <Scoreboard s={s} />
           <div className="arena-wrap">
-            <Arena game={s.game} transparent={transparent} />
+            <Arena game={s.game} transparent={transparent} feedback={s.commandFeedback} />
+            <CommandFeedback s={s} />
             <div className="arena-location">
               <span>◈</span> THE FRACTURE <small>NEUTRAL TERRITORY</small>
             </div>
@@ -454,6 +456,12 @@ function BattleView({ s, overlay = false }: { s: Snapshot; overlay?: boolean }) 
               <span className="tiny-tag">{s.mode === 'demo' ? 'REPLAY' : 'LIVE EVENTS'}</span>
             </div>
             <div>
+              {s.commandFeedback?.slice(0, 3).map((e) => (
+                <p key={`command-${e.id}`} className={e.team}>
+                  <code>!{e.command}</code>
+                  <span>{e.message}</span>
+                </p>
+              ))}
               {s.timeline.slice(0, 6).map((e) => (
                 <p key={e.id}>
                   <time>

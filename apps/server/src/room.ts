@@ -34,6 +34,8 @@ export class Room {
   proposals: Proposal[] = [];
   forge: ForgeJob | null = null;
   timeline: Snapshot['timeline'] = [];
+  commandFeedback: Snapshot['commandFeedback'] = [];
+  private feedbackCounter = 0;
   channels: Snapshot['channels'] = [];
   sharedChat = false;
   commandsEnabled = true;
@@ -91,6 +93,7 @@ export class Room {
       forgeEnabled: this.forgeEnabled,
       teamNames: this.teamNames,
       provider: this.provider,
+      commandFeedback: this.commandFeedback,
     };
   }
   note(text: string) {
@@ -120,6 +123,7 @@ export class Room {
     this.roundPhase = 'proposals';
     this.roundEndsAtTick = this.mode === 'demo' ? 240 : 1200;
     this.timeline = [];
+    this.commandFeedback = [];
     this.eventCounter = 0;
     this.note('Battle reset to seed ' + this.game.seed);
   }
@@ -168,6 +172,23 @@ export class Room {
     return this.command(message, channel.team);
   }
   command(m: ChatMessage, team: Team) {
+    if (!parseCommand(m.text)) return 'Unknown command or invalid arguments.';
+    const before = this.game.nextId;
+    const message = this.applyCommand(m, team);
+    if (message !== 'Duplicate event ignored.') {
+      this.commandFeedback.unshift({
+        id: ++this.feedbackCounter,
+        team,
+        command: parseCommand(m.text)!.command,
+        message,
+        tick: this.game.tick,
+        ...(this.game.nextId > before ? { entityId: before } : {}),
+      });
+      this.commandFeedback = this.commandFeedback.slice(0, 8);
+    }
+    return message;
+  }
+  private applyCommand(m: ChatMessage, team: Team) {
     if (!this.dedupe.accept(m.id)) return 'Duplicate event ignored.';
     if (!this.commandsEnabled) return 'Chat commands are paused.';
     const parsed = parseCommand(m.text);
@@ -194,7 +215,9 @@ export class Room {
       this.joined.add(m.userId);
       return `Joined ${this.teamNames[team]}. Use !spawn to enter the battle.`;
     }
+    if (this.game.phase === 'results') return 'Battle ended. Reset and start a new battle.';
     if (this.game.phase !== 'battle') return 'Start the battle first.';
+    if (this.paused) return 'Battle paused. Resume the battle first.';
     if (command === 'forge') {
       if (!this.forgeEnabled || this.roundPhase !== 'proposals') return 'Proposals are closed.';
       if (this.proposals.length >= 6 || this.proposalAuthors.has(m.userId))

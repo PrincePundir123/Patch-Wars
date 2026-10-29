@@ -31,3 +31,7 @@ Raids use validated destination identity and deduped delivery ID. Strength is `m
 ## Live acceptance
 
 Authorize a channel, record a real spawn command, propose/vote/forge, reconnect the browser, invite a second broadcaster and verify source attribution. Record real Twitch footage with the provider label visible. Fixtures do not satisfy this acceptance.
+
+## Visible command feedback
+Recognized commands produce a bounded eight-item receipt feed without viewer identity or raw proposal text. Successful spawns identify the exact entity for a six-second battlefield label and team-colored ring. Paused and completed matches explain how to resume. The receipt banner also appears in OBS; fixtures remain labelled simulated.
+

@@ -177,6 +177,14 @@ export type Snapshot = {
   forgeEnabled: boolean;
   teamNames: Record<Team, string>;
   provider: string;
+  commandFeedback: {
+    id: number;
+    team: Team;
+    command: string;
+    message: string;
+    tick: number;
+    entityId?: number;
+  }[];
 };
 export const CommandSchema = z
   .object({ text: z.string().min(1).max(220), team: TeamSchema })

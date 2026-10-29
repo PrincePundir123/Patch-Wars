@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Application, Graphics, Container, Text } from 'pixi.js';
 // Pixi's static shader/uniform polyfills support a CSP without unsafe-eval.
 import 'pixi.js/unsafe-eval';
-import type { GameState, Entity } from '../../../packages/shared/src/index.js';
+import type { GameState, Entity, Snapshot } from '../../../packages/shared/src/index.js';
 import { createGame, startGame, step } from '../../../packages/game-core/src/index.js';
 const COLORS = { ember: 0xff8255, azure: 0x65c9ff };
 function silhouette(g: Graphics, shape: string, color: number, child = false) {
@@ -38,19 +38,26 @@ export function Arena({
   game,
   preview = false,
   transparent = false,
+  feedback = [],
 }: {
   game?: GameState;
   preview?: boolean;
   transparent?: boolean;
+  feedback?: Snapshot['commandFeedback'];
 }) {
   const host = useRef<HTMLDivElement>(null);
   const latest = useRef(game);
   latest.current = game;
+  const receipts = useRef(feedback);
+  receipts.current = feedback;
   const [error, setError] = useState('');
   useEffect(() => {
     let stopped = false;
     const app = new Application();
-    const nodes = new Map<number, { root: Container; body: Graphics; bar: Graphics }>();
+    const nodes = new Map<
+      number,
+      { root: Container; body: Graphics; bar: Graphics; label: Text }
+    >();
     const local = createGame(83, 600);
     startGame(local);
     for (let i = 0; i < 350; i++) step(local);
@@ -145,16 +152,34 @@ export function Arena({
               u.child,
             );
             const bar = new Graphics();
-            root.addChild(body, bar);
+            const label = new Text({
+              text: s.catalog[u.blueprintId]?.name ?? u.blueprintId,
+              style: {
+                fontFamily: 'sans-serif',
+                fontSize: 15,
+                fontWeight: 'bold',
+                fill: 0xffffff,
+                stroke: { color: 0x10151b, width: 4 },
+              },
+            });
+            label.anchor.set(0.5, 1);
+            label.y = -28;
+            root.addChild(body, bar, label);
             root.position.set(u.x, u.y);
             layer.addChild(root);
-            n = { root, body, bar };
+            n = { root, body, bar, label };
             nodes.set(u.id, n);
           }
           n.root.x += (u.x - n.root.x) * (reduced ? 1 : 0.25);
           n.root.y += (u.y - n.root.y) * (reduced ? 1 : 0.25);
           n.body.y = reduced ? 0 : Math.sin(now / 140 + u.id) * 1.4;
           n.bar.clear();
+          const highlighted = receipts.current.some(
+            (r) => r.entityId === u.id && s.tick - r.tick < 120,
+          );
+          n.label.visible = highlighted;
+          if (highlighted)
+            n.bar.circle(0, 0, 25).stroke({ color: COLORS[u.team], width: 3, alpha: 0.85 });
           n.bar.rect(-13, -22, 26, 3).fill(0x080b10);
           n.bar.rect(-13, -22, 26 * Math.max(0, u.hp / u.maxHp), 3).fill(COLORS[u.team]);
           if (u.shield > 0)
