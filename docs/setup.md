@@ -64,3 +64,7 @@ For free on-device generation, follow [local AI setup](local-ai.md). Ollama is s
 ## Spectator controls
 Unit labels can be toggled in the dashboard or spectator page. Chat-spawned units are automatically labelled for six simulation seconds; team rings stay orange or blue even when a generated unit has its own palette. Sound is off by default and can be enabled for Forge deployments and match results. OBS keeps a clean control-free view. Reduced-motion preferences suppress the Forge orbit animation.
 
+
+## Sharing a development tunnel
+Set WEB_ORIGIN to the exact HTTPS tunnel origin and TWITCH_REDIRECT_URI to that origin plus /auth/twitch/callback in the ignored local .env, then restart. Vite allows only the configured hostname. Register the same callback in the Twitch developer console before authorizing through the tunnel. If using VS Code port forwarding, set port 5173 visibility to Public for unauthenticated visitors. Keep the PC, server and tunnel running. Use the tunnel URL consistently for dashboard controls and OBS. Never share ADMIN_KEY; spectators do not need it. To return to local-only use, restore the localhost origins and restart.
+
