@@ -20,7 +20,8 @@
     "start": "node dist/server/index.js",
     "evaluate": "tsx scripts/evaluate.ts",
     "soak": "tsx scripts/soak.ts",
-    "verify:local-ai": "tsx scripts/verify-local-ai.ts"
+    "verify:local-ai": "tsx scripts/verify-local-ai.ts",
+    "doctor": "tsx scripts/doctor.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",

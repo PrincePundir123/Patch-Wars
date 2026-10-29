@@ -17,6 +17,8 @@ pnpm dev
 
 Open **http://localhost:5173** and choose **Enter the demo**. The 90-second replay collects proposals, votes for the Prism Slime, runs 200 balance engagements in a worker, deploys the unit, triggers a simulated raid and finishes the battle. Pause, reset, inject commands or copy the OBS link from the control room. On Windows, use `pnpm.cmd` if PowerShell blocks the script.
 
+Development operator controls also work on localhost when `WEB_ORIGIN` points to your tunnel. Keep one browser address throughout authorization and register its exact Twitch callback; see [local and tunnel setup](docs/setup.md#localhost-and-tunnel-access-together). Run `pnpm run doctor` before rehearsing to check local configuration without displaying secrets.
+
 ## Features
 
 - Authoritative 20 Hz seeded combat, five starter classes, energy costs, base attacks, shields, slows, healing, splash and non-recursive splitting.
@@ -42,6 +44,7 @@ The local fixture replay is implemented and verified, including deployment and s
 | Command                                 | Purpose                                  |
 | --------------------------------------- | ---------------------------------------- |
 | `pnpm dev`                              | Build worker; start frontend and backend |
+| `pnpm run doctor`                       | Secret-safe local configuration checks   |
 | `pnpm typecheck`                        | Strict TypeScript checks                 |
 | `pnpm lint`                             | ESLint                                   |
 | `pnpm test`                             | Worker build and automated tests         |
