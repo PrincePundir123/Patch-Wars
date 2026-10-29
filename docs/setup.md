@@ -64,6 +64,14 @@ For free on-device generation, follow [local AI setup](local-ai.md). Ollama is s
 
 Unit labels can be toggled in the dashboard or spectator page. Chat-spawned units are automatically labelled for six simulation seconds; team rings stay orange or blue even when a generated unit has its own palette. Sound is off by default and can be enabled for Forge deployments and match results. OBS keeps a clean control-free view. Reduced-motion preferences suppress the Forge orbit animation.
 
+### A larger battlefield
+
+Select **Theater view** above the scoreboard to fill the browser window, or **Fullscreen** to use native browser fullscreen. The scoreboard, arena, command feedback and viewer tools remain together. Exit using the visible controls or Escape. If fullscreen is unsupported or permission is denied, theater view opens with an explanation.
+
+The entire 1200-by-560 battlefield is fitted without stretching or cropping. Screens with a different aspect ratio have dark space around it; landscape gives phones a larger view. The canvas, connection, label preference and audio controls remain mounted while changing modes. Expanding never pauses, resets or starts a match. Operator actions remain in the control room after exiting; spectator pages cannot control the match. OBS overlays do not show viewing buttons.
+
+Desktop workspaces use persistent left navigation. Phones and tablets use a compact top navigation, stacked panels and touch controls. Twitch callback configuration is available under **Connection setup details** in the connections panel.
+
 ## Sharing a development tunnel
 
 Set WEB_ORIGIN to the exact HTTPS tunnel origin and TWITCH_REDIRECT_URI to that origin plus /auth/twitch/callback in the ignored local .env, then restart. Vite allows only the configured hostname. Register the same callback in the Twitch developer console before authorizing through the tunnel. If using VS Code port forwarding, set port 5173 visibility to Public for unauthenticated visitors. Keep the PC, server and tunnel running. Use the tunnel URL consistently for dashboard controls and OBS. Never share ADMIN_KEY; spectators do not need it. To return to local-only use, restore the localhost origins and restart.

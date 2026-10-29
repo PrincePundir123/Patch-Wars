@@ -1,4 +1,38 @@
-﻿# PATCH WARS UI design QA
+# PATCH WARS Field Studio design QA
+
+Latest review: October 29, 2026 (IST). Approved source: docs/design/field-studio-prototype.png. Implementation: docs/screenshots/studio-live.png and studio-fullscreen.png, plus production browser captures.
+
+## Current review
+
+Source and actual implementation were inspected together in .data/field-studio-comparison.png at equal displayed widths. Source pixels: 1122x1402. Implementation: 1440x960 CSS viewport, deviceScaleFactor 1, with a 1440x2183 full-page capture. The comparison scales both into adjacent equal-width columns. This is an adapted implementation review, not a pixel-identical claim. The source shows illustrative connected combat; the actual capture has a genuine unconnected lobby, authentic pending steps and working configuration controls.
+
+Focused checks: laptop fullscreen at 1366x768, phone unit dialog at 390x844, and phone/tablet/desktop reflow. The laptop stage occupies the entire viewport; its canvas preserves the logical 1200/560 aspect ratio.
+
+### Required fidelity surfaces
+
+- Typography: Arial/Helvetica controls, Georgia editorial headings, bold page title, monospace commands and tabular timer. No remote font dependency. Exact generated-image letterforms are not reproduced.
+- Layout: persistent desktop navigation, compact match toolbar, arena/Forge columns, full-width library with aligned search and grouped forms. Phones stack the battlefield, blueprints, Forge, roster and feed. Scoreboard line heights were tightened to give the arena more space. Additional viewing controls and genuine-state help deliberately add space compared with the mockup.
+- Colors: ivory/forest hierarchy, quiet warm separators and a contrasting dark stage. Coral/cyan identify teams; green identifies actions. Team text uses darker variants on light surfaces and lighter variants on the stage. Disabled controls remain distinct. Full WCAG compliance has not been certified.
+- Imagery: original WebP arena and atlas reused directly in DOM/Pixi. No third-party game imagery was shipped. Energy uses the actual lightning symbol instead of the mockup's inaccurate coin-like glyph. Expanded viewing contains the scene without cropping or stretching.
+- Content: actual channel state, votes, stats, provider/fixture labels, validation and settings remain data-driven. Callback details use a native disclosure. No fake chat, connected status, player counts, abilities or analytics were introduced.
+
+### Resolved findings
+
+1. P2: Oversized first-command panel delayed the arena. Replaced promotional spacing with a compact state-driven checklist and expandable help.
+2. P2: Unit search occupied a separate desktop row. Grouped it with the heading and retained mobile reflow.
+3. P2: Scoreboard consumed unnecessary height. Tightened line heights while preserving names, base health and scores.
+4. P1: Expanded viewing needed a clear accessible exit and preserved state. Added visible buttons, Escape, fullscreenchange synchronization, focus containment/return, inert surroundings and scroll cleanup. Browser tests compare exact paused server state and retained canvas identity.
+5. P2: Fullscreen-only viewing would exclude unsupported mobile browsers. Theater fallback now explains the limitation and fits portrait/landscape viewports.
+
+### Acceptance and limits
+
+See [Field Studio verification](docs/field-studio-verification.md) for final commands and results. Static checks, build and 114 automated tests passed. Eight existing browser flows passed on the final production bundle; five expanded-view checks use a fresh separate instance to respect the unchanged production request limiter. Manual saved-key unlock, callback disclosure, native fullscreen and phone dialog checks captured no page errors.
+
+No actionable P0/P1/P2 issue remains from this bounded visual review. Accepted differences include genuine lobby/replay data, retained functional copy, taller real forms and device-dependent fullscreen. Physical mobile acceptance, broad accessibility testing and a new real Twitch-to-AI run remain unverified. The existing large bundle warning remains nonfatal. Backend/core preservation against 66472f2 is checked separately.
+
+---
+
+# Historical UI review before Field Studio
 
 Date: October 29, 2026 (IST)
 

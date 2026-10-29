@@ -12,6 +12,7 @@ Updated October 29, 2026 (IST).
 - Browser regression suite covers desktop/mobile, complete fixture Forge/OBS flow, setup errors, labels, audio toggles and command feedback.
 - Operator-origin repair: localhost unlock, owned live-match creation and connected browser snapshots were checked against the running development server while WEB_ORIGIN remained configured for the tunnel. HTTP mutations and WebSockets now share an exact allowlist; production still permits only WEB_ORIGIN. OAuth callbacks remain on the explicitly allowed initiating address.
 - Latest repair verification: 114 automated tests and eight Chromium browser tests passed; TypeScript, lint, production build and all nine local preflight checks passed. See [origin repair evidence](origin-fix-verification.md). Configuration checks do not establish live authorization or submission.
+- Field Studio UI: approved ivory workspace and forest battle stage implemented across product surfaces; theater and native fullscreen include mobile fallback, keyboard exit and retained match state. Browser verification adds five expanded-view checks to the eight existing flows. See [Field Studio implementation](field-studio-verification.md) and the current design-qa.md report.
 
 ## Still needs owner participation or external verification
 

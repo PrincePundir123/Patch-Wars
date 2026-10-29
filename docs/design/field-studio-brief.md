@@ -1,6 +1,6 @@
 # PATCH WARS: recommended dashboard concept
 
-This is one generated visual prototype, not a functional implementation or a screenshot of a newly changed application. The running application was not modified. Generated with the built-in Image Gen tool using actual project artwork and public interface references.
+This file records the generated visual prototype approved before implementation. The image is a concept, not a running-application screenshot. It was generated with the built-in Image Gen tool using actual project artwork and public interface references. The approved design has since been implemented; see [implementation verification](../field-studio-verification.md) for real screenshots and checks.
 
 ## Visual target
 

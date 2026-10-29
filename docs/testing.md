@@ -1,6 +1,6 @@
 # Testing
 
-Final local verification: **87 automated tests across 11 files, plus four Playwright browser tests passed**. Type checking, lint and production compilation passed. See [verification record](verification.md) for evidence and limitations.
+Current Field Studio verification: **114 automated tests across 18 files**. Browser coverage includes the eight existing flows and five expanded-view checks. The historic [verification record](verification.md) describes the initial implementation; current evidence is in [Field Studio verification](field-studio-verification.md).
 
 ```sh
 pnpm typecheck
@@ -17,6 +17,10 @@ pnpm audit --prod
 Vitest builds and tests the actual worker. Coverage includes deterministic combat, ability bounds, malicious blueprints, 20 valid/30 adversarial concepts, voting, permissions, OAuth state/scopes, source attribution, duplicate events, rate limits, EventSub migration/recovery and read-only client sockets. Complete replay integration observes splitting, raid and victory, resets, then compares the entire game state exactly.
 
 Playwright checks landing/mobile layouts, the Forge-to-deployment flow, pause/reset, clipboard, OBS and invalid operator access. Screenshots are in `docs/screenshots`; failure traces are ignored. Browser metrics record local command-to-proposal presentation and frame intervals.
+
+Expanded-view tests cover laptop viewport fit, retained canvas and exact paused game state, labels, focus containment/return, native fullscreen entry/exit, browser-driven exit events, unsupported/denied fullscreen fallback, portrait/landscape fit, spectator permissions and transparent control-free OBS output.
+
+When testing the built production server, run `tests/e2e/app.spec.ts` and `tests/e2e/display.spec.ts` against fresh isolated server instances for each file. Many cold browser contexts in one run can exhaust the existing 120-request/minute/IP budget, including static assets. Do not disable the limiter to pass tests. The normal development-server test configuration serves Vite assets separately. The production host-setup test expects the dedicated local key used in the verification instructions, never the owner's saved credentials.
 
 Evaluation uses fixture output, 200 battles per candidate and 1,000 duplicate events. The soak runs 120 two-minute matches: four accelerated simulation hours, not four real hours of browser/network uptime. It checks caps and finite values and records uncollected heap growth; this is not proof of absence of leaks.
 
