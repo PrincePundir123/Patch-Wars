@@ -1,23 +1,40 @@
 import { useEffect, useState, useRef, type FormEvent } from 'react';
 import { Link, Routes, Route, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Arena, UnitIcon } from './Arena.js';
+import { UnitLibrary } from './UnitLibrary.js';
+import { UnitPortrait } from './UnitPortrait.js';
+import {
+  ArrowUpRight,
+  Sword,
+  Sparkle,
+  Play,
+  Pause,
+  ArrowsClockwise,
+  Copy,
+  Shield,
+  Broadcast,
+  UsersThree,
+  ChatCircleDots,
+  Check,
+  Trophy,
+  X,
+} from '@phosphor-icons/react';
 import { CommandFeedback } from './CommandFeedback.js';
 import { TwitchGuide } from './TwitchGuide.js';
 import { ForgeReveal } from './ForgeReveal.js';
 import { BroadcastControls } from './BroadcastControls.js';
 import { api, useBattle } from './store.js';
-import { STARTERS } from '../../../packages/game-core/src/index.js';
 import type { Snapshot, Team } from '../../../packages/shared/src/index.js';
 function Brand() {
   return (
     <Link className="brand" to="/" aria-label="Patch Wars home">
-      <span className="brand-symbol">
-        P<span>W</span>
+      <span className="brand-mark">
+        <Sword size={23} weight="duotone" />
       </span>
       <span>
         PATCH<span className="brand-light">WARS</span>
       </span>
-      <sup>BETA</sup>
+      <sup>LIVE STRATEGY</sup>
     </Link>
   );
 }
@@ -29,11 +46,11 @@ function Header() {
         <Link to="/">Overview</Link>
         <Link to="/demo">Battlefield</Link>
         <Link to="/dashboard">
-          Control room <span>↗</span>
+          Control room <ArrowUpRight size={15} />
         </Link>
       </nav>
       <span className="top-note">
-        <i /> BUILT FOR TWITCH
+        <Broadcast size={16} /> BUILT FOR TWITCH
       </span>
     </header>
   );
@@ -101,89 +118,129 @@ function Landing() {
     <>
       <Header />
       <main className="landing">
-        <div className="hero-copy">
-          <div className="eyebrow">
-            <span className="lime-dot" /> CHAT IS YOUR CONTROLLER
-          </div>
-          <h1>
-            Two communities.
-            <br />
-            One battlefield.
-            <br />
-            <em>You write the rules.</em>
-          </h1>
-          <p>
-            Your chat commands the army. Your imagination builds the next unit. Turn your stream
-            into a battle nobody has seen before.
-          </p>
-          <div className="hero-actions">
-            <Link className="button primary" to="/demo">
-              Enter the demo <span>↗</span>
-            </Link>
-            <Link className="button secondary" to="/dashboard">
-              Connect with Twitch <span>▣</span>
-            </Link>
-          </div>
-          <div className="hero-foot">
-            <span>NO DOWNLOADS</span>
-            <span>OBS READY</span>
-            <span>BUILT WITH CODEX</span>
-          </div>
-        </div>
-        <div className="hero-stage">
-          <div className="stage-label">
-            <span>
-              <i /> BATTLE PREVIEW
+        <section className="landing-hero">
+          <div className="hero-copy">
+            <span className="eyebrow">
+              <Broadcast size={15} /> A GAME BUILT BY YOUR COMMUNITY
             </span>
-            <span>
-              EMBER <b>VS</b> AZURE
-            </span>
-          </div>
-          <Arena preview />
-          <div className="chat-bubble">
-            <span className="avatar">k</span>
-            <div>
-              <small>viewer concept</small>
-              <p>
-                <b>!forge</b> a slime that splits into three
-              </p>
+            <h1>
+              Two communities.
+              <br />
+              One battlefield.
+              <br />
+              <em>Make your next move.</em>
+            </h1>
+            <p>
+              Chat commands the army. Your community invents the next unit. Give your stream a
+              battle worth coming together for.
+            </p>
+            <div className="hero-actions">
+              <Link className="button primary" to="/dashboard">
+                Host a match <ArrowUpRight size={18} />
+              </Link>
+              <Link className="button secondary" to="/demo">
+                <Play size={16} weight="fill" /> Watch the demo
+              </Link>
             </div>
-            <span className="spark">✦</span>
+            <div className="hero-foot">
+              <span>TWITCH CONNECTED</span>
+              <span>LOCAL AI SUPPORTED</span>
+              <span>OBS READY</span>
+            </div>
           </div>
-          <div className="preview-label">LOCAL SIMULATION · NO TWITCH CONNECTION</div>
-        </div>
-        <section className="how">
+          <div className="hero-illustration">
+            <img
+              src="/art/fracture-arena.webp"
+              alt="The Fracture, an original floating stone arena between Ember and Azure"
+              fetchPriority="high"
+            />
+            <UnitPortrait shape="shield" className="hero-character hero-guardian" />
+            <UnitPortrait shape="arrow" className="hero-character hero-archer" />
+            <UnitPortrait shape="slime" className="hero-character hero-slime" />
+            <div className="illustration-caption">
+              <span>THE FRACTURE</span>
+              <small>Two sides. One shared story.</small>
+            </div>
+          </div>
+        </section>
+        <section className="how" aria-label="How Patch Wars works">
           <div>
             <span className="eyebrow">FROM CHAT TO COMBAT</span>
             <h2>
-              The next game mechanic
-              <br />
-              is in your chat.
+              A little strategy.
+              <br />A lot of imagination.
             </h2>
           </div>
           <article>
-            <span className="step-number">01 / COMMAND</span>
-            <h3>Rally your community</h3>
-            <p>Spawn units, push the frontline, and defend your base. Every command matters.</p>
-          </article>
-          <article>
-            <span className="step-number">02 / CREATE</span>
-            <h3>Forge the unexpected</h3>
+            <span className="step-number">
+              <ChatCircleDots size={20} /> 01 / COMMAND
+            </span>
+            <h3>Choose your move</h3>
             <p>
-              Pitch a unit. Vote together. The Forge validates its abilities and tests its balance.
+              Spawn an archer, defend the base, or push the frontline. Your message becomes an
+              action.
             </p>
           </article>
           <article>
-            <span className="step-number">03 / UNLEASH</span>
-            <h3>Change the battlefield</h3>
-            <p>Watch the winning creation enter combat. Then let the other community answer.</p>
+            <span className="step-number">
+              <UsersThree size={20} /> 02 / VOTE
+            </span>
+            <h3>Back a good idea</h3>
+            <p>Propose a new unit. The community votes on what gets a chance to enter the arena.</p>
           </article>
+          <article>
+            <span className="step-number">
+              <Sparkle size={20} /> 03 / FORGE
+            </span>
+            <h3>Watch it come to life</h3>
+            <p>The Forge checks each blueprint and tests its balance before deployment.</p>
+          </article>
+        </section>
+        <section className="preview-section">
+          <div className="preview-copy">
+            <span className="eyebrow">A FRONT ROW SEAT</span>
+            <h2>
+              Small units.
+              <br />
+              Big turning points.
+            </h2>
+            <p>
+              Every unit has a purpose. Every community has a different plan. See the engine in
+              motion before hosting your own match.
+            </p>
+            <Link className="text-link" to="/demo">
+              Explore the 90-second replay <ArrowUpRight size={17} />
+            </Link>
+            <small>Simulated chat and fixture Forge output are clearly labelled.</small>
+          </div>
+          <div className="hero-stage">
+            <div className="stage-label">
+              <span>
+                <i /> BATTLE PREVIEW
+              </span>
+              <span>EMBER / AZURE</span>
+            </div>
+            <Arena preview />
+            <div className="preview-label">LOCAL SIMULATION / NO TWITCH CONNECTION</div>
+          </div>
+        </section>
+        <UnitLibrary />
+        <section className="landing-invite">
+          <div>
+            <span className="eyebrow">YOUR COMMUNITY IS THE CONTROLLER</span>
+            <h2>Bring your chat to the battlefield.</h2>
+          </div>
+          <Link className="button primary" to="/dashboard">
+            Set up your stream <ArrowUpRight size={18} />
+          </Link>
         </section>
       </main>
       <footer>
         <Brand />
-        <span>Two Communities. One Battlefield. Infinite Possibilities.</span>
-        <Link to="/dashboard">Launch control room ↗</Link>
+        <span>Built with Codex. Played together.</span>
+        <Link to="/dashboard">
+          Open control room <ArrowUpRight size={14} />
+        </Link>
       </footer>
     </>
   );
@@ -192,10 +249,10 @@ function ForgePanel({ s }: { s: Snapshot }) {
   const f = s.forge;
   const phases = ['generating', 'validating', 'simulating', 'approved', 'deployed'];
   return (
-    <section className="panel forge-panel">
+    <section className="panel forge-panel" id="forge">
       <div className="panel-heading">
         <h2>
-          <span className="forge-star">✦</span> THE FORGE
+          <Sparkle size={18} className="forge-star" /> THE FORGE
         </h2>
         <span className="tiny-tag">
           {s.provider === 'fixture' ? 'FIXTURE OUTPUT' : 'AI GENERATION'}
@@ -216,7 +273,11 @@ function ForgePanel({ s }: { s: Snapshot }) {
         <div className="orbit orbit-one" />
         <div className="orbit orbit-two" />
         <span className="forge-unit">
-          {f?.blueprint ? <UnitIcon shape={f.blueprint.appearance.shape} /> : '✦'}
+          {f?.blueprint ? (
+            <UnitIcon shape={f.blueprint.appearance.shape} />
+          ) : (
+            <Sparkle size={56} weight="duotone" />
+          )}
         </span>
         <span className="forge-visual-label">
           {f?.status === 'deployed'
@@ -233,7 +294,7 @@ function ForgePanel({ s }: { s: Snapshot }) {
               const complete = f.steps.some((x) => x.status === p);
               return (
                 <div className={complete ? 'complete' : ''} key={p}>
-                  <span>{complete ? '✓' : `0${i + 1}`}</span>
+                  <span>{complete ? <Check size={12} /> : `0${i + 1}`}</span>
                   <p>
                     {
                       (
@@ -272,8 +333,8 @@ function ForgePanel({ s }: { s: Snapshot }) {
             </div>
           )}
           {f.blueprint && (
-            <div className="blueprint">
-              <span>VALIDATED BEHAVIOR</span>
+            <details className="blueprint">
+              <summary>Validated behavior</summary>
               {f.blueprint.abilities.map((a) => (
                 <code key={a.op}>
                   {a.event} → {a.op}
@@ -281,7 +342,7 @@ function ForgePanel({ s }: { s: Snapshot }) {
                 </code>
               ))}
               <p>{f.blueprint.weaknesses.join(' ')}</p>
-            </div>
+            </details>
           )}
           <ForgeReveal s={s} />
           <ErrorBox text={f.error ?? ''} />
@@ -302,7 +363,9 @@ function Scoreboard({ s }: { s: Snapshot }) {
     <div className="scoreboard">
       {(['ember', 'azure'] as Team[]).map((team, i) => (
         <div className={`team-score ${team}`} key={team}>
-          <div className="team-emblem">{i ? '◆' : '⬟'}</div>
+          <div className="team-emblem">
+            {i ? <Sword size={28} weight="duotone" /> : <Shield size={28} weight="duotone" />}
+          </div>
           <div className="team-detail">
             <small>
               {s.channels.find((c) => c.team === team)?.name ?? `TEAM ${team.toUpperCase()}`}
@@ -370,7 +433,7 @@ function Voting({ s }: { s: Snapshot }) {
           ))
         ) : (
           <div className="empty-proposals">
-            <span>＋</span>
+            <Sparkle size={24} />
             <p>The next legend starts with a message.</p>
             <code>!forge a slime that splits into three</code>
           </div>
@@ -390,6 +453,7 @@ function Voting({ s }: { s: Snapshot }) {
 function Results({ s }: { s: Snapshot }) {
   return (
     <div className="results">
+      <Trophy size={36} weight="duotone" />
       <span className="eyebrow">BATTLE COMPLETE</span>
       <h2>
         {s.game.winner === 'draw'
@@ -412,7 +476,7 @@ function BattleView({ s, overlay = false }: { s: Snapshot; overlay?: boolean }) 
   return (
     <div className={overlay ? `overlay-view ${transparent ? 'transparent' : ''}` : 'battle-layout'}>
       <div className="battle-main">
-        <section className="battle-stage">
+        <section className="battle-stage" id="battle">
           <Scoreboard s={s} />
           <div className="arena-wrap">
             <Arena
@@ -423,7 +487,10 @@ function BattleView({ s, overlay = false }: { s: Snapshot; overlay?: boolean }) 
             />
             <CommandFeedback s={s} />
             <div className="arena-location">
-              <span>◈</span> THE FRACTURE <small>NEUTRAL TERRITORY</small>
+              <span>
+                <Sword size={12} />
+              </span>{' '}
+              THE FRACTURE <small>NEUTRAL TERRITORY</small>
             </div>
             {s.game.phase === 'lobby' && (
               <div className="arena-message">
@@ -438,8 +505,8 @@ function BattleView({ s, overlay = false }: { s: Snapshot; overlay?: boolean }) 
             <span>
               <i /> {s.game.units.length} UNITS ON FIELD
             </span>
-            <span className="ember">⬟ {s.game.energy.ember} ENERGY</span>
-            <span className="azure">◆ {s.game.energy.azure} ENERGY</span>
+            <span className="ember">{s.game.energy.ember} EMBER ENERGY</span>
+            <span className="azure">{s.game.energy.azure} AZURE ENERGY</span>
             <span>20 HZ · SEED {s.game.seed}</span>
           </div>
         </section>
@@ -447,22 +514,7 @@ function BattleView({ s, overlay = false }: { s: Snapshot; overlay?: boolean }) 
           <>
             <BroadcastControls s={s} labels={labels} onLabels={setLabels} />
             <Voting s={s} />
-            <section className="roster">
-              <div className="section-line">
-                <span>YOUR STARTING LINEUP</span>
-                <code>!spawn &lt;unit&gt;</code>
-              </div>
-              <div className="roster-grid">
-                {STARTERS.map((b) => (
-                  <div key={b.id}>
-                    <UnitIcon shape={b.appearance.shape} />
-                    <h3>{b.name}</h3>
-                    <small>{b.archetype}</small>
-                    <span>{b.stats.spawnCost} ENERGY</span>
-                  </div>
-                ))}
-              </div>
-            </section>
+            <UnitLibrary catalog={s.game.catalog} />
           </>
         )}
       </div>
@@ -640,7 +692,7 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
         <div className="page-heading">
           <div>
             <span className="eyebrow">
-              {demo ? 'A FRONT ROW SEAT TO THE POSSIBILITIES' : 'MISSION CONTROL'}
+              {demo ? 'A FRONT ROW SEAT TO THE POSSIBILITIES' : 'STREAMER WORKSPACE'}
             </span>
             <h1>
               {demo ? 'Welcome to the battlefield' : 'Your stream. Your arena'}
@@ -655,7 +707,7 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
           <div className="heading-actions">
             {active && (
               <Link className="button secondary compact" to={`/spectate/${id}`} target="_blank">
-                Spectator view ↗
+                Spectator view <ArrowUpRight size={15} />
               </Link>
             )}
             <span className="status-pill">
@@ -669,12 +721,31 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
           <div className="notice" role="status">
             {notice}
             <button aria-label="Dismiss notification" onClick={() => setNotice('')}>
-              ×
+              <X size={16} />
             </button>
           </div>
         )}
         {!active ? (
           <section className="setup-grid">
+            <div className="setup-intro">
+              <div>
+                <span className="eyebrow">THE FRACTURE / HOST LOBBY</span>
+                <h2>Your battlefield starts here.</h2>
+                <p>Try the replay, or connect your channel and bring your community.</p>
+                <ol>
+                  <li>
+                    <span>01</span> Connect Twitch
+                  </li>
+                  <li>
+                    <span>02</span> Invite your rival
+                  </li>
+                  <li>
+                    <span>03</span> Start the battle
+                  </li>
+                </ol>
+              </div>
+              <img src="/art/fracture-arena.webp" alt="" />
+            </div>
             <div className="setup-card">
               <span className="eyebrow">01 / TRY IT FIRST</span>
               <h2>Meet your next stream obsession.</h2>
@@ -687,7 +758,13 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                 disabled={busy}
                 onClick={() => void create('demo')}
               >
-                {busy ? 'Creating battlefield…' : 'Launch local replay ↗'}
+                {busy ? (
+                  'Creating battlefield...'
+                ) : (
+                  <>
+                    Launch local replay <ArrowUpRight size={15} />
+                  </>
+                )}
               </button>
             </div>
             <div className="setup-card">
@@ -720,7 +797,7 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                   disabled={busy}
                   onClick={() => void create('live')}
                 >
-                  Create Twitch match ↗
+                  Create Twitch match <ArrowUpRight size={15} />
                 </button>
               )}
             </div>
@@ -741,6 +818,20 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
           </section>
         ) : (
           <>
+            <nav className="workspace-nav" aria-label="Match sections">
+              <a href="#battle">
+                <Sword size={17} /> Battlefield
+              </a>
+              <a href="#forge">
+                <Sparkle size={17} /> Forge
+              </a>
+              <a href="#units">
+                <UsersThree size={17} /> Units
+              </a>
+              <a href="#controls">
+                <Broadcast size={17} /> Stream controls
+              </a>
+            </nav>
             <div className="operator-bar">
               <div>
                 <span className={`mode-label ${active.mode === 'demo' ? 'demo-label' : ''}`}>
@@ -764,7 +855,7 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                     disabled={busy}
                     onClick={() => void action('start')}
                   >
-                    ▶ Start battle
+                    <Play size={15} weight="fill" /> Start battle
                   </button>
                 ) : active.game.phase !== 'results' ? (
                   <button
@@ -772,7 +863,15 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                     disabled={busy}
                     onClick={() => void action(active.paused ? 'resume' : 'pause')}
                   >
-                    {active.paused ? '▶ Resume' : 'Ⅱ Pause'}
+                    {active.paused ? (
+                      <>
+                        <Play size={15} weight="fill" /> Resume
+                      </>
+                    ) : (
+                      <>
+                        <Pause size={15} /> Pause
+                      </>
+                    )}
                   </button>
                 ) : null}
                 <button
@@ -780,16 +879,16 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                   disabled={busy}
                   onClick={() => void action('reset')}
                 >
-                  ↺ Reset
+                  <ArrowsClockwise size={15} /> Reset
                 </button>
                 <button className="button secondary compact" onClick={() => void copyOverlay()}>
-                  ▣ Copy OBS link
+                  <Copy size={15} /> Copy OBS link
                 </button>
               </div>
             </div>
             {active.mode === 'live' && <TwitchGuide s={active} />}
             <BattleView s={active} />
-            <section className="operator-grid">
+            <section className="operator-grid" id="controls">
               <div className="panel operator-panel">
                 <div className="panel-heading">
                   <h2>{active.mode === 'demo' ? 'REPLAY CONTROLS' : 'TWITCH CONNECTIONS'}</h2>
@@ -807,8 +906,8 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                         value={team}
                         onChange={(e) => setTeam(e.target.value as Team)}
                       >
-                        <option value="ember">⬟ Ember</option>
-                        <option value="azure">◆ Azure</option>
+                        <option value="ember">Ember</option>
+                        <option value="azure">Azure</option>
                       </select>
                       <label className="sr-only" htmlFor="command">
                         Simulated chat command
@@ -820,7 +919,7 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                         onChange={(e) => setText(e.target.value)}
                       />
                       <button className="button primary compact" type="submit">
-                        Send ↗
+                        Send <ArrowUpRight size={15} />
                       </button>
                     </form>
                     <div className="quick-controls">
@@ -857,7 +956,7 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                     {active.channels.map((c) => (
                       <div className="channel-row" key={c.id}>
                         <span className={c.team}>
-                          {c.team === 'ember' ? '⬟' : '◆'} {c.name}
+                          {c.team === 'ember' ? <Shield size={15} /> : <Sword size={15} />} {c.name}
                         </span>
                         <span>{c.status}</span>
                         <a
@@ -944,7 +1043,9 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
               <span>
                 OBS: 1920 × 1080 · 30 or 60 FPS · enable browser source hardware acceleration
               </span>
-              <button onClick={() => navigate('/dashboard')}>Set up another match ↗</button>
+              <button onClick={() => navigate('/dashboard')}>
+                Set up another match <ArrowUpRight size={15} />
+              </button>
             </div>
           </>
         )}
