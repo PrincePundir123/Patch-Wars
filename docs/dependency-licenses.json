@@ -46,6 +46,12 @@
     }
   },
   {
+    "name": "@phosphor-icons/react",
+    "version": "2.1.10",
+    "license": "MIT",
+    "repository": "phosphor-icons/react"
+  },
+  {
     "name": "dotenv",
     "version": "16.6.1",
     "license": "BSD-2-Clause",

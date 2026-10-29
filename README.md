@@ -89,4 +89,8 @@ This implementation was created in a real Codex thread. The genuine thread ID, c
 
 State and tokens are in memory: restart ends matches and requires Twitch reauthorization. Use one backend instance. There is no durable history/database. Balance uses a broad initial 25–75% win-rate gate and needs live-play tuning. Local moderation is conservative and English-oriented. Maximum-room CPU and bandwidth need deployment load testing. Optional monetization, polls, clips, Hype Train, leaderboards and arbitrary scripts are not implemented. No hosting or paid service was provisioned.
 
-MIT licensed, with original geometric art. Libraries retain their own licenses.
+MIT licensed. Includes original generated arena/unit artwork and Phosphor UI icons; see [credits](docs/third-party-credits.md). Libraries retain their own licenses.
+
+## UI redesign
+
+The interface now uses a restrained navy/ivory/gold visual system, original matte unit artwork, readable Forge cards, a catalog-driven unit browser and accessible detail dialogs. All game rules, server endpoints, Twitch behavior and Forge validation remain unchanged. The detailed [implementation prompt](docs/ui-redesign-prompt.md), [design QA](design-qa.md) and [UI verification](docs/ui-redesign.md) record the scope and actual checks.

@@ -39,3 +39,7 @@ Capture a real thread, the commands/results and relevant commits for the video. 
 ## Priority improvement follow-up
 
 The same authentic Codex thread implemented visible command receipts and entity highlights, guided Twitch setup, Forge reveal cards/countdown, a bounded Ollama adapter and spectator labels/audio. Real local testing caught invalid model drafts, weak balance, and an outdated startup provider allowlist. Fixes retained the validation/balance gates and added targeted regression tests. The final local worker test deployed two generated units; browser tests cover labels/audio/feedback and the fixture Forge/OBS flow. Milestone commit IDs are available in git log.
+
+## UI-only redesign
+
+The owner approved a ten-sheet fantasy direction and requested a less generated-looking implementation without changing functionality. Codex wrote docs/ui-redesign-prompt.md, generated original matte artwork, implemented catalog-derived unit details, restyled the app and renderer, and tested the unchanged engine/backend contracts. Production browser checks caught a CSP image-loader issue and a results-panel composition issue, which were fixed in the frontend. See docs/ui-redesign.md and design-qa.md for the actual boundary and checks.

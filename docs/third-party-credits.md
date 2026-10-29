@@ -1,9 +1,10 @@
 # Credits
 
-Original work: PATCH WARS engine, ability interpreter, server, UI, fixtures, geometric PixiJS silhouettes and CSS. No competitor artwork, external sprite sheet, music, image model output or proprietary source is included.
+Original project work includes the engine, ability interpreter, server, UI, fixtures, fallback PixiJS silhouettes and CSS. The UI redesign adds two original OpenAI-generated raster assets, encoded as WebP: a matte arena environment and a six-unit atlas. Their provenance and layout are documented in apps/web/public/art/README.md. No competitor artwork, Riot assets, external music or proprietary source is included in the production app. TFT screenshots remain local reference material in the ignored .data directory.
 
 | Library             | Purpose                                             | License      |
 | ------------------- | --------------------------------------------------- | ------------ |
+| Phosphor Icons      | UI icons and favicon                                | MIT          |
 | React / React DOM   | UI                                                  | MIT          |
 | Vite                | Development/build                                   | MIT          |
 | TypeScript          | Type checking                                       | Apache-2.0   |
