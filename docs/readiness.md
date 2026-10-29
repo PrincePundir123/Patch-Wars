@@ -18,11 +18,13 @@ Updated October 29, 2026 (IST).
 
 - Record a complete real Twitch proposal -> vote -> local AI -> deployment flow.
 - Test a second broadcaster, native Shared Chat and actual raid events.
-- Choose and authorize public hosting; verify HTTPS/WSS and OAuth callback on that origin.
+- For remote web spectators or a remote second broadcaster, choose and authorize public hosting; verify HTTPS/WSS and OAuth callback on that origin. A single-channel OBS broadcast can run locally; Twitch viewers do not need public app access.
 - Record authentic Codex contribution evidence and publish a public video under three minutes.
 - Fill the Devpost form, personally verify eligibility and confirm Submitted status.
 
 Initial six implementation commits were pushed. New improvement commits are recorded in Git history. No public deployment, YouTube publication, Devpost submission or paid API execution is claimed.
+
+Latest priorities 1–5 add public-asset/API rate-limit separation, deferred production renderer loading, private presentation readiness, compact snapshots and rendering suspension, and a copy-only command guide. Verification includes 122 automated tests across 23 files and 20 browser tests against a built server, plus typecheck, lint and build. See [measurements and scope](priority-improvements.md) and [manual Twitch/OBS rehearsal](manual-rehearsal.md). Priority 6 (persistent match summaries) remains excluded. This run does not establish a new live Twitch broadcast or second-channel acceptance.
 
 ## Limits
 

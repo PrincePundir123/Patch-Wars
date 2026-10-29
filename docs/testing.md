@@ -1,6 +1,6 @@
 # Testing
 
-Current Field Studio verification: **114 automated tests across 18 files**. Browser coverage includes the eight existing flows and five expanded-view checks. The historic [verification record](verification.md) describes the initial implementation; current evidence is in [Field Studio verification](field-studio-verification.md).
+Current verification: **122 automated tests across 23 files** and **20 Chromium browser tests**. Coverage includes the eight existing flows, five expanded-view checks and seven loading/readiness/command/performance checks. Earlier evidence remains in [Field Studio verification](field-studio-verification.md); the latest changes are described in [priority improvements](priority-improvements.md). Follow the [manual rehearsal](manual-rehearsal.md) for demo and actual Twitch/OBS checks.
 
 ```sh
 pnpm typecheck
@@ -20,7 +20,9 @@ Playwright checks landing/mobile layouts, the Forge-to-deployment flow, pause/re
 
 Expanded-view tests cover laptop viewport fit, retained canvas and exact paused game state, labels, focus containment/return, native fullscreen entry/exit, browser-driven exit events, unsupported/denied fullscreen fallback, portrait/landscape fit, spectator permissions and transparent control-free OBS output.
 
-When testing the built production server, run `tests/e2e/app.spec.ts` and `tests/e2e/display.spec.ts` against fresh isolated server instances for each file. Many cold browser contexts in one run can exhaust the existing 120-request/minute/IP budget, including static assets. Do not disable the limiter to pass tests. The normal development-server test configuration serves Vite assets separately. The production host-setup test expects the dedicated local key used in the verification instructions, never the owner's saved credentials.
+The full 20-test browser suite now passes against one built server instance. Public asset requests no longer consume the protected API's 120-request/minute/IP budget; the earlier per-file server workaround is unnecessary. Do not disable the API limiter to pass tests. The production host-setup test expects the dedicated local key used in the verification instructions, never the owner's saved credentials.
+
+`pnpm run profile:ui` measures local renderer and compact-snapshot work and writes `docs/evaluation/optimization.json`. Set PROFILE_BASE_URL to a running built instance to include its actual entry bundle size. Offscreen rendering and paused health-bar redraws are measured independently from the authoritative simulation. Emulated-device FPS and reconstructed legacy network bytes are local samples, not deployment or physical-device guarantees.
 
 Evaluation uses fixture output, 200 battles per candidate and 1,000 duplicate events. The soak runs 120 two-minute matches: four accelerated simulation hours, not four real hours of browser/network uptime. It checks caps and finite values and records uncollected heap growth; this is not proof of absence of leaks.
 

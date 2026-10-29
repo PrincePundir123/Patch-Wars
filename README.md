@@ -78,6 +78,10 @@ Copy `.env.example` to `.env`, configure the Twitch application and operator key
 
 OBS: use the copied overlay link at **1920 × 1080** with hardware acceleration. `/overlay/:id?transparent=1` is transparent; `/spectate/:id` is a full spectator page. Links grant viewing only.
 
+For a single-channel stream, the app and OBS can run locally: viewers watch Twitch and type commands in the connected channel's chat. They do not need dashboard access or a Twitch extension. Follow the [complete demo and live OBS rehearsal](docs/manual-rehearsal.md). How to play explains commands; live matches show the next connection/start/chat action, while demo controls report simulated results inline.
+
+Presentation readiness checks private setup without generating AI output. Lazy renderer loading, public asset caching, compact snapshots and offscreen rendering reduce unnecessary work; see [prioritized improvements](docs/priority-improvements.md) and run `pnpm run profile:ui` for local measurements.
+
 ## Free local AI
 
 No OpenAI key is needed with Ollama. See [local AI setup and measured limitations](docs/local-ai.md). The verified development model is `qwen2.5:3b`; `pnpm verify:local-ai` exercises real generation, schema checks and balance. Local generation can take a minute: pause the match during generation, then resume once approved. Demo rooms always remain fixture-based.

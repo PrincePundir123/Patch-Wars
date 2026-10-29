@@ -92,4 +92,6 @@ Generated broadcaster invitations always use the configured public origin. The o
 
 ## Local preflight
 
+For a complete walkthrough, follow [demo rehearsal and live Twitch/OBS testing](manual-rehearsal.md). Use How to play for copyable commands and Presentation readiness for private setup checks. Copying a command does not send it. In a live match, type it in the connected channel's Twitch chat; the local Send form belongs only to demo rooms.
+
 Run `pnpm run doctor` (Windows: `pnpm.cmd run doctor`) before recording. It checks runtime, exact-origin configuration, operator-key presence/length, Twitch callback shape, Git tracking of .env, the worker bundle, installed Ollama model and local health. It never prints credentials or makes paid generation requests. Passing configuration checks does not prove live Twitch consent, model quality, public hosting or submitted status.

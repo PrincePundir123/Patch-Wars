@@ -37,3 +37,13 @@ Rendering now stops for hidden/offscreen canvases and resumes against the latest
 How to play is available from the landing page, setup/dashboard and spectator page. Its native modal dialog documents all nine parser-supported commands with copy buttons, clear attack/defend behavior, proposal/vote rules, energy and cooldown guidance. Connected-channel chat links are included when available. The guide never sends a command or starts generation; clipboard denial falls back to readable instructions. Escape closes the dialog and restores focus. OBS remains control-free.
 
 Tests pass each documented example through the real parser and verify attack/defend unit behavior. Browser checks compare paused match state before/after copying, inspect phone fit and focus return, and simulate clipboard denial.
+
+## Final verification and command clarity
+
+Typecheck, lint, build, all 122 automated tests across 23 files and all 20 Chromium browser tests passed after the final changes. The full browser suite used one built server instance. Updated screenshots are in docs/screenshots. The large deferred Pixi chunk and upstream Zod annotation warnings remain nonfatal build warnings.
+
+The final entry is 377,439 bytes (116,346 gzip estimate), about 65% below the 1,070,750-byte baseline. The final isolated built-server profile saved about 39.7% of snapshot bytes in both local samples, with zero offscreen frames and zero unchanged health-bar redraws during the paused sample. Observed renderer rates were about 26.3 FPS at the laptop viewport and 11.9 FPS in phone emulation; these do not establish physical-device performance or a 60 FPS guarantee. See docs/evaluation/optimization.json. An initial profiling attempt after the complete browser suite timed out; profiling succeeded on a fresh isolated server with the normal API limiter retained.
+
+Following feedback that commands and Twitch were confusing, demo sends now show their result beside the form and link back to the battlefield. Command-copy instructions distinguish demo replay input from actual Twitch chat. Live matches show a visible next action and the latest command receipt. No command grammar, gameplay rules or authorization boundary changed.
+
+The selected live experience is Twitch chat controlling a battle captured in OBS. A native Twitch extension and Bits purchases from the PixelWars reference are not implemented or required for that experience. The [manual rehearsal](manual-rehearsal.md) separates fixture simulation, actual Twitch authorization/chat, OBS broadcasting and real local AI. Live broadcasting, remote second-channel consent and hackathon submission still require owner participation; this automated run does not claim them complete.
