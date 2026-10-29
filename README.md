@@ -24,7 +24,10 @@ Open **http://localhost:5173** and choose **Enter the demo**. The 90-second repl
 - Read-only spectators and transparent OBS overlay; sequenced snapshots and reconnect recovery.
 - Twitch OAuth, server-only tokens, refresh/validation, EventSub recovery, source attribution and deduplication.
 - One effective vote per stable viewer ID, deterministic ties and operator moderation.
-- Fixture, OpenAI Responses and guarded Codex SDK providers; worker validation and real balance simulation.
+- Fixture, free local Ollama, OpenAI Responses and guarded Codex SDK providers; worker validation and real balance simulation.
+- Visible chat receipts, exact-unit spawn highlights, guided channel setup and direct Twitch chat links.
+- Forge reveal cards with abilities, counterplay, stats and a three-second live deployment countdown.
+- Optional unit labels, team rings and muted-by-default deployment/result sounds.
 - Owned controls, origin checks, cooldowns, entity limits and generation quotas.
 - Unit, adversarial, integration, browser and accelerated soak tests; CI and a production Dockerfile.
 
@@ -32,7 +35,7 @@ Open **http://localhost:5173** and choose **Enter the demo**. The 90-second repl
 
 The local fixture replay is implemented and verified, including deployment and splitting. Actual measurements are in [evaluation](docs/evaluation/results.md), [browser metrics](docs/evaluation/browser.json) and [soak results](docs/evaluation/soak.json).
 
-**Live Twitch, live AI, public hosting and submission are not yet verified.** They require owner credentials, authorization, a real test stream and publishing the video/submission. The demo is labelled simulated. The Codex runtime provider is gated off until OS-level isolation is verified. See [readiness](docs/readiness.md).
+**Single-channel Twitch commands and real local AI generation have been verified.** Twitch receipts confirmed Archer and Guardian deployments in an authorized channel. Ollama generated a guardian that passed 200 balance engagements at a 42% win rate; see [local AI evidence](docs/evaluation/local-ai.json). Two-channel/Shared Chat behavior, a complete real-Twitch-to-AI recording, public hosting and submission still need verification. The demo is labelled simulated. The Codex runtime provider is gated off until OS-level isolation is verified. See [readiness](docs/readiness.md).
 
 ## Commands
 
@@ -69,6 +72,10 @@ Three apps and four shared packages form the pnpm workspace. Root dependencies a
 Copy `.env.example` to `.env`, configure the Twitch application and operator key, then open `/dashboard`. Create a live match and authorize Ember. Invite the second broadcaster using a private expiring link. With one authorized channel, Azure remains the server-controlled opposing army. Native Shared Chat is labelled only after lifecycle events; separate channels are labelled separately.
 
 OBS: use the copied overlay link at **1920 × 1080** with hardware acceleration. `/overlay/:id?transparent=1` is transparent; `/spectate/:id` is a full spectator page. Links grant viewing only.
+
+## Free local AI
+
+No OpenAI key is needed with Ollama. See [local AI setup and measured limitations](docs/local-ai.md). The verified development model is `qwen2.5:3b`; `pnpm verify:local-ai` exercises real generation, schema checks and balance. Local generation can take a minute: pause the match during generation, then resume once approved. Demo rooms always remain fixture-based.
 
 ## Codex contribution
 

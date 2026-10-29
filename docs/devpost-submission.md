@@ -10,7 +10,7 @@ Twitch communities already create the best moments of a stream together. We want
 
 PATCH WARS pits Ember and Azure against each other in an audience-controlled auto-battler. Viewers spawn units, propose concepts and vote. The winning idea passes through the Forge: provider generation, strict validation, resource checks and 200 headless engagements. Approved units enter the same live simulation. A splitting slime demonstrates how a viewer concept can become observable behavior.
 
-The local replay is complete and explicitly labelled simulated. Twitch OAuth, EventSub and live AI adapters are implemented; actual account-based verification remains pending and must be completed before making live claims.
+The local replay is complete and explicitly labelled simulated. Single-channel Twitch commands have been verified against live match state. A real local Ollama guardian generation passed the 200-battle gate at 42% wins. A recorded end-to-end Twitch proposal-to-AI deployment and two-channel verification remain pending.
 
 ## How we built it
 
@@ -46,4 +46,4 @@ Local instructions: `pnpm install`, `pnpm dev`, then http://localhost:5173/demo.
 
 ## Built with
 
-TypeScript, Node.js, React, PixiJS, Fastify, WebSockets, Twitch OAuth/EventSub, Zod, Zustand, Vite, Vitest, Playwright, OpenAI Codex and pnpm. OpenAI Responses is an implemented optional runtime provider; live execution remains pending.
+TypeScript, Node.js, React, PixiJS, Fastify, WebSockets, Twitch OAuth/EventSub, Ollama, Zod, Zustand, Vite, Vitest, Playwright, OpenAI Codex and pnpm. Ollama provides local generation without paid API calls. OpenAI Responses is an optional runtime provider; paid execution remains unverified.

@@ -1,34 +1,26 @@
-# Readiness and external completion
+﻿# Readiness and external completion
 
-Updated October 29, 2026 (IST). The owner explicitly deferred Twitch authorization and requested completion of the offline build. That offline deliverable is complete; external integration acceptance remains separate below.
+Updated October 29, 2026 (IST).
 
-## Verified locally
+## Verified
 
-- Deterministic two-team combat and a completed match.
-- Animated responsive interface and OBS spectator routes.
-- Proposals, one-effective-vote rules, real worker checks, deployment and visible split behavior.
-- Reset/replay equality including raid and victory.
-- Permission, adversarial, reconnect and browser tests.
-- Production bundles and measured local evaluation.
-- Authentic Codex thread ID and milestone commits.
+- Offline deterministic match, Forge worker, split behavior, reset/replay and OBS presentation.
+- Real single-channel Twitch authorization and commands: inspected the live room for the connected channel, Archer and Guardian deployment receipts, and an Ember victory. This was not video capture.
+- Real local Ollama generation: a guardian passed 200 balance engagements at a 42% win rate in about 56 seconds across two attempts. See docs/evaluation/local-ai.json. This is one concept, not a general model-quality benchmark.
+- Complete local worker flow: synthetic normalized chat, voting, real Ollama generation, validation, balance, reveal and two deployed units passed in about 29 seconds across two attempts. See docs/evaluation/local-forge-flow.json.
+- Priority improvements: visible command receipts and spawn highlights, direct channel-chat links and setup guidance, readable Forge cards with a three-second live reveal, free local generation, optional labels and muted-by-default event audio.
+- Browser regression suite covers desktop/mobile, complete fixture Forge/OBS flow, setup errors, labels, audio toggles and command feedback.
 
-## Implemented but awaiting live acceptance
+## Still needs owner participation or external verification
 
-- Twitch OAuth and EventSub require the owner's developer app and channel consent.
-- Two-channel/Shared Chat/raid behavior requires actual participating accounts/events.
-- OpenAI Responses generation requires a configured API key and approved spending budget.
-- Codex runtime generation remains disabled until OS isolation is verified.
+- Record a complete real Twitch proposal -> vote -> local AI -> deployment flow.
+- Test a second broadcaster, native Shared Chat and actual raid events.
+- Choose and authorize public hosting; verify HTTPS/WSS and OAuth callback on that origin.
+- Record authentic Codex contribution evidence and publish a public video under three minutes.
+- Fill the Devpost form, personally verify eligibility and confirm Submitted status.
 
-## Submission tasks still open
+Initial six implementation commits were pushed. New improvement commits are recorded in Git history. No public deployment, YouTube publication, Devpost submission or paid API execution is claimed.
 
-- Push the local milestone commits and verify repository accessibility.
-- Select and authorize hosting if a public demo is desired; validate HTTPS/WSS.
-- Record real Twitch interaction and the actual Codex thread.
-- Publish a public YouTube video shorter than three minutes.
-- Complete the Devpost form and personally verify “Submitted”.
+## Limits
 
-The application is a verified local implementation, **not yet a fully verified P0 live integration or completed hackathon submission**. No real stream, paid API call, deployment, YouTube publication or Devpost submission was fabricated.
-
-## Explicit scope reductions
-
-No durable PostgreSQL history, crash-resume of active matches, alternate vote modes, Hype Train/monetization/clip/poll APIs, user leaderboards, custom audio, advanced script execution or multi-instance scaling. Balance covers five pure starter rosters; mixed-army tuning and individual unit lifespan instrumentation remain future work. The UI uses plain CSS rather than optional Tailwind. External app builders/design files/task trackers were unnecessary for the local source deliverable.
+Local-model output may fail validation or balance. The Ollama adapter uses one signature ability per unit for reliability on the installed small model; the shared engine still supports up to three abilities. It never silently switches failed AI output to fixtures. CPU generation may take a minute: pause combat while generating, then resume after approval. Tokens and match state remain memory-only, requiring Twitch reauthorization after server restarts. No durable history, crash recovery, monetization, Hype Train, clips or multi-instance scaling is implemented. Synthesized event cues are available; custom audio assets are not included.

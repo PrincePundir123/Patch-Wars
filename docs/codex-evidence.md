@@ -35,3 +35,7 @@ The runtime fixture provider is not Codex usage. The optional Codex runtime adap
 **Live debugging:** “Using my locally configured environment without printing secrets, diagnose a real Twitch command that is not reaching the arena. Trace OAuth identity, subscription, normalization, room command and snapshot boundaries. Record observed evidence and fix the failing boundary.”
 
 Capture a real thread, the commands/results and relevant commits for the video. Do not claim a review or test that has not run.
+
+## Priority improvement follow-up
+
+The same authentic Codex thread implemented visible command receipts and entity highlights, guided Twitch setup, Forge reveal cards/countdown, a bounded Ollama adapter and spectator labels/audio. Real local testing caught invalid model drafts, weak balance, and an outdated startup provider allowlist. Fixes retained the validation/balance gates and added targeted regression tests. The final local worker test deployed two generated units; browser tests cover labels/audio/feedback and the fixture Forge/OBS flow. Milestone commit IDs are available in git log.
