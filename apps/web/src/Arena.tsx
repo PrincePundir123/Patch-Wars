@@ -4,6 +4,7 @@ import { Application, Graphics, Container, Text, Sprite, Texture, Rectangle } fr
 import 'pixi.js/unsafe-eval';
 import type { GameState, Snapshot } from '../../../packages/shared/src/index.js';
 import { createGame, startGame, step } from '../../../packages/game-core/src/index.js';
+import { useBattle } from './store.js';
 const COLORS = { ember: 0xff8255, azure: 0x65c9ff };
 // Shared same-origin images avoid blob workers and keep the existing CSP intact.
 const textures = new Map<string, Promise<Texture>>();
@@ -139,6 +140,7 @@ export function Arena({
         app.stage.addChild(backdrop);
       }
       host.current?.appendChild(app.canvas);
+      useBattle.getState().setRenderer('ready');
       app.canvas.setAttribute('aria-label', 'Animated battlefield with Ember and Azure units');
       const field = new Graphics();
       if (!transparent) {
@@ -287,9 +289,12 @@ export function Arena({
               });
           }
       });
-    })().catch(() =>
-      setError('The battlefield needs WebGL. Enable hardware acceleration in your browser or OBS.'),
-    );
+    })().catch(() => {
+      useBattle.getState().setRenderer('error');
+      setError(
+        'The battlefield could not start. Check your connection and enable browser hardware acceleration.',
+      );
+    });
     return () => {
       stopped = true;
       if (app.renderer) app.destroy(true, { children: true });

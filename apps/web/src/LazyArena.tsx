@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { Arena as RendererType } from './Arena.js';
+import { useBattle } from './store.js';
 
 const Renderer = lazy(() => import('./Arena.js').then((module) => ({ default: module.Arena })));
 
@@ -16,6 +17,9 @@ class RendererBoundary extends Component<{ children: ReactNode }, { failed: bool
   state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
+  }
+  componentDidCatch() {
+    useBattle.getState().setRenderer('error');
   }
   render() {
     return this.state.failed ? (
@@ -37,6 +41,7 @@ export function Arena(props: ComponentProps<typeof RendererType>) {
   const slot = useRef<HTMLDivElement>(null);
   const [requested, setRequested] = useState(!props.preview);
   useEffect(() => {
+    if (requested) useBattle.getState().setRenderer('loading');
     if (requested || !slot.current) return;
     const observer = new IntersectionObserver(
       (entries) => {

@@ -1,5 +1,26 @@
 import { test, expect } from '@playwright/test';
 
+test('presentation checks report fixture limits and leave the match untouched', async ({
+  page,
+}) => {
+  await page.goto('/demo');
+  await expect(page.locator('canvas')).toBeVisible();
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  const id = new URL(page.url()).searchParams.get('room');
+  const before = await (await page.request.get(`/api/rooms/${id}`)).json();
+  await page.getByText('Presentation readiness', { exact: true }).click();
+  await page.getByRole('button', { name: 'Check setup', exact: true }).click();
+  await expect(
+    page.locator('.readiness-check').filter({ hasText: 'Forge provider' }),
+  ).toContainText('Predefined fixture');
+  await expect(
+    page.locator('.readiness-check').filter({ hasText: 'Battlefield renderer' }),
+  ).toContainText('Pass');
+  await page.screenshot({ path: 'docs/screenshots/readiness.png', fullPage: true });
+  const after = await (await page.request.get(`/api/rooms/${id}`)).json();
+  expect(after.game).toEqual(before.game);
+});
+
 test('landing defers WebGL until its preview approaches the viewport', async ({ page }) => {
   const rendererRequests: string[] = [];
   page.on('request', (request) => {

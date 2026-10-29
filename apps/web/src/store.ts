@@ -5,11 +5,17 @@ type State = {
   connection: 'connecting' | 'connected' | 'reconnecting' | 'offline';
   setSnapshot: (s: Snapshot | null) => void;
   setConnection: (s: State['connection']) => void;
+  renderer: 'idle' | 'loading' | 'ready' | 'error';
+  setRenderer: (s: State['renderer']) => void;
+  lastSnapshotAt: number | null;
 };
 export const useBattle = create<State>((set) => ({
   snapshot: null,
   connection: 'offline',
-  setSnapshot: (snapshot) => set({ snapshot }),
+  renderer: 'idle',
+  lastSnapshotAt: null,
+  setRenderer: (renderer) => set({ renderer }),
+  setSnapshot: (snapshot) => set({ snapshot, lastSnapshotAt: snapshot ? Date.now() : null }),
   setConnection: (connection) => set({ connection }),
 }));
 export async function api<T = Record<string, unknown>>(url: string, body?: unknown): Promise<T> {

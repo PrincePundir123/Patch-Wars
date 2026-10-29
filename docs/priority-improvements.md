@@ -17,3 +17,9 @@ The DOM-only unit portrait no longer imports Pixi. The renderer loads asynchrono
 Production frontend builds now explicitly use React's production runtime even when the local development .env says NODE_ENV=development. The local .env and runtime server checks are unchanged. Starter definitions were moved verbatim to a type-only catalog module; the engine retains its existing exports, values and algorithms.
 
 At this milestone the initial JS entry was about 365 KB plus a 1.25 KB runtime, versus 1,070,750 bytes before this work (about 66% less minified entry code). The roughly 571 KB Pixi chunk is deferred and still legitimately triggers Vite's size warning. Gzip figures are build estimates, not a claim of deployed transfer sizes. The landing browser test also asserts that no Pixi asset is requested before the preview is approached. Engine and complete deterministic replay tests passed after the catalog move.
+
+## 3. Presentation readiness
+
+Each owned match has a collapsible Presentation readiness panel. It combines current socket/snapshot freshness and renderer initialization with on-demand ownership, origin, Twitch and provider checks. Ollama checks only its local model list with a 1.5-second timeout, five-second cache and per-provider request coalescing. Cloud checks inspect key configuration without sending a billed request. Reports contain no secrets and explicitly distinguish fixtures/configuration from live acceptance.
+
+The API requires room ownership. Spectators cannot request private diagnostics. A browser test paused a real demo, ran the panel checks and compared the complete game state before/after; it remained unchanged. Tests also cover origin warnings, local-only provider endpoints, missing models, coalescing and secret-safe output. No persistent history or summary storage was introduced.

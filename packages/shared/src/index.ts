@@ -187,6 +187,13 @@ export type Snapshot = {
     entityId?: number;
   }[];
 };
+export type ReadinessCheck = {
+  id: string;
+  label: string;
+  status: 'pass' | 'warn' | 'fail';
+  detail: string;
+};
+export type ReadinessReport = { checkedAt: string; checks: ReadinessCheck[] };
 export const CommandSchema = z
   .object({ text: z.string().min(1).max(220), team: TeamSchema })
   .strict();

@@ -24,6 +24,7 @@ import { ForgeReveal } from './ForgeReveal.js';
 import { BroadcastControls } from './BroadcastControls.js';
 import { WorkspaceShell } from './WorkspaceShell.js';
 import { ArenaDisplay } from './ArenaDisplay.js';
+import { ReadinessPanel } from './ReadinessPanel.js';
 import { api, useBattle } from './store.js';
 import type { Snapshot, Team } from '../../../packages/shared/src/index.js';
 function Brand() {
@@ -885,6 +886,7 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                 </button>
               </div>
             </div>
+            <ReadinessPanel key={active.roomId} roomId={active.roomId} />
             {active.mode === 'live' && <TwitchGuide s={active} />}
             <BattleView s={active} />
             <div className="stream-section-heading">

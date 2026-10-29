@@ -10,6 +10,8 @@ import { z } from 'zod';
 import type { WebSocket } from 'ws';
 import { Room } from './room.js';
 import { originPolicy } from './origins.js';
+import { createProviderProbe } from './readiness.js';
+import type { ReadinessReport } from '../../../packages/shared/src/index.js';
 import { ControlSchema, CommandSchema, TeamSchema } from '../../../packages/shared/src/index.js';
 import {
   TwitchIdentity,
@@ -100,6 +102,7 @@ export async function buildApp(options: ServerOptions = {}) {
   const invites = new Map<string, { roomId: string; team: 'azure'; expires: number }>();
   const clients = new Map<string, Set<WebSocket>>();
   const connections = new Map<string, { client: EventSubClient; identity: TwitchIdentity }>();
+  const probeProvider = createProviderProbe();
   app.decorate('rooms', rooms);
   app.addHook('onRequest', async (req, reply) => {
     reply
@@ -183,6 +186,55 @@ export async function buildApp(options: ServerOptions = {}) {
         .map((r) => ({ id: r.id, mode: r.mode })),
     };
   });
+  app.get<{ Params: { id: string } }>(
+    '/api/rooms/:id/readiness',
+    async (req): Promise<ReadinessReport> => {
+      const room = own(req.params.id, req.cookies.pw_session);
+      const query = z.object({ origin: z.string().max(300) }).parse(req.query);
+      const connected = room.channels.filter((c) => c.status.startsWith('connected')).length;
+      const twitchConfigured = !!(twitch.clientId && twitch.clientSecret);
+      return {
+        checkedAt: new Date().toISOString(),
+        checks: [
+          {
+            id: 'server',
+            label: 'Room controls',
+            status: 'pass',
+            detail: 'The server responded and this browser owns the match.',
+          },
+          {
+            id: 'origin',
+            label: 'Browser address',
+            status: origins.allows(query.origin) ? 'pass' : 'fail',
+            detail: origins.allows(query.origin)
+              ? 'This browser address is allowed. Register its exact callback with Twitch before authorization.'
+              : 'Use an allowed dashboard address before authorizing Twitch.',
+          },
+          {
+            id: 'twitch',
+            label: 'Twitch connection',
+            status:
+              room.mode === 'demo'
+                ? 'warn'
+                : !twitchConfigured
+                  ? 'fail'
+                  : connected
+                    ? 'pass'
+                    : 'warn',
+            detail:
+              room.mode === 'demo'
+                ? 'This room uses simulated chat; no Twitch channel is required.'
+                : !twitchConfigured
+                  ? 'Configure the Twitch application locally, then restart and authorize your channel.'
+                  : connected
+                    ? 'At least one channel reports connected. Send a real chat command to verify delivery.'
+                    : 'Application credentials are configured. Connect Ember with Twitch before starting.',
+          },
+          await probeProvider(room.provider),
+        ],
+      };
+    },
+  );
   app.post('/api/session', async (req, reply) => {
     const { key } = z
       .object({ key: z.string().min(1).max(256) })

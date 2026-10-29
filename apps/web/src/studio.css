@@ -1,4 +1,103 @@
 /* Field Studio: approved visual target. Game and server contracts stay unchanged. */
+.readiness-panel {
+  margin: 0 0 16px;
+  border: 1px solid #d9ddd3;
+  border-radius: 7px;
+  background: #fcfaf5;
+}
+.readiness-panel > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  min-height: 48px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.readiness-panel > summary::marker {
+  color: #36584a;
+}
+.readiness-pill {
+  color: #766238;
+  background: #f0e9d9;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+.readiness-pill[data-status='pass'] {
+  color: #31553b;
+  background: #e4ecdf;
+}
+.readiness-pill[data-status='fail'] {
+  color: #8e3930;
+  background: #f5e3dd;
+}
+.readiness-body {
+  border-top: 1px solid #d9ddd3;
+  padding: 16px;
+}
+.readiness-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+}
+.readiness-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  min-width: 0;
+  font-size: 12px;
+}
+.readiness-check > svg {
+  flex-shrink: 0;
+  color: #8c713b;
+}
+.readiness-check[data-status='pass'] > svg {
+  color: #467447;
+}
+.readiness-check[data-status='fail'] > svg {
+  color: #a44336;
+}
+.readiness-check > div {
+  flex: 1;
+}
+.readiness-check strong {
+  display: block;
+  font-weight: 600;
+}
+.readiness-check small {
+  display: block;
+  color: #62716b;
+  line-height: 1.6;
+  font-size: 11px;
+  margin-top: 3px;
+}
+.readiness-check > span {
+  font-size: 9px;
+  color: #62716b;
+}
+.readiness-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.readiness-actions small,
+.readiness-limit {
+  font-size: 11px;
+  color: #62716b;
+}
+.readiness-limit {
+  margin-top: 12px;
+  line-height: 1.6;
+}
+@media (max-width: 620px) {
+  .readiness-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .arena-loader {
   width: 100%;
   min-width: 0;
