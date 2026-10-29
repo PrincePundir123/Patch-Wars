@@ -1,10 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
-import { Application, Graphics, Container, Text } from 'pixi.js';
+import {
+  Application,
+  Graphics,
+  Container,
+  Text,
+  Assets,
+  Sprite,
+  Texture,
+  Rectangle,
+  loadTextures,
+} from 'pixi.js';
+import { UnitPortrait } from './UnitPortrait.js';
 // Pixi's static shader/uniform polyfills support a CSP without unsafe-eval.
 import 'pixi.js/unsafe-eval';
 import type { GameState, Entity, Snapshot } from '../../../packages/shared/src/index.js';
 import { createGame, startGame, step } from '../../../packages/game-core/src/index.js';
 const COLORS = { ember: 0xff8255, azure: 0x65c9ff };
+// Keep image loading compatible with the existing script-src 'self' CSP.
+loadTextures.config.preferWorkers = false;
 function silhouette(g: Graphics, shape: string, color: number, child = false) {
   const s = child ? 0.65 : 1;
   g.scale.set(s);
@@ -60,7 +73,7 @@ export function Arena({
     const app = new Application();
     const nodes = new Map<
       number,
-      { root: Container; body: Graphics; bar: Graphics; label: Text }
+      { root: Container; body: Graphics; bar: Graphics; label: Text; sprite?: Sprite }
     >();
     const local = createGame(83, 600);
     startGame(local);
@@ -82,36 +95,52 @@ export function Arena({
         app.destroy(true);
         return;
       }
+      const [arenaAsset, unitAsset] = await Promise.allSettled([
+        transparent ? Promise.resolve(null) : Assets.load<Texture>('/art/fracture-arena.webp'),
+        Assets.load<Texture>('/art/unit-atlas.webp'),
+      ]);
+      if (stopped) {
+        app.destroy(true);
+        return;
+      }
+      const frames = new Map<string, Texture>();
+      if (unitAsset.status === 'fulfilled') {
+        const atlas = unitAsset.value;
+        const width = atlas.width / 3,
+          height = atlas.height / 2;
+        ['shield', 'arrow', 'diamond', 'cross', 'orb', 'slime'].forEach((shape, i) => {
+          frames.set(
+            shape,
+            new Texture({
+              source: atlas.source,
+              frame: new Rectangle((i % 3) * width, Math.floor(i / 3) * height, width, height),
+            }),
+          );
+        });
+      }
+      if (arenaAsset.status === 'fulfilled' && arenaAsset.value) {
+        const backdrop = new Sprite(arenaAsset.value);
+        backdrop.width = 1200;
+        backdrop.height = 560;
+        backdrop.alpha = 0.78;
+        app.stage.addChild(backdrop);
+      }
       host.current?.appendChild(app.canvas);
       app.canvas.setAttribute('aria-label', 'Animated battlefield with Ember and Azure units');
       const field = new Graphics();
       if (!transparent) {
-        field.rect(0, 0, 1200, 560).fill(0x10151b);
-        for (let x = 0; x < 1200; x += 40)
-          field.moveTo(x, 0).lineTo(x, 560).stroke({ color: 0x25313a, alpha: 0.28, width: 1 });
-        for (let y = 0; y < 560; y += 40)
-          field.moveTo(0, y).lineTo(1200, y).stroke({ color: 0x25313a, alpha: 0.28, width: 1 });
         field
-          .poly([180, 95, 1020, 95, 1120, 280, 1020, 465, 180, 465, 80, 280])
-          .fill({ color: 0x1d2730, alpha: 0.55 })
-          .stroke({ color: 0x3a4651, width: 2 });
-        field.ellipse(600, 280, 145, 145).stroke({ color: 0x566376, alpha: 0.2, width: 1 });
-        field.ellipse(600, 280, 75, 75).stroke({ color: 0x566376, alpha: 0.25, width: 1 });
-        field.moveTo(600, 90).lineTo(600, 470).stroke({ color: 0x778594, alpha: 0.18, width: 1 });
+          .rect(0, 0, 1200, 560)
+          .fill({ color: 0x10202b, alpha: arenaAsset.status === 'fulfilled' ? 0.12 : 1 });
       }
       for (const [x, color] of [
         [65, COLORS.ember],
         [1135, COLORS.azure],
       ]) {
         field
-          .roundRect(x! - 32, 190, 64, 170, 8)
+          .ellipse(x!, 278, 27, 44)
           .fill({ color: color!, alpha: 0.1 })
-          .stroke({ color: color!, alpha: 0.5, width: 2 });
-        field
-          .poly([x!, 225, x! + 25, 250, x! + 18, 305, x!, 328, x! - 18, 305, x! - 25, 250])
-          .fill({ color: color!, alpha: 0.75 });
-        field.poly([x!, 250, x! + 10, 272, x!, 295, x! - 10, 272]).fill(0x111820);
-        for (let n = 0; n < 3; n++) field.rect(x! - 20 + n * 17, 205, 7, 10).fill(color!);
+          .stroke({ color: color!, alpha: 0.65, width: 2 });
       }
       app.stage.addChild(field);
       const watermark = new Text({
@@ -165,6 +194,14 @@ export function Arena({
               u.child,
             );
             const bar = new Graphics();
+            const texture = frames.get(s.catalog[u.blueprintId]?.appearance.shape ?? 'orb');
+            const sprite = texture ? new Sprite(texture) : undefined;
+            if (sprite) {
+              sprite.anchor.set(0.5, 0.72);
+              sprite.width = sprite.height = u.child ? 42 : 66;
+              body.visible = false;
+              root.addChild(sprite);
+            }
             const label = new Text({
               text: s.catalog[u.blueprintId]?.name ?? u.blueprintId,
               style: {
@@ -176,16 +213,17 @@ export function Arena({
               },
             });
             label.anchor.set(0.5, 1);
-            label.y = -28;
+            label.y = -40;
             root.addChild(body, bar, label);
             root.position.set(u.x, u.y);
             layer.addChild(root);
-            n = { root, body, bar, label };
+            n = { root, body, bar, label, sprite };
             nodes.set(u.id, n);
           }
           n.root.x += (u.x - n.root.x) * (reduced ? 1 : 0.25);
           n.root.y += (u.y - n.root.y) * (reduced ? 1 : 0.25);
           n.body.y = reduced ? 0 : Math.sin(now / 140 + u.id) * 1.4;
+          if (n.sprite) n.sprite.y = n.body.y;
           n.bar.clear();
           const highlighted = receipts.current.some(
             (r) => r.entityId === u.id && s.tick - r.tick < 120,
@@ -194,8 +232,8 @@ export function Arena({
           n.bar.ellipse(0, 15, 15, 5).stroke({ color: COLORS[u.team], width: 2, alpha: 0.8 });
           if (highlighted)
             n.bar.circle(0, 0, 25).stroke({ color: COLORS[u.team], width: 3, alpha: 0.85 });
-          n.bar.rect(-13, -22, 26, 3).fill(0x080b10);
-          n.bar.rect(-13, -22, 26 * Math.max(0, u.hp / u.maxHp), 3).fill(COLORS[u.team]);
+          n.bar.rect(-15, -34, 30, 4).fill(0x080b10);
+          n.bar.rect(-15, -34, 30 * Math.max(0, u.hp / u.maxHp), 4).fill(COLORS[u.team]);
           if (u.shield > 0)
             n.bar.circle(0, 0, 19).stroke({ color: 0xd8d2ff, alpha: 0.45, width: 1 });
           if (u.slowUntil > s.tick)
@@ -244,17 +282,9 @@ export function Arena({
   );
 }
 export function UnitIcon({ shape, team = 'ember' }: { shape: string; team?: Entity['team'] }) {
-  const glyph: Record<string, string> = {
-    shield: '⬟',
-    arrow: '➤',
-    diamond: '◆',
-    cross: '✚',
-    orb: '●',
-    slime: '◉',
-  };
   return (
-    <span className={`unit-icon ${team} ${shape === 'slime' ? 'lime' : ''}`}>
-      {glyph[shape] ?? '◆'}
+    <span className={`unit-icon ${team}`}>
+      <UnitPortrait shape={shape} />
     </span>
   );
 }

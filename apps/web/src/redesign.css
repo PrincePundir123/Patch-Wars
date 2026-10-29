@@ -2289,3 +2289,124 @@ select:focus {
     transition: none !important;
   }
 }
+/* Final composition refinements: the painted board supplies its own surface detail. */
+.workspace-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #0c1420;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+details.blueprint {
+  padding: 12px 18px;
+  border-top: 1px solid #303b50;
+}
+details.blueprint summary {
+  font-size: 11px;
+  color: #bfa9da;
+  cursor: pointer;
+  min-height: 25px;
+}
+.setup-intro {
+  grid-column: 1/-1;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 24px;
+  align-items: center;
+  border: 1px solid #344156;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #141f2c;
+}
+.setup-intro > div {
+  padding: 32px;
+}
+.setup-intro h2 {
+  font-size: 38px;
+  margin: 12px 0;
+}
+.setup-intro p {
+  font-size: 13px;
+  color: #a4b2c4;
+  line-height: 1.8;
+}
+.setup-intro img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+.setup-intro ol {
+  display: flex;
+  list-style: none;
+  gap: 18px;
+  padding: 0;
+  margin: 24px 0 0;
+  flex-wrap: wrap;
+}
+.setup-intro li {
+  font-size: 11px;
+  color: #b8c4d2;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.setup-intro li span {
+  color: #dbb878;
+  font-size: 10px;
+}
+@media (max-width: 620px) {
+  .setup-intro {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .setup-intro > div {
+    padding: 24px;
+  }
+  .setup-intro h2 {
+    font-size: 31px;
+  }
+  .setup-intro img {
+    height: 160px;
+  }
+  .setup-intro ol {
+    gap: 14px;
+  }
+  .setup-intro li {
+    font-size: 10px;
+  }
+  .battle-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .battle-layout .battle-main,
+  .battle-layout .battle-side {
+    display: contents;
+  }
+  .battle-layout .battle-stage {
+    order: 0;
+    width: 100%;
+  }
+  .battle-layout .broadcast-controls {
+    order: 1;
+  }
+  .battle-layout .voting-panel {
+    order: 2;
+    width: 100%;
+  }
+  .battle-layout .forge-panel {
+    order: 3;
+    width: 100%;
+    margin-top: 18px;
+  }
+  .battle-layout .unit-library {
+    order: 4;
+    width: 100%;
+  }
+  .battle-layout .timeline {
+    order: 5;
+    width: 100%;
+    margin-top: 24px;
+  }
+}
