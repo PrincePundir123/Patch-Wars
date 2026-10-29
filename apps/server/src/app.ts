@@ -50,6 +50,10 @@ export async function buildApp(options: ServerOptions = {}) {
   const adminKey = options.adminKey ?? process.env.ADMIN_KEY ?? '';
   const demo = options.demo ?? process.env.DEMO_MODE !== 'false';
   const provider = options.provider ?? process.env.FORGE_PROVIDER ?? 'fixture';
+  if (!['fixture', 'openai-responses', 'ollama', 'codex-sdk'].includes(provider))
+    throw new Error(
+      'Unknown FORGE_PROVIDER. Choose fixture, ollama, openai-responses or codex-sdk.',
+    );
   if (!['fixture', 'openai-responses', 'codex-sdk'].includes(provider))
     throw new Error('Unsupported Forge provider.');
   if (production && (!webOrigin.startsWith('https://') || adminKey.length < 32))

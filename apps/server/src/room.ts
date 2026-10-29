@@ -312,9 +312,15 @@ export class Room {
     this.updateForge('generating');
     const jobId = this.forge.id;
     const allowedEnv = Object.fromEntries(
-      ['PATH', 'SYSTEMROOT', 'OPENAI_API_KEY', 'FORGE_MODEL', 'CODEX_ISOLATED'].flatMap((k) =>
-        process.env[k] ? [[k, process.env[k]!]] : [],
-      ),
+      [
+        'PATH',
+        'SYSTEMROOT',
+        'OPENAI_API_KEY',
+        'FORGE_MODEL',
+        'CODEX_ISOLATED',
+        'OLLAMA_BASE_URL',
+        'OLLAMA_MODEL',
+      ].flatMap((k) => (process.env[k] ? [[k, process.env[k]!]] : [])),
     );
     const worker = new Worker(resolve('dist/forge/worker.js'), {
       workerData: { idea: winner.idea, provider: this.provider, timeout: this.timeout },

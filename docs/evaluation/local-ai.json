@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-29T03:11:29.907Z",
+  "provider": "ollama",
+  "model": "qwen2.5:3b",
+  "attempt": 2,
+  "generationAndBalanceMs": 55529,
+  "blueprint": {
+    "schemaVersion": 1,
+    "id": "guardian-guardian",
+    "name": "Guardian Guardian",
+    "description": "A sturdy guardian that starts with a protective shield, dealing damage and healing allies on hit.",
+    "archetype": "tank",
+    "stats": {
+      "maxHealth": 120,
+      "attackDamage": 10,
+      "attackRange": 20,
+      "attackCooldownTicks": 20,
+      "moveSpeed": 1,
+      "spawnCost": 6
+    },
+    "appearance": {
+      "shape": "shield",
+      "palette": "gold",
+      "effectPreset": "spark"
+    },
+    "abilities": [
+      {
+        "op": "shield",
+        "event": "spawn",
+        "amount": 20
+      },
+      {
+        "op": "splash",
+        "event": "attack",
+        "amount": 6,
+        "radius": 50,
+        "every": 4
+      },
+      {
+        "op": "heal",
+        "event": "tick",
+        "amount": 3,
+        "radius": 40,
+        "every": 20
+      }
+    ],
+    "weaknesses": [
+      "Shield is vulnerable to direct attacks."
+    ],
+    "sourcePrompt": "A sturdy guardian that starts with a protective shield, dealing damage and healing allies on hit."
+  },
+  "report": {
+    "engagements": 200,
+    "winRate": 0.42,
+    "passed": true,
+    "durationMs": 3061,
+    "peakEntities": 15,
+    "damageDealt": 83875,
+    "damageReceived": 107564,
+    "meanLifespanTicks": 673,
+    "efficiency": 13.98
+  }
+}

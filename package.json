@@ -19,7 +19,8 @@
     "build": "tsx scripts/build.ts",
     "start": "node dist/server/index.js",
     "evaluate": "tsx scripts/evaluate.ts",
-    "soak": "tsx scripts/soak.ts"
+    "soak": "tsx scripts/soak.ts",
+    "verify:local-ai": "tsx scripts/verify-local-ai.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",

@@ -43,7 +43,7 @@ export function validateBlueprint(raw: unknown): Blueprint {
 }
 export interface ForgeProvider {
   readonly name: string;
-  generateUnit(idea: string, signal: AbortSignal): Promise<unknown>;
+  generateUnit(idea: string, signal: AbortSignal, feedback?: string): Promise<unknown>;
 }
 export class FixtureForgeProvider implements ForgeProvider {
   readonly name = 'fixture';
