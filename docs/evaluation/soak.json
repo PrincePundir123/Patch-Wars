@@ -1,12 +1,12 @@
 {
-  "date": "2026-10-28T15:46:44.071Z",
+  "date": "2026-10-29T15:01:44.818Z",
   "rounds": 120,
   "ticks": 288000,
   "simulatedHours": 4,
-  "wallSeconds": 7.9181021000000005,
+  "wallSeconds": 48.4740904,
   "peakEntities": 39,
   "events": 162824,
-  "heapDeltaBytes": 19824168,
+  "heapDeltaBytes": 7745104,
   "failures": 0,
   "note": "Accelerated simulation soak; not a multi-hour wall-clock network or browser soak."
 }

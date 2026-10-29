@@ -1,5 +1,5 @@
 {
-  "testDate": "2026-10-28T16:06:27.644Z",
+  "testDate": "2026-10-29T14:59:39.003Z",
   "hardware": {
     "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
     "cores": 12,
@@ -14,132 +14,132 @@
   },
   "firstAttemptSuccess": 1,
   "finalSuccess": 1,
-  "p50Ms": 1296.8636999999999,
-  "p95Ms": 1824.723,
+  "p50Ms": 1666.5944,
+  "p95Ms": 5026.000399999997,
   "rejectionCauses": {},
   "adversarialRejected": 30,
-  "simulationMs": 38.60959999999977,
-  "ticksPerSecond": 93241,
+  "simulationMs": 172.51450000000477,
+  "ticksPerSecond": 20868,
   "duplicateEventsSuppressed": 1000,
   "reports": [
     {
       "name": "Prism Slime",
       "winRate": 0.42,
-      "simulationMs": 1817,
+      "simulationMs": 1849,
       "passed": true
     },
     {
       "name": "Frost Ranger",
       "winRate": 0.75,
-      "simulationMs": 1376,
+      "simulationMs": 1468,
       "passed": true
     },
     {
       "name": "Bloom Medic",
       "winRate": 0.46,
-      "simulationMs": 1881,
+      "simulationMs": 1947,
       "passed": true
     },
     {
       "name": "Aegis Guard",
       "winRate": 0.395,
-      "simulationMs": 1296,
+      "simulationMs": 1666,
       "passed": true
     },
     {
       "name": "Frost Ranger",
       "winRate": 0.75,
-      "simulationMs": 1225,
+      "simulationMs": 1193,
       "passed": true
     },
     {
       "name": "Frost Ranger",
       "winRate": 0.75,
-      "simulationMs": 1199,
+      "simulationMs": 1305,
       "passed": true
     },
     {
       "name": "Aegis Guard",
       "winRate": 0.395,
-      "simulationMs": 1234,
+      "simulationMs": 1571,
       "passed": true
     },
     {
       "name": "Bloom Medic",
       "winRate": 0.46,
-      "simulationMs": 1554,
+      "simulationMs": 1896,
       "passed": true
     },
     {
       "name": "Frost Ranger",
       "winRate": 0.75,
-      "simulationMs": 1185,
+      "simulationMs": 1453,
       "passed": true
     },
     {
       "name": "Aegis Guard",
       "winRate": 0.395,
-      "simulationMs": 1227,
+      "simulationMs": 1403,
       "passed": true
     },
     {
       "name": "Frost Ranger",
       "winRate": 0.75,
-      "simulationMs": 959,
+      "simulationMs": 1718,
       "passed": true
     },
     {
       "name": "Bloom Medic",
       "winRate": 0.46,
-      "simulationMs": 1459,
+      "simulationMs": 2283,
       "passed": true
     },
     {
       "name": "Prism Slime",
       "winRate": 0.42,
-      "simulationMs": 1462,
+      "simulationMs": 1693,
       "passed": true
     },
     {
       "name": "Frost Ranger",
       "winRate": 0.75,
-      "simulationMs": 1302,
+      "simulationMs": 1229,
       "passed": true
     },
     {
       "name": "Frost Ranger",
       "winRate": 0.75,
-      "simulationMs": 1189,
+      "simulationMs": 1154,
       "passed": true
     },
     {
       "name": "Frost Ranger",
       "winRate": 0.75,
-      "simulationMs": 1198,
+      "simulationMs": 1176,
       "passed": true
     },
     {
       "name": "Frost Ranger",
       "winRate": 0.75,
-      "simulationMs": 1363,
+      "simulationMs": 1160,
       "passed": true
     },
     {
       "name": "Prism Slime",
       "winRate": 0.42,
-      "simulationMs": 1270,
+      "simulationMs": 2048,
       "passed": true
     },
     {
       "name": "Bloom Medic",
       "winRate": 0.46,
-      "simulationMs": 1609,
+      "simulationMs": 5081,
       "passed": true
     },
     {
       "name": "Frost Ranger",
       "winRate": 0.75,
-      "simulationMs": 1205,
+      "simulationMs": 5026,
       "passed": true
     }
   ]
