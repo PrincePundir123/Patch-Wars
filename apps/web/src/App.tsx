@@ -21,6 +21,8 @@ import { CommandFeedback } from './CommandFeedback.js';
 import { TwitchGuide } from './TwitchGuide.js';
 import { ForgeReveal } from './ForgeReveal.js';
 import { BroadcastControls } from './BroadcastControls.js';
+import { WorkspaceShell } from './WorkspaceShell.js';
+import { ArenaDisplay } from './ArenaDisplay.js';
 import { api, useBattle } from './store.js';
 import type { Snapshot, Team } from '../../../packages/shared/src/index.js';
 function Brand() {
@@ -481,7 +483,7 @@ function BattleView({ s, overlay = false }: { s: Snapshot; overlay?: boolean }) 
   return (
     <div className={overlay ? `overlay-view ${transparent ? 'transparent' : ''}` : 'battle-layout'}>
       <div className="battle-main">
-        <section className="battle-stage" id="battle">
+        <ArenaDisplay enabled={!overlay} simulated={s.mode === 'demo'}>
           <Scoreboard s={s} />
           <div className="arena-wrap">
             <Arena
@@ -514,15 +516,11 @@ function BattleView({ s, overlay = false }: { s: Snapshot; overlay?: boolean }) 
             <span className="azure">{s.game.energy.azure} AZURE ENERGY</span>
             <span>20 HZ · SEED {s.game.seed}</span>
           </div>
-        </section>
-        {!overlay && (
-          <>
-            <BroadcastControls s={s} labels={labels} onLabels={setLabels} />
-            <Voting s={s} />
-            <UnitLibrary catalog={s.game.catalog} />
-          </>
-        )}
+          {!overlay && <BroadcastControls s={s} labels={labels} onLabels={setLabels} />}
+        </ArenaDisplay>
       </div>
+      {!overlay && <Voting s={s} />}
+      {!overlay && <UnitLibrary catalog={s.game.catalog} />}
       <aside className="battle-side">
         <ForgePanel s={s} />
         {!overlay && (
@@ -565,11 +563,10 @@ function MatchPage({ overlay = false }: { overlay?: boolean }) {
   useRoom(id);
   const s = useBattle((x) => x.snapshot);
   const connection = useBattle((x) => x.connection);
-  return (
+  const content = (
     <>
-      {!overlay && <Header />}
       {s ? (
-        <main className={overlay ? '' : 'match-page'}>
+        <main className={overlay ? '' : 'match-page'} id="workspace-main">
           {!overlay && (
             <div className="page-heading">
               <div>
@@ -595,6 +592,13 @@ function MatchPage({ overlay = false }: { overlay?: boolean }) {
         </div>
       )}
     </>
+  );
+  return overlay ? (
+    content
+  ) : (
+    <WorkspaceShell hasMatch={!!s} spectator>
+      {content}
+    </WorkspaceShell>
   );
 }
 type Me = {
@@ -691,17 +695,20 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
   }
   const active = s?.roomId === id ? s : null;
   return (
-    <>
-      <Header />
-      <main className="dashboard">
+    <WorkspaceShell hasMatch={!!active}>
+      <main className="dashboard" id="workspace-main">
         <div className="page-heading">
           <div>
             <span className="eyebrow">
               {demo ? 'A FRONT ROW SEAT TO THE POSSIBILITIES' : 'STREAMER WORKSPACE'}
             </span>
             <h1>
-              {demo ? 'Welcome to the battlefield' : 'Your stream. Your arena'}
-              <span>.</span>
+              {active
+                ? 'Battlefield'
+                : demo
+                  ? 'Welcome to the battlefield'
+                  : 'Your stream. Your arena'}
+              {!active && <span>.</span>}
             </h1>
             <p>
               {demo
@@ -823,20 +830,6 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
           </section>
         ) : (
           <>
-            <nav className="workspace-nav" aria-label="Match sections">
-              <a href="#battle">
-                <Sword size={17} /> Battlefield
-              </a>
-              <a href="#forge">
-                <Sparkle size={17} /> Forge
-              </a>
-              <a href="#units">
-                <UsersThree size={17} /> Units
-              </a>
-              <a href="#controls">
-                <Broadcast size={17} /> Stream controls
-              </a>
-            </nav>
             <div className="operator-bar">
               <div>
                 <span className={`mode-label ${active.mode === 'demo' ? 'demo-label' : ''}`}>
@@ -893,7 +886,11 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
             </div>
             {active.mode === 'live' && <TwitchGuide s={active} />}
             <BattleView s={active} />
-            <section className="operator-grid" id="controls">
+            <div className="stream-section-heading">
+              <h2>Stream controls</h2>
+              <span className="tiny-tag">OPERATOR ONLY</span>
+            </div>
+            <section className="operator-grid" id="controls" aria-label="Stream controls">
               <div className="panel operator-panel">
                 <div className="panel-heading">
                   <h2>{active.mode === 'demo' ? 'REPLAY CONTROLS' : 'TWITCH CONNECTIONS'}</h2>
@@ -951,18 +948,6 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                       Each broadcaster authorizes their own channel. The second community uses a
                       temporary invitation.
                     </p>
-                    <p className="guide-note oauth-callback-note">
-                      Register this address in your Twitch application's OAuth Redirect URLs:{' '}
-                      <code>{`${location.origin}/auth/twitch/callback`}</code>. Use the same address
-                      throughout authorization.
-                    </p>
-                    {['localhost', '127.0.0.1'].includes(location.hostname) && (
-                      <p className="guide-note">
-                        Local invitation links work only on this computer. For a broadcaster on
-                        another computer, use a public deployment with its own registered Twitch
-                        callback.
-                      </p>
-                    )}
                     {active.channels.map((c) => (
                       <div className="channel-row" key={c.id}>
                         <span className={c.team}>
@@ -1004,6 +989,21 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                         Invite Azure broadcaster
                       </button>
                     </div>
+                    <details className="connection-details">
+                      <summary>Connection setup details</summary>
+                      <p className="guide-note oauth-callback-note">
+                        Register this address in your Twitch application's OAuth Redirect URLs:{' '}
+                        <code>{`${location.origin}/auth/twitch/callback`}</code>. Use the same
+                        address throughout authorization.
+                      </p>
+                      {['localhost', '127.0.0.1'].includes(location.hostname) && (
+                        <p className="guide-note">
+                          For a broadcaster on another computer, use a publicly reachable address
+                          with its own registered Twitch callback. Localhost links open on their own
+                          computer.
+                        </p>
+                      )}
+                    </details>
                     {invite && (
                       <div className="invite">
                         <label htmlFor="invite">
@@ -1063,7 +1063,7 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
           </>
         )}
       </main>
-    </>
+    </WorkspaceShell>
   );
 }
 function Settings({ s, save }: { s: Snapshot; save: (data: object) => void }) {

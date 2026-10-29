@@ -9,7 +9,7 @@ export function TwitchGuide({ s }: { s: Snapshot }) {
     <section className="twitch-guide panel" aria-label="Twitch match checklist">
       <div>
         <span className="eyebrow">CHAT TO COMBAT</span>
-        <h2>
+        <h2 className="sr-only">
           {s.game.phase === 'results'
             ? 'Battle finished. Ready for a rematch?'
             : 'Make your first move.'}
@@ -52,10 +52,13 @@ export function TwitchGuide({ s }: { s: Snapshot }) {
           </li>
         ))}
       </ol>
-      <p className="guide-note">
-        Type commands on Twitch, not in this dashboard. Wait at least two seconds between messages.
-        Orange is Ember; blue is Azure.
-      </p>
+      <details className="guide-details">
+        <summary>Chat command help</summary>
+        <p className="guide-note">
+          Type commands on Twitch, not in this dashboard. Wait at least two seconds between
+          messages. Orange is Ember; blue is Azure.
+        </p>
+      </details>
     </section>
   );
 }
