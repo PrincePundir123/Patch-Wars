@@ -3,6 +3,7 @@ import tseslint from 'typescript-eslint';
 export default tseslint.config(
   {
     ignores: [
+      '.data/**',
       'dist/**',
       'node_modules/**',
       'apps/web/dist/**',
