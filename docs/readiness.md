@@ -10,6 +10,8 @@ Updated October 29, 2026 (IST).
 - Complete local worker flow: synthetic normalized chat, voting, real Ollama generation, validation, balance, reveal and two deployed units passed in about 29 seconds across two attempts. See docs/evaluation/local-forge-flow.json.
 - Priority improvements: visible command receipts and spawn highlights, direct channel-chat links and setup guidance, readable Forge cards with a three-second live reveal, free local generation, optional labels and muted-by-default event audio.
 - Browser regression suite covers desktop/mobile, complete fixture Forge/OBS flow, setup errors, labels, audio toggles and command feedback.
+- Operator-origin repair: localhost unlock, owned live-match creation and connected browser snapshots were checked against the running development server while WEB_ORIGIN remained configured for the tunnel. HTTP mutations and WebSockets now share an exact allowlist; production still permits only WEB_ORIGIN. OAuth callbacks remain on the explicitly allowed initiating address.
+- Latest repair verification: 114 automated tests and eight Chromium browser tests passed; TypeScript, lint, production build and all nine local preflight checks passed. See [origin repair evidence](origin-fix-verification.md). Configuration checks do not establish live authorization or submission.
 
 ## Still needs owner participation or external verification
 
