@@ -27,6 +27,10 @@ import { ArenaDisplay } from './ArenaDisplay.js';
 import { ReadinessPanel } from './ReadinessPanel.js';
 import { api, useBattle } from './store.js';
 import type { Snapshot, Team } from '../../../packages/shared/src/index.js';
+import {
+  createSnapshotDecoder,
+  type SnapshotFrame,
+} from '../../../packages/shared/src/snapshot-wire.js';
 function Brand() {
   return (
     <Link className="brand" to="/" aria-label="Patch Wars home">
@@ -76,9 +80,10 @@ function useRoom(id?: string) {
     let lastSeq = -1;
     setSnapshot(null);
     function connect() {
+      const decode = createSnapshotDecoder();
       setConnection(attempts ? 'reconnecting' : 'connecting');
       socket = new WebSocket(
-        `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/${id}`,
+        `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/${id}?format=compact`,
       );
       socket.onopen = () => {
         attempts = 0;
@@ -86,10 +91,10 @@ function useRoom(id?: string) {
       };
       socket.onmessage = (e) => {
         try {
-          const data = JSON.parse(e.data) as Snapshot;
+          const data = JSON.parse(e.data) as SnapshotFrame;
           if (data.type === 'snapshot' && data.roomId === id && data.seq > lastSeq) {
             lastSeq = data.seq;
-            setSnapshot(data);
+            setSnapshot(decode(data));
           }
         } catch {
           setConnection('offline');

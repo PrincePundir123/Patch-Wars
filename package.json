@@ -21,7 +21,8 @@
     "evaluate": "tsx scripts/evaluate.ts",
     "soak": "tsx scripts/soak.ts",
     "verify:local-ai": "tsx scripts/verify-local-ai.ts",
-    "doctor": "tsx scripts/doctor.ts"
+    "doctor": "tsx scripts/doctor.ts",
+    "profile:ui": "tsx scripts/profile-ui.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",

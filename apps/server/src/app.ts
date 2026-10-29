@@ -12,6 +12,7 @@ import { Room } from './room.js';
 import { originPolicy } from './origins.js';
 import { createProviderProbe } from './readiness.js';
 import type { ReadinessReport } from '../../../packages/shared/src/index.js';
+import { compactSnapshot } from '../../../packages/shared/src/snapshot-wire.js';
 import { ControlSchema, CommandSchema, TeamSchema } from '../../../packages/shared/src/index.js';
 import {
   TwitchIdentity,
@@ -101,6 +102,8 @@ export async function buildApp(options: ServerOptions = {}) {
   const oauth = new Map<string, PendingAuth>();
   const invites = new Map<string, { roomId: string; team: 'azure'; expires: number }>();
   const clients = new Map<string, Set<WebSocket>>();
+  const compactClients = new WeakSet<WebSocket>();
+  const sentCatalogs = new WeakMap<WebSocket, string>();
   const connections = new Map<string, { client: EventSubClient; identity: TwitchIdentity }>();
   const probeProvider = createProviderProbe();
   app.decorate('rooms', rooms);
@@ -488,7 +491,12 @@ export async function buildApp(options: ServerOptions = {}) {
     }
     set.add(socket);
     clients.set(r.id, set);
-    socket.send(JSON.stringify(r.snapshot()));
+    const initial = r.snapshot();
+    socket.send(JSON.stringify(initial));
+    if (new URL(req.url, 'http://localhost').searchParams.get('format') === 'compact') {
+      compactClients.add(socket);
+      sentCatalogs.set(socket, JSON.stringify(initial.game.catalog));
+    }
     socket.on('message', () => socket.close(1008, 'Read-only connection'));
     socket.on('close', () => set.delete(socket));
   });
@@ -502,10 +510,25 @@ export async function buildApp(options: ServerOptions = {}) {
             if (frame % 2 === 0) {
               const set = clients.get(r.id);
               if (set?.size) {
-                const json = JSON.stringify(r.snapshot());
+                const snapshot = r.snapshot();
+                let full: string | undefined,
+                  compact: string | undefined,
+                  catalog: string | undefined;
                 for (const socket of set) {
                   if (socket.bufferedAmount > 1000000) socket.close(1013, 'Slow consumer');
-                  else if (socket.readyState === 1) socket.send(json);
+                  else if (socket.readyState === 1) {
+                    if (compactClients.has(socket)) {
+                      catalog ??= JSON.stringify(snapshot.game.catalog);
+                      if (sentCatalogs.get(socket) === catalog) {
+                        compact ??= JSON.stringify(compactSnapshot(snapshot));
+                        socket.send(compact);
+                        continue;
+                      }
+                      sentCatalogs.set(socket, catalog);
+                    }
+                    full ??= JSON.stringify(snapshot);
+                    socket.send(full);
+                  }
                 }
               }
             }

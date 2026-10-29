@@ -1,5 +1,40 @@
 import { test, expect } from '@playwright/test';
 
+test('offscreen rendering suspends while server combat continues and resumes in view', async ({
+  page,
+}) => {
+  await page.goto('/demo');
+  const canvas = page.locator('.arena-canvas');
+  await expect(page.locator('canvas')).toBeVisible();
+  await canvas.scrollIntoViewIfNeeded();
+  await expect(canvas).toHaveAttribute('data-render-activity', 'active');
+  const id = new URL(page.url()).searchParams.get('room');
+  const before = await (await page.request.get(`/api/rooms/${id}`)).json();
+  await page.locator('#controls').scrollIntoViewIfNeeded();
+  await expect(canvas).toHaveAttribute('data-render-activity', 'suspended');
+  const count = await canvas.getAttribute('data-render-frames');
+  await expect
+    .poll(async () => Number((await (await page.request.get(`/api/rooms/${id}`)).json()).game.tick))
+    .toBeGreaterThan(before.game.tick);
+  expect(await canvas.getAttribute('data-render-frames')).toBe(count);
+  await canvas.scrollIntoViewIfNeeded();
+  await expect(canvas).toHaveAttribute('data-render-activity', 'active');
+  await expect
+    .poll(async () => Number(await canvas.getAttribute('data-render-frames')))
+    .toBeGreaterThan(Number(count));
+});
+
+test('reduced-motion rendering uses a lower frame budget without losing controls', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/demo');
+  await expect(page.locator('.arena-canvas')).toHaveAttribute('data-target-fps', '20');
+  await page.getByRole('button', { name: 'Theater view', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Exit theater', exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
+});
+
 test('presentation checks report fixture limits and leave the match untouched', async ({
   page,
 }) => {

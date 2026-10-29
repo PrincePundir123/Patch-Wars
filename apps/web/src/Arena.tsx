@@ -77,6 +77,20 @@ export function Arena({
   const [error, setError] = useState('');
   useEffect(() => {
     let stopped = false;
+    let observer: IntersectionObserver | undefined;
+    let visibility: (() => void) | undefined;
+    const coarse = matchMedia('(pointer: coarse)').matches;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const targetFps = reduced ? 20 : coarse ? 30 : 60;
+    let renderedFrames = 0,
+      barsRedrawn = 0,
+      lastReport = performance.now();
+    const report = () => {
+      if (!host.current) return;
+      host.current.dataset.renderFrames = String(renderedFrames);
+      host.current.dataset.barRedraws = String(barsRedrawn);
+      host.current.dataset.renderReportAt = String(performance.now());
+    };
     const app = new Application();
     const nodes = new Map<
       number,
@@ -87,6 +101,7 @@ export function Arena({
         label: Text;
         sprite?: Sprite;
         appearance: string;
+        barVisual?: string;
       }
     >();
     const local = createGame(83, 600);
@@ -101,13 +116,18 @@ export function Arena({
         backgroundAlpha: transparent ? 0 : 1,
         background: 0x10151b,
         antialias: true,
-        resolution: Math.min(window.devicePixelRatio, 2),
+        resolution: Math.min(window.devicePixelRatio, coarse ? 1.5 : 2),
         autoDensity: true,
         preference: 'webgl',
       });
       if (stopped) {
         app.destroy(true);
         return;
+      }
+      app.ticker.maxFPS = targetFps;
+      if (host.current) {
+        host.current.dataset.targetFps = String(targetFps);
+        host.current.dataset.renderResolution = String(app.renderer.resolution);
       }
       const [arenaAsset, unitAsset] = await Promise.allSettled([
         transparent ? Promise.resolve(null) : loadArtwork('/art/fracture-arena.webp'),
@@ -168,11 +188,20 @@ export function Arena({
       app.stage.addChild(layer);
       const fx = new Graphics();
       app.stage.addChild(fx);
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let previousGame: GameState | undefined,
+        previousTick = -1;
+      let previousEvents: GameState['events'] | undefined,
+        effectTick = -1;
       app.ticker.add(() => {
         const now = performance.now();
+        const elapsed = Math.min(now - last, 100);
+        renderedFrames++;
+        if (now - lastReport >= 1000) {
+          report();
+          lastReport = now;
+        }
         if (preview) {
-          accumulator += Math.min(now - last, 100);
+          accumulator += elapsed;
           while (accumulator >= 50) {
             step(local);
             accumulator -= 50;
@@ -181,17 +210,31 @@ export function Arena({
         last = now;
         const s = preview ? local : latest.current;
         if (!s) return;
-        const present = new Set(s.units.map((u) => u.id));
-        for (const [id, node] of nodes)
-          if (!present.has(id)) {
-            layer.removeChild(node.root);
-            node.root.destroy({ children: true });
-            nodes.delete(id);
-          }
+        const changed = s !== previousGame || s.tick !== previousTick;
+        if (changed) {
+          const present = new Set(s.units.map((u) => u.id));
+          for (const [id, node] of nodes)
+            if (!present.has(id)) {
+              layer.removeChild(node.root);
+              node.root.destroy({ children: true });
+              nodes.delete(id);
+            }
+          previousGame = s;
+          previousTick = s.tick;
+        }
+        const highlightedIds = new Set(
+          receipts.current
+            .filter((r) => r.entityId !== undefined && s.tick - r.tick < 120)
+            .map((r) => r.entityId),
+        );
+        const interpolation = reduced ? 1 : 1 - Math.exp(-elapsed / 58);
         for (const u of s.units) {
           let n = nodes.get(u.id);
           const blueprint = s.catalog[u.blueprintId];
-          const appearance = `${u.blueprintId}:${u.team}:${blueprint?.appearance.shape}:${blueprint?.appearance.palette}:${u.child}`;
+          const appearance =
+            changed || !n
+              ? `${u.blueprintId}:${u.team}:${blueprint?.appearance.shape}:${blueprint?.appearance.palette}:${u.child}`
+              : n.appearance;
           // Resets can reuse entity IDs for a different blueprint or team.
           if (n && n.appearance !== appearance) {
             layer.removeChild(n.root);
@@ -246,15 +289,17 @@ export function Arena({
             n = { root, body, bar, label, sprite, appearance };
             nodes.set(u.id, n);
           }
-          n.root.x += (u.x - n.root.x) * (reduced ? 1 : 0.25);
-          n.root.y += (u.y - n.root.y) * (reduced ? 1 : 0.25);
+          n.root.x += (u.x - n.root.x) * interpolation;
+          n.root.y += (u.y - n.root.y) * interpolation;
           n.body.y = reduced ? 0 : Math.sin(now / 140 + u.id) * 1.4;
           if (n.sprite) n.sprite.y = n.body.y;
-          n.bar.clear();
-          const highlighted = receipts.current.some(
-            (r) => r.entityId === u.id && s.tick - r.tick < 120,
-          );
+          const highlighted = highlightedIds.has(u.id);
           n.label.visible = highlighted || showLabels.current;
+          const barVisual = `${u.hp}:${u.maxHp}:${u.shield > 0}:${u.slowUntil > s.tick}:${highlighted}`;
+          if (n.barVisual === barVisual) continue;
+          n.barVisual = barVisual;
+          barsRedrawn++;
+          n.bar.clear();
           n.bar.ellipse(0, 15, 15, 5).stroke({ color: COLORS[u.team], width: 2, alpha: 0.8 });
           if (highlighted)
             n.bar.circle(0, 0, 25).stroke({ color: COLORS[u.team], width: 3, alpha: 0.85 });
@@ -265,30 +310,53 @@ export function Arena({
           if (u.slowUntil > s.tick)
             n.bar.circle(0, 0, 17).stroke({ color: 0x98e0ff, alpha: 0.7, width: 2 });
         }
-        fx.clear();
-        if (!reduced)
-          for (const e of s.events) {
-            const age = s.tick - e.tick;
-            if (age > 6) continue;
-            const alpha = 1 - age / 7;
-            if (e.kind === 'attack' && e.targetX !== undefined) {
-              fx.moveTo(e.x, e.y)
-                .lineTo(e.targetX, e.targetY!)
-                .stroke({ color: COLORS[e.team], alpha: alpha * 0.7, width: 1.5 });
-              fx.circle(e.targetX, e.targetY!, 3 + age).stroke({
-                color: 0xffe4a8,
-                alpha,
-                width: 1,
-              });
+        if (s.events !== previousEvents || s.tick !== effectTick) {
+          previousEvents = s.events;
+          effectTick = s.tick;
+          fx.clear();
+          if (!reduced)
+            for (const e of s.events) {
+              const age = s.tick - e.tick;
+              if (age > 6) continue;
+              const alpha = 1 - age / 7;
+              if (e.kind === 'attack' && e.targetX !== undefined) {
+                fx.moveTo(e.x, e.y)
+                  .lineTo(e.targetX, e.targetY!)
+                  .stroke({ color: COLORS[e.team], alpha: alpha * 0.7, width: 1.5 });
+                fx.circle(e.targetX, e.targetY!, 3 + age).stroke({
+                  color: 0xffe4a8,
+                  alpha,
+                  width: 1,
+                });
+              }
+              if (['split', 'death', 'spawn', 'heal'].includes(e.kind))
+                fx.circle(e.x, e.y, 8 + age * 4).stroke({
+                  color: e.kind === 'heal' || e.kind === 'split' ? 0xb8ef70 : COLORS[e.team],
+                  alpha: alpha * 0.7,
+                  width: 2,
+                });
             }
-            if (['split', 'death', 'spawn', 'heal'].includes(e.kind))
-              fx.circle(e.x, e.y, 8 + age * 4).stroke({
-                color: e.kind === 'heal' || e.kind === 'split' ? 0xb8ef70 : COLORS[e.team],
-                alpha: alpha * 0.7,
-                width: 2,
-              });
-          }
+        }
       });
+      let inView = true;
+      visibility = () => {
+        if (stopped) return;
+        const active = !document.hidden && inView;
+        if (host.current) host.current.dataset.renderActivity = active ? 'active' : 'suspended';
+        report();
+        if (active) {
+          last = performance.now();
+          accumulator = 0;
+          app.ticker.start();
+        } else app.ticker.stop();
+      };
+      observer = new IntersectionObserver((entries) => {
+        inView = entries.some((entry) => entry.isIntersecting);
+        visibility?.();
+      });
+      if (host.current) observer.observe(host.current);
+      document.addEventListener('visibilitychange', visibility);
+      visibility();
     })().catch(() => {
       useBattle.getState().setRenderer('error');
       setError(
@@ -297,6 +365,8 @@ export function Arena({
     });
     return () => {
       stopped = true;
+      observer?.disconnect();
+      if (visibility) document.removeEventListener('visibilitychange', visibility);
       if (app.renderer) app.destroy(true, { children: true });
     };
   }, [preview, transparent]);

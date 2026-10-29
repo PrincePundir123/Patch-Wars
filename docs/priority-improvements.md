@@ -23,3 +23,11 @@ At this milestone the initial JS entry was about 365 KB plus a 1.25 KB runtime, 
 Each owned match has a collapsible Presentation readiness panel. It combines current socket/snapshot freshness and renderer initialization with on-demand ownership, origin, Twitch and provider checks. Ollama checks only its local model list with a 1.5-second timeout, five-second cache and per-provider request coalescing. Cloud checks inspect key configuration without sending a billed request. Reports contain no secrets and explicitly distinguish fixtures/configuration from live acceptance.
 
 The API requires room ownership. Spectators cannot request private diagnostics. A browser test paused a real demo, ran the panel checks and compared the complete game state before/after; it remained unchanged. Tests also cover origin warnings, local-only provider endpoints, missing models, coalescing and secret-safe output. No persistent history or summary storage was introduced.
+
+## 4. Rendering and snapshot work
+
+The 20 Hz authoritative simulation is unchanged. Browser sockets opt into compact snapshots: a full catalog is sent on connection, catalog changes and reset; ordinary updates omit only that repeated catalog. A decoder restores the exact public Snapshot shape. Legacy sockets and HTTP snapshots remain full. Catalog references stay stable so the memoized unit library avoids unrelated game-tick rerenders.
+
+Rendering now stops for hidden/offscreen canvases and resumes against the latest authoritative state. Desktop rendering targets at most 60 FPS; coarse-pointer devices target 30 with a 1.5 resolution cap; reduced-motion rendering targets 20. These are budgets, not achieved-frame-rate promises. Interpolation is time-based, unchanged health/status graphics are cached and identical event graphics are not rebuilt every display frame. DOM profiling counters update at most once a second and when activity changes.
+
+`pnpm run profile:ui` profiles local fixture rooms in Chromium laptop and phone emulation, measuring renderer work, paused-bar redraws, offscreen suspension and actual compact bytes versus reconstructed legacy bytes. It writes docs/evaluation/optimization.json. It does not create saved match summaries, send Twitch commands or start paid generation.

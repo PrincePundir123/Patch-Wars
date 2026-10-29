@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-29T14:21:29.069Z",
+  "browser": "Playwright Chromium",
+  "initialEntryBytes": 364704,
+  "entryGzipEstimate": 113139,
+  "previousEntryBytes": 1070750,
+  "samples": [
+    {
+      "device": "Chromium laptop viewport",
+      "targetFps": 60,
+      "resolution": 1,
+      "measuredFps": 35.61519844225744,
+      "visibleFrames": 181,
+      "healthBarRedrawsDuringPausedSample": 0,
+      "offscreenFrames": 0,
+      "snapshots": 65,
+      "catalogFrames": 1,
+      "actualSnapshotBytes": 210127,
+      "estimatedLegacySnapshotBytes": 348623,
+      "snapshotBytesSavedPercent": 39.7265814361072,
+      "pageErrors": []
+    },
+    {
+      "device": "Chromium phone emulation",
+      "targetFps": 30,
+      "resolution": 1.5,
+      "measuredFps": 16.65053242981607,
+      "visibleFrames": 86,
+      "healthBarRedrawsDuringPausedSample": 0,
+      "offscreenFrames": 0,
+      "snapshots": 73,
+      "catalogFrames": 1,
+      "actualSnapshotBytes": 235752,
+      "estimatedLegacySnapshotBytes": 391560,
+      "snapshotBytesSavedPercent": 39.79160281949127,
+      "pageErrors": []
+    }
+  ],
+  "note": "Local paused fixture samples. Phone emulation is not physical-device testing; observed FPS is not a guarantee. Legacy wire bytes are reconstructed from the same compact frames. No live Twitch or paid generation request was made."
+}

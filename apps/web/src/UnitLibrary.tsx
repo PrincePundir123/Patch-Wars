@@ -1,5 +1,6 @@
 ﻿import { useEffect, useRef, useState } from 'react';
 import { Copy } from '@phosphor-icons/react/dist/csr/Copy';
+import { memo } from 'react';
 import { X } from '@phosphor-icons/react/dist/csr/X';
 import { MagnifyingGlass } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
 import { Lightning } from '@phosphor-icons/react/dist/csr/Lightning';
@@ -9,7 +10,11 @@ import type { Blueprint } from '../../../packages/shared/src/index.js';
 import { STARTERS } from '../../../packages/game-core/src/catalog.js';
 import { UnitPortrait } from './UnitPortrait.js';
 import { abilityText } from './ForgeReveal.js';
-export function UnitLibrary({ catalog }: { catalog?: Record<string, Blueprint> }) {
+export const UnitLibrary = memo(function UnitLibrary({
+  catalog,
+}: {
+  catalog?: Record<string, Blueprint>;
+}) {
   const units = Object.values(catalog ?? Object.fromEntries(STARTERS.map((b) => [b.id, b])));
   const [query, setQuery] = useState('');
   const [role, setRole] = useState('all');
@@ -163,4 +168,4 @@ export function UnitLibrary({ catalog }: { catalog?: Record<string, Blueprint> }
       </dialog>
     </section>
   );
-}
+});
