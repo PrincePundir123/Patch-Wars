@@ -1,10 +1,10 @@
 {
-  "date": "2026-10-29T15:00:04.570Z",
+  "date": "2026-10-29T16:22:43.849Z",
   "mode": "local simulated replay in Playwright Chromium",
-  "chatToOverlayMs": 923.9454000000005,
+  "chatToOverlayMs": 655.9268,
   "frameSamples": 119,
   "meanFrameIntervalMs": 16.665546218487393,
-  "p95FrameIntervalMs": 16.700000000000728,
+  "p95FrameIntervalMs": 16.700000000000273,
   "viewport": {
     "width": 1280,
     "height": 720

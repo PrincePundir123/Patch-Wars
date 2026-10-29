@@ -1,0 +1,48 @@
+# Live arena and native Twitch extension
+
+The video reference combines a broadcast battle with controls on top of Twitch's player. PATCH WARS now provides two related surfaces while keeping the deterministic game, shared team energy, command grammar, cooldowns, Forge validation, voting and host permissions intact.
+
+## Open the complete web view
+
+1. Open `/dashboard`, create a Twitch match, authorize the broadcaster and start combat.
+2. Select **Live arena**. `/play/<room-id>` fills the browser with the arena, deployment cards and community panel. Fullscreen expands the whole layout. Phones stack the same components without horizontal page scrolling.
+3. Select **Sign in with Twitch to deploy**. This is viewer authorization, not host access. It uses the existing registered `/auth/twitch/callback` and exact allowed browser origin. The account remains server-side; browser responses never contain OAuth tokens.
+4. Select a unit card to spend the same shared team energy as `!spawn <unit>`. No money or Bits are charged. Cards also include approved generated units as they enter the catalog. The server enforces energy, cooldowns, caps, pause and phase rules, independently of button state.
+5. Select **Load Twitch chat** to embed actual Twitch chat for the selected connected channel. Twitch chat may require its own login and third-party browser storage permission. Use **Open chat** if the browser blocks the embed. The parent parameter is derived from the current hostname, not user input.
+6. The game command field sends actions directly to the server under the signed-in viewer's identity; it does not post conversation to Twitch. Conversation belongs in embedded Twitch chat. Both input paths reach the same game handler and share viewer cooldown/vote identity. Receipts distinguish TWITCH CHAT, VIEWER CONTROLS and TWITCH EXTENSION.
+7. The Community Forge tab shows current proposals, phase, generated name/status and balance count. Vote buttons submit the existing `!vote <proposal-id>` command. The host still controls round transitions in the dashboard.
+
+Demo matches remain explicitly labelled simulated/fixture-based. Only the demo owner may send local commands; opening a public demo link does not grant ownership. The new viewer surfaces provide no pause/reset/settings/invitation controls. OBS links remain read-only and control-free.
+
+## Native extension: what is implemented
+
+`apps/extension` is a separate transparent video-overlay frontend. It loads the official Twitch Extension Helper as its first script, consumes refreshed `onAuthorized` tokens, requests identity sharing, displays catalog-driven unit cards and submits game commands. It does not render a second battle over the broadcast. OBS supplies the battle video beneath it.
+
+The EBS routes verify HS256 signatures using the separate, base64-decoded Twitch Extension secret, token expiry, role, channel and linked user identity. A viewer cannot supply a team or another channel. State discovery selects the one connected match for the token's channel. Requests carry UUIDs for duplicate suppression and use the same user ID as ordinary Twitch chat. Only the configured extension CDN origin receives cross-origin API access; other app routes retain their origin and ownership rules. Public extension assets have a separate CSP allowing the helper and Twitch framing; dashboards retain self-only frame ancestors. No signing secret enters the built frontend.
+
+The frontend validates its display contract, uses text nodes for dynamic content, polls every five seconds only while visible, bounds network waits and disables actions on disconnect. It requests identity sharing through Twitch, never fabricates identity locally. The four built files are about 322 KB uncompressed in this run, including artwork; the extension does not load React, Pixi or the full game/schema runtime.
+
+### Build and configure it in Twitch
+
+This repository contains the implementation and tested asset build. It is **not an installed, approved or published Twitch extension**. Those states require the owner's developer account and public infrastructure.
+
+1. Create a **Twitch Extension** in the Twitch developer console, separate from the OAuth application. Enable a **Video Overlay** view and identity linking. Register mobile support only after checking the actual Twitch mobile clients.
+2. In local `.env`, configure `TWITCH_EXTENSION_CLIENT_ID` and `TWITCH_EXTENSION_SECRET` from that extension's settings. The latter is the base64 extension signing key, not `TWITCH_CLIENT_SECRET`. Keep both credentials out of Git/chat.
+3. Set `WEB_ORIGIN` and `EXTENSION_BACKEND_URL` to the same publicly reachable HTTPS backend origin. The backend must also serve the existing OAuth and WebSocket routes. Register the matching OAuth callback in the OAuth application. A local-only host is inaccessible to remote Twitch viewers.
+4. Run `pnpm.cmd build` and `pnpm.cmd build:extension`. The extension package is `dist/extension`: `viewer.html`, `viewer.js`, `viewer.css`, `unit-atlas.webp`. Keep the files at the root when uploading a ZIP to Twitch Hosted Test. JavaScript is deliberately human-readable.
+5. For Twitch Local Test, the backend serves those files at `/extension/`; use the HTTPS public asset base ending `/extension/` and viewer path `viewer.html`. The Vite development server proxies this prefix. A plain browser opening `/extension/viewer.html` explains that helper authorization requires Twitch; it is not a login bypass or a fake extension preview.
+6. Configure Twitch's extension-version allowlist for the exact HTTPS backend used by fetch requests and the uploaded asset URLs as required by its console. Add your test accounts, install/activate the extension on your channel and test in Hosted Test before submission/review.
+7. Create a live PATCH WARS match and authorize that same broadcaster through the dashboard. Discovery binds the channel's extension to its current match automatically, so it needs no room secret or pairing code.
+8. Put the **full battlefield** OBS URL in an OBS Browser Source at 1920×1080. Remove `?transparent=1` if it was copied for a transparent overlay. Start your broadcast when ready; a second logged-in tester should share identity, click Archer and see a TWITCH EXTENSION receipt and unit deployment. Sending `!spawn archer` in ordinary Twitch chat must still work. Also test anonymous/denied identity, cooldowns, pause, insufficient energy, channel mismatch, expired authorization, reset and generated-unit deployment.
+
+Twitch's [extension policies](https://dev.twitch.tv/docs/extensions/guidelines-and-policies/) prohibit nested iframes. Consequently the native extension does not embed a second Twitch chat inside itself: Twitch supplies its existing chat beside the player. The web view uses the separate [official chat embed](https://dev.twitch.tv/docs/embed/chat/). Native fullscreen/chat placement follows Twitch's player UI; this implementation does not override Twitch's controls or promise that chat remains visible in every player fullscreen mode. [Helper and JWT documentation](https://dev.twitch.tv/docs/extensions/reference/) explains the identity mechanism.
+
+No paid soldier products, Bits transactions, wallet or native-extension approval are claimed. Unit cards deploy using the existing free team-energy economy. Tokens, rooms and viewer sessions remain memory-only; server restarts require a new match and reauthorization. Backend changes during this implementation restarted the development watcher, so previously open match URLs may be stale.
+
+## Verification
+
+On October 29, 2026, typecheck, lint, the web/server build, the native extension build, all **127 automated tests across 25 files** and the final **23 Chromium browser tests** passed. The complete browser suite used one isolated built server with normal API limits. Screenshots include `screenshots/live-arena-desktop.png` and `screenshots/live-arena-mobile.png`.
+
+New tests verify signed-token expiry/signatures/roles, identity linking, channel/team binding, duplicate and cooldown handling, viewer OAuth session binding, callback replay rejection, sign-out and host-permission denial. Browser tests click a real demo unit card and inspect its authoritative entity, inspect desktop/phone fit and community tabs, check live sign-in/chat wiring and run the built native frontend against a mocked Twitch Helper/EBS response. Existing Forge, OBS, settings, mobile, fullscreen and recovery checks still pass. One older paused-command test initially hit the legitimate previous-command cooldown; it now explicitly waits for simulation time to advance before pausing. Game timing/rules were not changed to satisfy the assertion.
+
+Native Helper, chat and viewer OAuth calls in automation are mocked where noted; these checks are not a claim of Hosted Test acceptance, real chat-embed login, viewer OAuth consent or an actual OBS broadcast. The earlier real Twitch Archer test remains evidence for the chat-command path before these additions, not acceptance of the new extension. The deferred Pixi chunk-size and upstream Zod comment warnings remain nonfatal build warnings.

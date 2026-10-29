@@ -82,6 +82,8 @@ For a single-channel stream, the app and OBS can run locally: viewers watch Twit
 
 Presentation readiness checks private setup without generating AI output. Lazy renderer loading, public asset caching, compact snapshots and offscreen rendering reduce unnecessary work; see [prioritized improvements](docs/priority-improvements.md) and run `pnpm run profile:ui` for local measurements.
 
+**Live arena** opens `/play/:id`: a full-window battle, clickable unit cards, embedded Twitch chat and community Forge voting. Viewers sign in separately to deploy; host permissions and the game economy stay unchanged. A separate **native Twitch video-overlay extension** is implemented in `apps/extension`; build its upload assets with `pnpm build:extension`. Installing it on Twitch requires extension credentials, public HTTPS hosting and Local/Hosted Test. It is not published or Twitch-approved. See the [live view and extension setup guide](docs/live-experience.md).
+
 ## Free local AI
 
 No OpenAI key is needed with Ollama. See [local AI setup and measured limitations](docs/local-ai.md). The verified development model is `qwen2.5:3b`; `pnpm verify:local-ai` exercises real generation, schema checks and balance. Local generation can take a minute: pause the match during generation, then resume once approved. Demo rooms always remain fixture-based.

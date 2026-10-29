@@ -16,6 +16,8 @@ Updated October 29, 2026 (IST).
 
 ## Still needs owner participation or external verification
 
+- New live arena and native extension: viewer OAuth, unit buttons, embedded chat and a packaged Twitch video overlay are implemented. Native Twitch installation, extension credentials, public HTTPS backend, identity sharing, real viewer OAuth consent and Hosted Test acceptance remain unverified. This is additional infrastructure for native controls; existing single-channel chat-command OBS streams can still run locally. See [live experience setup](live-experience.md).
+
 - Record a complete real Twitch proposal -> vote -> local AI -> deployment flow.
 - Test a second broadcaster, native Shared Chat and actual raid events.
 - For remote web spectators or a remote second broadcaster, choose and authorize public hosting; verify HTTPS/WSS and OAuth callback on that origin. A single-channel OBS broadcast can run locally; Twitch viewers do not need public app access.

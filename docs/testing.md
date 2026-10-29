@@ -1,12 +1,13 @@
 # Testing
 
-Current verification: **122 automated tests across 23 files** and **20 Chromium browser tests**. Coverage includes the eight existing flows, five expanded-view checks and seven loading/readiness/command/performance checks. Earlier evidence remains in [Field Studio verification](field-studio-verification.md); the latest changes are described in [priority improvements](priority-improvements.md). Follow the [manual rehearsal](manual-rehearsal.md) for demo and actual Twitch/OBS checks.
+Current verification: **127 automated tests across 25 files** and **23 Chromium browser tests**. Coverage includes the eight existing flows, five expanded-view checks, seven loading/readiness/command/performance checks and three live-view/extension checks. Earlier evidence remains in [Field Studio verification](field-studio-verification.md); latest changes are described in [priority improvements](priority-improvements.md) and [live experience](live-experience.md). Follow the [manual rehearsal](manual-rehearsal.md) for demo and actual Twitch/OBS checks.
 
 ```sh
 pnpm typecheck
 pnpm lint
 pnpm test
 pnpm build
+pnpm build:extension
 pnpm exec playwright install chromium
 pnpm test:e2e
 pnpm evaluate
@@ -20,7 +21,7 @@ Playwright checks landing/mobile layouts, the Forge-to-deployment flow, pause/re
 
 Expanded-view tests cover laptop viewport fit, retained canvas and exact paused game state, labels, focus containment/return, native fullscreen entry/exit, browser-driven exit events, unsupported/denied fullscreen fallback, portrait/landscape fit, spectator permissions and transparent control-free OBS output.
 
-The full 20-test browser suite now passes against one built server instance. Public asset requests no longer consume the protected API's 120-request/minute/IP budget; the earlier per-file server workaround is unnecessary. Do not disable the API limiter to pass tests. The production host-setup test expects the dedicated local key used in the verification instructions, never the owner's saved credentials.
+The full browser suite now passes against one built server instance. Public asset requests no longer consume the protected API's 120-request/minute/IP budget; the earlier per-file server workaround is unnecessary. Do not disable the API limiter to pass tests. The production host-setup test expects the dedicated local key used in the verification instructions, never the owner's saved credentials.
 
 `pnpm run profile:ui` measures local renderer and compact-snapshot work and writes `docs/evaluation/optimization.json`. Set PROFILE_BASE_URL to a running built instance to include its actual entry bundle size. Offscreen rendering and paused health-bar redraws are measured independently from the authoritative simulation. Emulated-device FPS and reconstructed legacy network bytes are local samples, not deployment or physical-device guarantees.
 
