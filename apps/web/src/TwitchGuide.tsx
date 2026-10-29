@@ -8,11 +8,21 @@ export function TwitchGuide({ s }: { s: Snapshot }) {
   return (
     <section className="twitch-guide panel" aria-label="Twitch match checklist">
       <div>
-        <span className="eyebrow">CHAT TO COMBAT</span>
-        <h2 className="sr-only">
+        <span className="eyebrow">LIVE MATCH · COMMANDS GO IN TWITCH CHAT</span>
+        <h2 className="guide-next-step">
           {s.game.phase === 'results'
-            ? 'Battle finished. Ready for a rematch?'
-            : 'Make your first move.'}
+            ? 'Next: reset for another battle'
+            : !connected
+              ? 'Next: connect your channel'
+              : s.paused
+                ? 'Next: resume the battle'
+                : !active
+                  ? 'Next: start the battle'
+                  : !received
+                    ? 'Next: send !spawn archer in Twitch chat'
+                    : !deployed
+                      ? 'Command received. Deploy your first unit.'
+                      : 'Your chat is reaching the battlefield.'}
         </h2>
         <p>
           {s.game.phase === 'results'
@@ -26,6 +36,16 @@ export function TwitchGuide({ s }: { s: Snapshot }) {
                   : 'Open your connected channel’s chat and send !spawn archer. Look for the labelled unit on your team’s side.'}
         </p>
         <div className="quick-controls">
+          {!connected && (
+            <a className="button secondary compact" href="#controls">
+              Open Twitch connections
+            </a>
+          )}
+          {connected && !active && (
+            <a className="button secondary compact" href="#match-actions">
+              Open match controls
+            </a>
+          )}
           {s.channels.map((c) => (
             <a
               className={`button secondary compact ${c.team}`}
@@ -38,6 +58,11 @@ export function TwitchGuide({ s }: { s: Snapshot }) {
             </a>
           ))}
         </div>
+        {s.commandFeedback[0] && (
+          <p className="first-command-feedback">
+            Last received: !{s.commandFeedback[0].command} — {s.commandFeedback[0].message}
+          </p>
+        )}
       </div>
       <ol className="setup-checklist">
         {[

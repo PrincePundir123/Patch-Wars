@@ -7,9 +7,11 @@ import type { Snapshot } from '../../../packages/shared/src/index.js';
 
 export function CommandGuide({
   simulated = false,
+  canSimulate = false,
   channels = [],
 }: {
   simulated?: boolean;
+  canSimulate?: boolean;
   channels?: Snapshot['channels'];
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -18,10 +20,12 @@ export function CommandGuide({
   async function copy(example: string) {
     try {
       await navigator.clipboard.writeText(example);
-      setCopied(`Copied ${example}. Paste it into the participating Twitch channel’s chat.`);
+      setCopied(
+        `Copied ${example}. ${canSimulate ? 'Paste it into Replay controls to test it in this demo.' : 'Paste it into the participating Twitch channel’s chat.'}`,
+      );
     } catch {
       setCopied(
-        `Clipboard unavailable. Type ${example} in the participating Twitch channel’s chat.`,
+        `Clipboard unavailable. Type ${example} ${canSimulate ? 'in Replay controls for this demo.' : 'in the participating Twitch channel’s chat.'}`,
       );
     }
   }
@@ -61,8 +65,15 @@ export function CommandGuide({
         </p>
         {simulated && (
           <p className="command-demo-note">
-            You are watching a simulated replay. Use Stream controls to try local messages; no
-            Twitch account is needed for the demo.
+            {canSimulate
+              ? 'Demo: send simulated messages in Replay controls below. They stay in this replay and are not sent to Twitch.'
+              : 'You are watching a simulated replay. Open your own demo from the control room to try messages; this spectator page cannot send commands.'}
+          </p>
+        )}
+        {!simulated && (
+          <p className="command-demo-note">
+            Live match: the streamer authorizes a Twitch channel and starts the battle. Viewers then
+            type commands in that channel’s Twitch chat. This guide only copies examples.
           </p>
         )}
         {['Battle', 'Community Forge', 'Information'].map((group) => (

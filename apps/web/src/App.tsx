@@ -637,6 +637,8 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
   const [text, setText] = useState('!spawn guardian');
   const [team, setTeam] = useState<Team>('ember');
   const [invite, setInvite] = useState('');
+  const [commandResult, setCommandResult] = useState('');
+  useEffect(() => setCommandResult(''), [id]);
   const creating = useRef(false);
   useEffect(() => {
     void api<Me>('/api/me')
@@ -672,6 +674,7 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
     setError('');
     try {
       await api(`/api/rooms/${id}/control`, { action, ...extra });
+      if (action === 'reset') setCommandResult('');
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -684,8 +687,10 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
     try {
       const r = await api<{ message: string }>(`/api/rooms/${id}/demo-command`, { text, team });
       setNotice(r.message);
+      setCommandResult(r.message);
     } catch (e) {
       setError((e as Error).message);
+      setCommandResult((e as Error).message);
     }
   }
   async function copyOverlay() {
@@ -731,7 +736,11 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
             </p>
           </div>
           <div className="heading-actions">
-            <CommandGuide simulated={active?.mode === 'demo'} channels={active?.channels} />
+            <CommandGuide
+              simulated={active?.mode === 'demo'}
+              canSimulate={active?.mode === 'demo'}
+              channels={active?.channels}
+            />
             {active && (
               <Link className="button secondary compact" to={`/spectate/${id}`} target="_blank">
                 Spectator view <ArrowUpRight size={15} />
@@ -845,7 +854,7 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
           </section>
         ) : (
           <>
-            <div className="operator-bar">
+            <div className="operator-bar" id="match-actions">
               <div>
                 <span className={`mode-label ${active.mode === 'demo' ? 'demo-label' : ''}`}>
                   {active.mode === 'demo' ? '◈ SIMULATED REPLAY' : '◈ TWITCH MATCH'}
@@ -914,7 +923,10 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                 </div>
                 {active.mode === 'demo' ? (
                   <>
-                    <p>Inject a simulated command into the same command handler used by Twitch.</p>
+                    <p>
+                      Test commands here without Twitch. These messages stay in this replay and do
+                      not appear in Twitch chat.
+                    </p>
                     <form className="command-form" onSubmit={(e) => void send(e)}>
                       <label className="sr-only" htmlFor="team">
                         Team
@@ -940,6 +952,14 @@ function Dashboard({ demo = false }: { demo?: boolean }) {
                         Send <ArrowUpRight size={15} />
                       </button>
                     </form>
+                    {commandResult && (
+                      <div className="demo-command-result">
+                        <p>{commandResult}</p>
+                        <a href="#battle">
+                          View battlefield <ArrowUpRight size={14} />
+                        </a>
+                      </div>
+                    )}
                     <div className="quick-controls">
                       <button
                         onClick={() => {

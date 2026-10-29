@@ -18,6 +18,7 @@ test('command guide copies examples, fits phones and never sends a game command'
   await page.getByRole('button', { name: 'Copy !spawn archer', exact: true }).click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('!spawn archer');
   await expect(page.locator('.command-copy-status')).toContainText('Copied !spawn archer');
+  await expect(page.locator('.command-copy-status')).toContainText('Replay controls');
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'docs/screenshots/command-guide.png' });

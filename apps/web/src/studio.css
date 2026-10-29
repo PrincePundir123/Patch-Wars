@@ -1,4 +1,35 @@
 /* Field Studio: approved visual target. Game and server contracts stay unchanged. */
+.twitch-guide .guide-next-step {
+  width: 100%;
+  margin: 0;
+  font:
+    600 13px/1.5 Arial,
+    sans-serif;
+  color: #354e3b;
+}
+.twitch-guide .first-command-feedback {
+  flex-basis: 100%;
+  padding-top: 8px;
+  border-top: 1px solid #d9ddd3;
+  color: #38543e;
+}
+.demo-command-result {
+  margin: 0 20px 18px;
+  padding: 12px;
+  background: #edf2e5;
+  border: 1px solid #c4d0b7;
+  border-radius: 5px;
+  font-size: 12px;
+  color: #395638;
+}
+.demo-command-result a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  min-height: 36px;
+  text-decoration: underline;
+}
 .hero-command-help {
   margin: -10px 0 24px;
 }

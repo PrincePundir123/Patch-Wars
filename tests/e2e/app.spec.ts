@@ -115,6 +115,8 @@ test('viewer feedback identifies spawns and explains paused commands', async ({ 
   await page.getByLabel('Simulated chat command').fill('!spawn archer');
   await page.locator('.command-form button[type=submit]').click();
   await expect(page.locator('.command-feedback')).toContainText('Archer deployed.');
+  await expect(page.locator('.demo-command-result')).toContainText('Archer deployed.');
+  await expect(page.locator('.demo-command-result a')).toHaveAttribute('href', '#battle');
   const id = new URL(page.url()).searchParams.get('room');
   const snapshot = await (await page.request.get(`/api/rooms/${id}`)).json();
   const receipt = snapshot.commandFeedback.find(
