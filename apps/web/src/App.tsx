@@ -163,7 +163,7 @@ function Landing() {
           </div>
           <div className="hero-illustration">
             <img
-              src="/art/fracture-arena.webp"
+              src="/art/sunstone-arena.webp"
               alt="The Fracture, an original floating stone arena between Ember and Azure"
               fetchPriority="high"
             />
@@ -171,7 +171,7 @@ function Landing() {
             <UnitPortrait shape="arrow" className="hero-character hero-archer" />
             <UnitPortrait shape="slime" className="hero-character hero-slime" />
             <div className="illustration-caption">
-              <span>THE FRACTURE</span>
+              <span>SUNSTONE BATTLEGROUND</span>
               <small>Two sides. One shared story.</small>
             </div>
           </div>
@@ -523,7 +523,7 @@ function BattleView({
               <span>
                 <Sword size={12} />
               </span>{' '}
-              THE FRACTURE <small>NEUTRAL TERRITORY</small>
+              SUNSTONE <small>BATTLEGROUND</small>
             </div>
             {s.game.phase === 'lobby' && (
               <div className="arena-message">
@@ -817,7 +817,7 @@ function Dashboard({ demo = false, stream = false }: { demo?: boolean; stream?: 
           <section className="setup-grid">
             <div className="setup-intro">
               <div>
-                <span className="eyebrow">THE FRACTURE / HOST LOBBY</span>
+                <span className="eyebrow">SUNSTONE / HOST LOBBY</span>
                 <h2>Your battlefield starts here.</h2>
                 <p>Try the replay, or connect your channel and bring your community.</p>
                 <ol>
@@ -832,7 +832,7 @@ function Dashboard({ demo = false, stream = false }: { demo?: boolean; stream?: 
                   </li>
                 </ol>
               </div>
-              <img src="/art/fracture-arena.webp" alt="" />
+              <img src="/art/sunstone-arena.webp" alt="" />
             </div>
             <div className="setup-card">
               <span className="eyebrow">01 / TRY IT FIRST</span>

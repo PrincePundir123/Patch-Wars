@@ -1,12 +1,6 @@
 ﻿import type { CSSProperties } from 'react';
-const frames: Record<string, number> = {
-  shield: 0,
-  arrow: 1,
-  diamond: 2,
-  cross: 3,
-  orb: 4,
-  slime: 5,
-};
+import { soldierRow } from './battle-presentation.js';
+import soldierAtlas from './art/sunstone-units.json';
 export function UnitPortrait({
   shape,
   className = '',
@@ -16,7 +10,10 @@ export function UnitPortrait({
   className?: string;
   label?: string;
 }) {
-  const frame = frames[shape] ?? 4;
+  const frame = soldierRow(shape);
+  const sprite = className.includes('hero-character')
+    ? soldierAtlas.frames[frame * 12]!.frame
+    : null;
   return (
     <span
       className={`unit-portrait ${className}`}
@@ -24,6 +21,15 @@ export function UnitPortrait({
         {
           '--portrait-x': `${(frame % 3) * 50}%`,
           '--portrait-y': `${Math.floor(frame / 3) * 100}%`,
+          ...(sprite
+            ? {
+                backgroundImage: "url('/art/sunstone-units.webp')",
+                backgroundSize: `${(soldierAtlas.width / sprite.width) * 100}% ${(soldierAtlas.height / sprite.height) * 100}%`,
+                backgroundPosition: `${(sprite.x / (soldierAtlas.width - sprite.width)) * 100}% ${(sprite.y / (soldierAtlas.height - sprite.height)) * 100}%`,
+                height: 'auto',
+                aspectRatio: `${sprite.width} / ${sprite.height}`,
+              }
+            : {}),
         } as CSSProperties
       }
       role={label ? 'img' : undefined}

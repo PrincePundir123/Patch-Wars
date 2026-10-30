@@ -28,7 +28,7 @@ await build({
 });
 for (const file of ['viewer.html', 'viewer.css'])
   await copyFile(`apps/extension/${file}`, `dist/extension/${file}`);
-await copyFile('apps/web/public/art/unit-atlas.webp', 'dist/extension/unit-atlas.webp');
+await copyFile('apps/web/public/art/sunstone-portraits.webp', 'dist/extension/unit-atlas.webp');
 console.log(
   'Twitch extension assets built in dist/extension. No backend secrets are included. Upload requires Twitch extension configuration and testing.',
 );
