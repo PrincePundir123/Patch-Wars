@@ -87,6 +87,8 @@ Presentation readiness checks private setup without generating AI output. Lazy r
 
 Open `/stream-demo` for a direct stream-style preview. Chat and Choose a soldier start as two icon buttons; click either to open its panel, then click again to hide it. Both panels fit the same viewport on desktop and mobile. Closing panels preserves the battle canvas and chat embed. Demo activity remains visibly simulated.
 
+The chat dock has **Expand/Restore**, Close and Open chat controls. Its wider viewport keeps Twitch's settings menu visible; small screens can scroll the chat region, and Expand provides a taller phone reading view. The same iframe and draft survive layout changes. See [chat dock repair](docs/chat-dock.md).
+
 The dashboard and spectator page's existing **Theater view** and **Fullscreen** buttons also open this complete layout in place. They keep the same room URL, canvas, unit-label and sound state; Escape/Exit theater returns to the original workspace. The old battlefield-only expanded layout has been replaced.
 
 The broadcaster's authorizing session can use soldier buttons with its existing channel account. Live Stream chat has only Twitch's official composer, using Twitch's own browser login; the duplicate green form has been removed. The Community Forge field remains a direct game-command input. Owners can open the soldier panel and **Start rematch** when a round ends. See [chat and control repair](docs/chat-controls-repair.md) for authentication, errors and verification limits.
