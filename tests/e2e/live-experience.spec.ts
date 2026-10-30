@@ -58,7 +58,9 @@ test('live arena deploys through the existing demo command handler and fits desk
 test('live arena keeps Twitch sign-in and channel chat separate from operator permissions', async ({
   page,
 }) => {
-  await page.route('**/api/viewer', (route) => route.fulfill({ json: { login: null } }));
+  await page.route('**/api/viewer*', (route) =>
+    route.fulfill({ json: { login: null, canManage: false } }),
+  );
   await page.route('https://www.twitch.tv/embed/**', (route) =>
     route.fulfill({
       contentType: 'text/html',

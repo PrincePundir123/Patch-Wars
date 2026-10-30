@@ -18,6 +18,14 @@ export const useBattle = create<State>((set) => ({
   setSnapshot: (snapshot) => set({ snapshot, lastSnapshotAt: snapshot ? Date.now() : null }),
   setConnection: (connection) => set({ connection }),
 }));
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+  ) {
+    super(message);
+  }
+}
 export async function api<T = Record<string, unknown>>(url: string, body?: unknown): Promise<T> {
   const r = await fetch(url, {
     method: body ? 'POST' : 'GET',
@@ -26,6 +34,6 @@ export async function api<T = Record<string, unknown>>(url: string, body?: unkno
     credentials: 'same-origin',
   });
   const data = await r.json();
-  if (!r.ok) throw new Error(data.error ?? 'Request failed.');
+  if (!r.ok) throw new ApiError(data.error ?? 'Request failed.', r.status);
   return data as T;
 }

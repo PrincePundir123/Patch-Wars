@@ -1,8 +1,16 @@
-import { useEffect, useRef, useState, type FormEvent, type ReactNode, type RefObject } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 import { Link } from 'react-router-dom';
 import type { Snapshot, Team } from '../../../packages/shared/src/index.js';
 import { UnitPortrait } from './UnitPortrait.js';
-import { api } from './store.js';
+import { api, ApiError } from './store.js';
 
 export function LiveExperience({
   s,
@@ -28,12 +36,27 @@ export function LiveExperience({
   const root = useRef<HTMLDivElement>(null);
   const inline = embedded && !expanded;
   const [login, setLogin] = useState<string | null>(null);
+  const [authSource, setAuthSource] = useState<'viewer' | 'channel' | null>(null);
+  const [canManage, setCanManage] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [authChecking, setAuthChecking] = useState(true);
+  const [chatReceipt, setChatReceipt] = useState('');
+  const [chatBusy, setChatBusy] = useState(false);
+  const identityRequest = useRef(0);
+  const previousBattleState = useRef(
+    `${s.roomId}:${s.game.phase}:${s.paused}:${s.commandsEnabled}`,
+  );
   const [channelId, setChannelId] = useState('');
   const [team, setTeam] = useState<Team>('ember');
   const [text, setText] = useState('');
-  const [receipt, setReceipt] = useState('');
+  const [receipt, setReceipt] = useState(() =>
+    new URLSearchParams(location.search).has('error')
+      ? 'Twitch sign-in did not complete. Try signing in again.'
+      : '',
+  );
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(false);
+  const [cooldownMs, setCooldownMs] = useState(1600);
   const [tab, setTab] = useState<'chat' | 'forge'>('chat');
   const [embed, setEmbed] = useState(false);
   const [communityOpen, setCommunityOpen] = useState(true);
@@ -41,17 +64,55 @@ export function LiveExperience({
   const channel = channels.find((c) => c.id === channelId) ?? channels[0];
   const currentTeam = s.mode === 'demo' ? team : (channel?.team ?? 'ember');
   const blocked = s.paused || s.game.phase !== 'battle' || !s.commandsEnabled;
+  const signInUrl = `/auth/twitch/viewer?room=${s.roomId}&origin=${encodeURIComponent(location.origin)}`;
+  const loadViewer = useCallback(async () => {
+    const request = ++identityRequest.current;
+    setAuthChecking(true);
+    try {
+      const viewer = await api<{
+        login: string | null;
+        source?: 'viewer' | 'channel' | null;
+        canManage?: boolean;
+      }>(`/api/viewer?room=${s.roomId}`);
+      if (request !== identityRequest.current) return;
+      setLogin(viewer.login);
+      setAuthSource(viewer.source ?? null);
+      setCanManage(viewer.canManage ?? false);
+      setAuthError('');
+    } catch {
+      if (request === identityRequest.current) {
+        setLogin(null);
+        setCanManage(false);
+        setAuthError('Could not check Twitch sign-in. Retry the connection check.');
+      }
+    } finally {
+      if (request === identityRequest.current) setAuthChecking(false);
+    }
+  }, [s.roomId]);
   useEffect(() => {
     if (inline) return;
-    void api<{ login: string | null }>('/api/viewer')
-      .then((v) => setLogin(v.login))
-      .catch(() => {});
-  }, [inline]);
+    const refresh = () => {
+      if (!document.hidden) void loadViewer();
+    };
+    refresh();
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      identityRequest.current++;
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [inline, loadViewer]);
+  useEffect(() => {
+    const next = `${s.roomId}:${s.game.phase}:${s.paused}:${s.commandsEnabled}`;
+    if (previousBattleState.current !== next) setReceipt('');
+    previousBattleState.current = next;
+  }, [s.roomId, s.game.phase, s.paused, s.commandsEnabled]);
   useEffect(() => {
     if (!cooldown) return;
-    const timer = setTimeout(() => setCooldown(false), 1600);
+    const timer = setTimeout(() => setCooldown(false), cooldownMs);
     return () => clearTimeout(timer);
-  }, [cooldown]);
+  }, [cooldown, cooldownMs]);
   useEffect(() => {
     setEmbed(!inline && s.mode === 'live' && !!channel?.id);
   }, [channel?.id, s.mode, inline]);
@@ -71,9 +132,14 @@ export function LiveExperience({
               channelId: channel?.id,
             });
       setReceipt(result.message);
+      setCooldownMs(1600);
       setCooldown(true);
     } catch (error) {
       setReceipt((error as Error).message);
+      if (error instanceof ApiError && error.status === 401) {
+        setLogin(null);
+        setAuthError(error.message);
+      }
     } finally {
       setBusy(false);
     }
@@ -86,11 +152,54 @@ export function LiveExperience({
       setReceipt('Fullscreen is unavailable. This view already fills the browser window.');
     }
   }
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
-    if (text.trim()) void send(text.trim());
+    if (!text.trim()) return;
+    if (s.mode === 'live' && tab === 'chat') {
+      if (chatBusy || cooldown) return;
+      setChatBusy(true);
+      setChatReceipt('');
+      try {
+        const sent=await api<{messageId:string}>(`/api/rooms/${s.roomId}/chat`, { text: text.trim(), channelId: channel?.id });
+        if(!sent.messageId)throw new Error('Twitch did not confirm this message. Please try again.');
+        setText('');
+        setChatReceipt(
+          `Sent to #${channel?.name}. Chat commands appear in the battle receipt when Twitch delivers them.`,
+        );
+        setCooldownMs(2100);
+        setCooldown(true);
+      } catch (error) {
+        setChatReceipt((error as Error).message);
+        if (error instanceof ApiError && error.status === 401) {
+          setLogin(null);
+          setAuthError(error.message);
+        }
+      } finally {
+        setChatBusy(false);
+      }
+    } else void send(text.trim());
+  }
+  async function hostAction(action: 'start' | 'resume' | 'rematch') {
+    setBusy(true);
+    setReceipt('');
+    try {
+      if (action === 'rematch') await api(`/api/rooms/${s.roomId}/control`, { action: 'reset' });
+      await api(`/api/rooms/${s.roomId}/control`, {
+        action: action === 'rematch' ? 'start' : action,
+      });
+      setReceipt(
+        action === 'rematch'
+          ? 'New battle started. Choose a soldier.'
+          : 'Battle running. Choose a soldier.',
+      );
+    } catch (error) {
+      setReceipt((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
   }
   const canSend = s.mode === 'demo' || !!login;
+  const isTwitchChat = s.mode === 'live' && tab === 'chat';
   return (
     <div
       role={embedded ? undefined : 'main'}
@@ -166,22 +275,29 @@ export function LiveExperience({
                     )}
                     {login ? (
                       <>
-                        <span>Playing as {login}</span>
-                        <button
-                          onClick={() =>
-                            void api('/api/viewer/logout', {})
-                              .then(() => setLogin(null))
-                              .catch((e: Error) => setReceipt(e.message))
-                          }
-                        >
-                          Sign out
-                        </button>
+                        <span>
+                          {authSource === 'channel' ? 'Channel account' : 'Playing as'} {login}
+                        </span>
+                        {authSource === 'channel' ? (
+                          <a className="switch-player" href={signInUrl}>
+                            Switch account
+                          </a>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              void api('/api/viewer/logout', {})
+                                .then(() => loadViewer())
+                                .catch((e: Error) => setReceipt(e.message))
+                            }
+                          >
+                            Sign out
+                          </button>
+                        )}
                       </>
+                    ) : authChecking ? (
+                      <span>Checking Twitch account…</span>
                     ) : (
-                      <a
-                        className="live-login"
-                        href={`/auth/twitch/viewer?room=${s.roomId}&origin=${encodeURIComponent(location.origin)}`}
-                      >
+                      <a className="live-login" href={signInUrl}>
                         Sign in with Twitch to deploy
                       </a>
                     )}
@@ -204,6 +320,7 @@ export function LiveExperience({
                     (s.mode === 'live' && !channel) ||
                     blocked ||
                     busy ||
+                    chatBusy ||
                     cooldown ||
                     s.game.energy[currentTeam] < b.stats.spawnCost
                   }
@@ -224,18 +341,62 @@ export function LiveExperience({
             >
               {displayNotice ||
                 receipt ||
-                (blocked
-                  ? s.paused
-                    ? 'Battle paused. The host needs to resume.'
-                    : s.game.phase === 'results'
-                      ? 'Battle complete. The host can reset for another round.'
-                      : !s.commandsEnabled
-                        ? 'The host has paused commands.'
-                        : 'Waiting for the host to start.'
-                  : canSend
-                    ? 'Select a unit to deploy. Shared team energy · same chat cooldowns · no payment.'
-                    : 'Sign in to use unit buttons, or send !spawn archer in Twitch chat.')}
+                authError ||
+                (s.mode === 'live' && !channel
+                  ? 'Twitch channel disconnected. Reconnect it from the control room.'
+                  : blocked
+                    ? s.paused
+                      ? 'Battle paused. The host needs to resume.'
+                      : s.game.phase === 'results'
+                        ? 'Battle complete. The host can reset for another round.'
+                        : !s.commandsEnabled
+                          ? 'The host has paused commands.'
+                          : 'Waiting for the host to start.'
+                    : canSend
+                      ? 'Select a unit to deploy. Shared team energy · same chat cooldowns · no payment.'
+                      : 'Sign in to use unit buttons, or send !spawn archer in Twitch chat.')}
             </div>
+            {((canManage && (blocked || (s.mode === 'live' && !channel))) || authError) && (
+              <div className="deployment-status-actions">
+                {canManage && s.mode === 'live' && !channel && (
+                  <a className="live-host-action" href={`/dashboard?room=${s.roomId}#controls`}>
+                    Reconnect Twitch
+                  </a>
+                )}
+                {canManage && s.game.phase === 'results' && (
+                  <button
+                    className="live-host-action"
+                    disabled={busy}
+                    onClick={() => void hostAction('rematch')}
+                  >
+                    Start rematch
+                  </button>
+                )}
+                {canManage && s.game.phase === 'lobby' && (
+                  <button
+                    className="live-host-action"
+                    disabled={busy}
+                    onClick={() => void hostAction('start')}
+                  >
+                    Start battle
+                  </button>
+                )}
+                {canManage && s.game.phase === 'battle' && s.paused && (
+                  <button
+                    className="live-host-action"
+                    disabled={busy}
+                    onClick={() => void hostAction('resume')}
+                  >
+                    Resume battle
+                  </button>
+                )}
+                {authError && (
+                  <button className="live-host-action" onClick={() => void loadViewer()}>
+                    Retry connection check
+                  </button>
+                )}
+              </div>
+            )}
           </section>
         </section>
         <aside
@@ -354,29 +515,62 @@ export function LiveExperience({
             </section>
           )}
           {canSend && (
-            <form className="live-command-form" onSubmit={submit}>
+            <form className="live-command-form" onSubmit={(event) => void submit(event)}>
               <label htmlFor="live-command">
-                {s.mode === 'demo' ? 'Simulated command' : 'Game command'}
+                {s.mode === 'demo'
+                  ? 'Simulated command'
+                  : isTwitchChat
+                    ? `Send Twitch chat as ${login}`
+                    : 'Game command'}
               </label>
               <div>
                 <input
                   id="live-command"
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  placeholder="!forge a moss guardian"
-                  maxLength={220}
+                  placeholder={
+                    isTwitchChat
+                      ? `Message #${channel?.name ?? 'channel'} or !spawn archer`
+                      : '!forge a moss guardian'
+                  }
+                  maxLength={isTwitchChat ? 450 : 220}
                   required
                 />
-                <button disabled={busy || cooldown || blocked || (s.mode === 'live' && !channel)}>
-                  Send
+                <button
+                  disabled={
+                    busy ||
+                    chatBusy ||
+                    cooldown ||
+                    (!isTwitchChat && blocked) ||
+                    (s.mode === 'live' && !channel)
+                  }
+                >
+                  {chatBusy ? 'Sending…' : isTwitchChat ? 'Send to Twitch' : 'Send'}
                 </button>
               </div>
               <small>
                 {s.mode === 'demo'
                   ? 'Local simulation only. Never sent to Twitch.'
-                  : 'Game actions go to the arena. Use Twitch chat above for conversation.'}
+                  : isTwitchChat
+                    ? `Posts to #${channel?.name ?? 'your channel'} using your connected Twitch account. Conversation works between battles too.`
+                    : 'Game commands go to the arena. Use Stream chat for conversation.'}
               </small>
+              {chatReceipt && (
+                <p className="chat-send-status" role="status">
+                  {chatReceipt}
+                </p>
+              )}
             </form>
+          )}
+          {!canSend && s.mode === 'live' && (
+            <div className="chat-auth-prompt">
+              <p>
+                {authChecking
+                  ? 'Checking your Twitch account…'
+                  : 'Sign in once to send chat and use the soldier controls.'}
+              </p>
+              {!authChecking && <a href={signInUrl}>Sign in with Twitch</a>}
+            </div>
           )}
         </aside>
       </div>

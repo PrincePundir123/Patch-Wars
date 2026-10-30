@@ -581,6 +581,48 @@
   font-size: 9px;
   line-height: 1.5;
 }
+.deployment-status-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.live-host-action,
+.chat-auth-prompt a {
+  padding: 7px 11px;
+  border: 1px solid #c7b36f;
+  border-radius: 5px;
+  background: #465331;
+  color: #fff0c4;
+  font-size: 11px;
+  cursor: pointer;
+}
+.switch-player {
+  color: #e4ca8a;
+  text-decoration: underline !important;
+  font-size: 10px;
+}
+.chat-auth-prompt {
+  padding: 10px 12px;
+  border-top: 1px solid #61704966;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.chat-auth-prompt p {
+  margin: 0 0 8px;
+  color: #cbd1be;
+}
+.chat-auth-prompt a {
+  display: inline-block;
+}
+.chat-send-status {
+  margin: 6px 0 0;
+  color: #ead49e;
+  font-size: 10px;
+  line-height: 1.4;
+  max-height: 44px;
+  overflow: auto;
+}
 .live-forge {
   flex: 1;
   min-height: 0;
