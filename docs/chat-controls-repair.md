@@ -1,5 +1,17 @@
 # Chat and soldier-control repair — October 30, 2026
 
+## Current interface: one composer and two panel icons
+
+The later UI revision replaces the app-owned green composer described in the original repair below. Live Stream chat now contains only the official Twitch embed and its message box. Its browser login belongs to Twitch and can differ from the account authorized for soldier controls. Open chat remains a fallback link when embedding is blocked.
+
+Chat and Choose a soldier each have an accessible icon toggle. Both start closed, open independently and close when their icon is clicked again. Closing panels retains the canvas and the loaded chat iframe. Owners open the soldier panel to start/resume/rematch; energy, cooldowns, authentication and deployment rules are unchanged. The demo's simulated command form and Community Forge's game-command field remain available.
+
+Updated browser checks assert default collapse, repeated icon toggles, a retained canvas and iframe, one live embed, no custom live chat form and no calls to the retained chat-send API. They also exercise owner rematch/deployment and expired soldier authorization. Twitch iframe contents remain mocked in automation; actual Twitch browser login and message delivery require a logged-in human check. No backend code changed in this UI revision.
+
+The focused 11 browser cases, all 134 unit/integration tests, typecheck, lint, web/server build and extension build passed. An initial broader run shared an already-used test server: one page loaded during a rebuild and three later checks reached the normal global match-capacity limit. Those are recorded as test-run failures, not waived assertions. The final full suite passed all **27 browser cases in 2.9 minutes** on a fresh isolated server after the build. The development server and real Twitch room were not restarted. Updated screenshots show the collapsed desktop stage and the expanded desktop/mobile panels.
+
+## Original repair record
+
 The supplied screenshot showed a completed battle, disabled soldier cards, a separate viewer sign-in request and Twitch's embedded composer. Deployment is intentionally blocked after a result, but there was no owner rematch action in the expanded view. The broadcaster's existing channel authorization was not being reused for player controls, and the iframe's independent Twitch session made writing chat confusing.
 
 ## What changed
