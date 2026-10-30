@@ -22,7 +22,7 @@ Open `/stream-demo` for a direct, owned simulation of this stream-stage layout. 
 
 The EBS routes verify HS256 signatures using the separate, base64-decoded Twitch Extension secret, token expiry, role, channel and linked user identity. A viewer cannot supply a team or another channel. State discovery selects the one connected match for the token's channel. Requests carry UUIDs for duplicate suppression and use the same user ID as ordinary Twitch chat. Only the configured extension CDN origin receives cross-origin API access; other app routes retain their origin and ownership rules. Public extension assets have a separate CSP allowing the helper and Twitch framing; dashboards retain self-only frame ancestors. No signing secret enters the built frontend.
 
-The frontend validates its display contract, uses text nodes for dynamic content, polls every five seconds only while visible, bounds network waits and disables actions on disconnect. It requests identity sharing through Twitch, never fabricates identity locally. The four built files are about 322 KB uncompressed in this run, including artwork; the extension does not load React, Pixi or the full game/schema runtime.
+The frontend validates its display contract, uses text nodes for dynamic content, polls every five seconds only while visible, bounds network waits and disables actions on disconnect. It requests identity sharing through Twitch, never fabricates identity locally. After the Sunstone portrait update, the four built files total 326,307 bytes uncompressed, including artwork; the extension does not load React, Pixi or the full game/schema runtime.
 
 ### Build and configure it in Twitch
 
