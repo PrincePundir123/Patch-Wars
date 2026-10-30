@@ -1,0 +1,2305 @@
+{
+  "image": "sunstone-units.png",
+  "width": 1774,
+  "height": 887,
+  "columns": 12,
+  "rows": [
+    {
+      "role": "guardian",
+      "shape": "shield",
+      "y": 0,
+      "height": 176,
+      "baseline": 167,
+      "columnBoundaries": [0, 159, 309, 462, 592, 753, 891, 1035, 1179, 1322, 1470, 1621, 1774]
+    },
+    {
+      "role": "archer",
+      "shape": "arrow",
+      "y": 176,
+      "height": 162,
+      "baseline": 330,
+      "columnBoundaries": [0, 155, 303, 454, 610, 731, 889, 1028, 1174, 1322, 1469, 1632, 1774]
+    },
+    {
+      "role": "sprinter",
+      "shape": "diamond",
+      "y": 338,
+      "height": 155,
+      "baseline": 483,
+      "columnBoundaries": [0, 168, 312, 461, 595, 755, 895, 1038, 1184, 1329, 1465, 1626, 1774]
+    },
+    {
+      "role": "healer",
+      "shape": "cross",
+      "y": 493,
+      "height": 155,
+      "baseline": 644,
+      "columnBoundaries": [0, 150, 296, 440, 590, 752, 891, 1023, 1164, 1313, 1462, 1619, 1774]
+    },
+    {
+      "role": "bomber",
+      "shape": "orb",
+      "y": 648,
+      "height": 144,
+      "baseline": 783,
+      "columnBoundaries": [0, 157, 305, 457, 596, 757, 891, 1032, 1179, 1329, 1467, 1627, 1774]
+    },
+    {
+      "role": "slime",
+      "shape": "slime",
+      "y": 792,
+      "height": 95,
+      "baseline": 871,
+      "columnBoundaries": [0, 159, 305, 455, 606, 752, 891, 1034, 1184, 1327, 1474, 1622, 1774]
+    }
+  ],
+  "alphaThreshold": 32,
+  "frameSize": {
+    "width": 256,
+    "height": 256
+  },
+  "anchor": {
+    "x": 0.5,
+    "y": 0.8203125
+  },
+  "poses": ["idle", "walk-left", "walk-right", "windup", "contact", "recover"],
+  "notes": [
+    "Source has nonuniform rows. Use explicit frame/orig/trim rectangles, not a uniform grid.",
+    "Frames are right-facing; flip horizontally for left-facing movement.",
+    "A few adjacent Guardian swords and Archer arrow tips touch; cuts use minimum-occupancy boundaries."
+  ],
+  "frames": [
+    {
+      "id": "guardian:ember:idle",
+      "role": "guardian",
+      "shape": "shield",
+      "team": "ember",
+      "pose": "idle",
+      "row": 0,
+      "column": 0,
+      "frame": {
+        "x": 26,
+        "y": 36,
+        "width": 124,
+        "height": 130
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 66,
+        "y": 79,
+        "width": 124,
+        "height": 130
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "guardian:ember:walk-left",
+      "role": "guardian",
+      "shape": "shield",
+      "team": "ember",
+      "pose": "walk-left",
+      "row": 0,
+      "column": 1,
+      "frame": {
+        "x": 170,
+        "y": 36,
+        "width": 128,
+        "height": 131
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 62,
+        "y": 79,
+        "width": 128,
+        "height": 131
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "guardian:ember:walk-right",
+      "role": "guardian",
+      "shape": "shield",
+      "team": "ember",
+      "pose": "walk-right",
+      "row": 0,
+      "column": 2,
+      "frame": {
+        "x": 321,
+        "y": 36,
+        "width": 133,
+        "height": 132
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 65,
+        "y": 79,
+        "width": 133,
+        "height": 132
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "guardian:ember:windup",
+      "role": "guardian",
+      "shape": "shield",
+      "team": "ember",
+      "pose": "windup",
+      "row": 0,
+      "column": 3,
+      "frame": {
+        "x": 471,
+        "y": 22,
+        "width": 121,
+        "height": 144
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 68,
+        "y": 65,
+        "width": 121,
+        "height": 144
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "guardian:ember:contact",
+      "role": "guardian",
+      "shape": "shield",
+      "team": "ember",
+      "pose": "contact",
+      "row": 0,
+      "column": 4,
+      "frame": {
+        "x": 592,
+        "y": 18,
+        "width": 161,
+        "height": 149
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 41,
+        "y": 61,
+        "width": 161,
+        "height": 149
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "guardian:ember:recover",
+      "role": "guardian",
+      "shape": "shield",
+      "team": "ember",
+      "pose": "recover",
+      "row": 0,
+      "column": 5,
+      "frame": {
+        "x": 753,
+        "y": 24,
+        "width": 133,
+        "height": 143
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 54,
+        "y": 67,
+        "width": 133,
+        "height": 143
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "guardian:azure:idle",
+      "role": "guardian",
+      "shape": "shield",
+      "team": "azure",
+      "pose": "idle",
+      "row": 0,
+      "column": 6,
+      "frame": {
+        "x": 897,
+        "y": 35,
+        "width": 129,
+        "height": 132
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 50,
+        "y": 78,
+        "width": 129,
+        "height": 132
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "guardian:azure:walk-left",
+      "role": "guardian",
+      "shape": "shield",
+      "team": "azure",
+      "pose": "walk-left",
+      "row": 0,
+      "column": 7,
+      "frame": {
+        "x": 1044,
+        "y": 39,
+        "width": 128,
+        "height": 127
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 49,
+        "y": 82,
+        "width": 128,
+        "height": 127
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "guardian:azure:walk-right",
+      "role": "guardian",
+      "shape": "shield",
+      "team": "azure",
+      "pose": "walk-right",
+      "row": 0,
+      "column": 8,
+      "frame": {
+        "x": 1187,
+        "y": 36,
+        "width": 129,
+        "height": 132
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 45,
+        "y": 79,
+        "width": 129,
+        "height": 132
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "guardian:azure:windup",
+      "role": "guardian",
+      "shape": "shield",
+      "team": "azure",
+      "pose": "windup",
+      "row": 0,
+      "column": 9,
+      "frame": {
+        "x": 1328,
+        "y": 33,
+        "width": 142,
+        "height": 133
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 38,
+        "y": 76,
+        "width": 142,
+        "height": 133
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "guardian:azure:contact",
+      "role": "guardian",
+      "shape": "shield",
+      "team": "azure",
+      "pose": "contact",
+      "row": 0,
+      "column": 10,
+      "frame": {
+        "x": 1470,
+        "y": 36,
+        "width": 151,
+        "height": 129
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 32,
+        "y": 79,
+        "width": 151,
+        "height": 129
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "guardian:azure:recover",
+      "role": "guardian",
+      "shape": "shield",
+      "team": "azure",
+      "pose": "recover",
+      "row": 0,
+      "column": 11,
+      "frame": {
+        "x": 1621,
+        "y": 38,
+        "width": 132,
+        "height": 127
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 35,
+        "y": 81,
+        "width": 132,
+        "height": 127
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "archer:ember:idle",
+      "role": "archer",
+      "shape": "arrow",
+      "team": "ember",
+      "pose": "idle",
+      "row": 1,
+      "column": 0,
+      "frame": {
+        "x": 19,
+        "y": 202,
+        "width": 123,
+        "height": 130
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 59,
+        "y": 82,
+        "width": 123,
+        "height": 130
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "archer:ember:walk-left",
+      "role": "archer",
+      "shape": "arrow",
+      "team": "ember",
+      "pose": "walk-left",
+      "row": 1,
+      "column": 1,
+      "frame": {
+        "x": 169,
+        "y": 196,
+        "width": 120,
+        "height": 135
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 61,
+        "y": 76,
+        "width": 120,
+        "height": 135
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "archer:ember:walk-right",
+      "role": "archer",
+      "shape": "arrow",
+      "team": "ember",
+      "pose": "walk-right",
+      "row": 1,
+      "column": 2,
+      "frame": {
+        "x": 318,
+        "y": 199,
+        "width": 121,
+        "height": 132
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 62,
+        "y": 79,
+        "width": 121,
+        "height": 132
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "archer:ember:windup",
+      "role": "archer",
+      "shape": "arrow",
+      "team": "ember",
+      "pose": "windup",
+      "row": 1,
+      "column": 3,
+      "frame": {
+        "x": 470,
+        "y": 180,
+        "width": 139,
+        "height": 152
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 67,
+        "y": 60,
+        "width": 139,
+        "height": 152
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "archer:ember:contact",
+      "role": "archer",
+      "shape": "arrow",
+      "team": "ember",
+      "pose": "contact",
+      "row": 1,
+      "column": 4,
+      "frame": {
+        "x": 612,
+        "y": 193,
+        "width": 119,
+        "height": 139
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 61,
+        "y": 73,
+        "width": 119,
+        "height": 139
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "archer:ember:recover",
+      "role": "archer",
+      "shape": "arrow",
+      "team": "ember",
+      "pose": "recover",
+      "row": 1,
+      "column": 5,
+      "frame": {
+        "x": 731,
+        "y": 206,
+        "width": 151,
+        "height": 126
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 32,
+        "y": 86,
+        "width": 151,
+        "height": 126
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "archer:azure:idle",
+      "role": "archer",
+      "shape": "arrow",
+      "team": "azure",
+      "pose": "idle",
+      "row": 1,
+      "column": 6,
+      "frame": {
+        "x": 897,
+        "y": 206,
+        "width": 119,
+        "height": 126
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 50,
+        "y": 86,
+        "width": 119,
+        "height": 126
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "archer:azure:walk-left",
+      "role": "archer",
+      "shape": "arrow",
+      "team": "azure",
+      "pose": "walk-left",
+      "row": 1,
+      "column": 7,
+      "frame": {
+        "x": 1041,
+        "y": 198,
+        "width": 122,
+        "height": 133
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 46,
+        "y": 78,
+        "width": 122,
+        "height": 133
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "archer:azure:walk-right",
+      "role": "archer",
+      "shape": "arrow",
+      "team": "azure",
+      "pose": "walk-right",
+      "row": 1,
+      "column": 8,
+      "frame": {
+        "x": 1186,
+        "y": 205,
+        "width": 125,
+        "height": 126
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 44,
+        "y": 85,
+        "width": 125,
+        "height": 126
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "archer:azure:windup",
+      "role": "archer",
+      "shape": "arrow",
+      "team": "azure",
+      "pose": "windup",
+      "row": 1,
+      "column": 9,
+      "frame": {
+        "x": 1335,
+        "y": 179,
+        "width": 134,
+        "height": 153
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 45,
+        "y": 59,
+        "width": 134,
+        "height": 153
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "archer:azure:contact",
+      "role": "archer",
+      "shape": "arrow",
+      "team": "azure",
+      "pose": "contact",
+      "row": 1,
+      "column": 10,
+      "frame": {
+        "x": 1469,
+        "y": 194,
+        "width": 163,
+        "height": 138
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 31,
+        "y": 74,
+        "width": 163,
+        "height": 138
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "archer:azure:recover",
+      "role": "archer",
+      "shape": "arrow",
+      "team": "azure",
+      "pose": "recover",
+      "row": 1,
+      "column": 11,
+      "frame": {
+        "x": 1633,
+        "y": 200,
+        "width": 115,
+        "height": 132
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 47,
+        "y": 80,
+        "width": 115,
+        "height": 132
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "sprinter:ember:idle",
+      "role": "sprinter",
+      "shape": "diamond",
+      "team": "ember",
+      "pose": "idle",
+      "row": 2,
+      "column": 0,
+      "frame": {
+        "x": 28,
+        "y": 360,
+        "width": 136,
+        "height": 126
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 68,
+        "y": 87,
+        "width": 136,
+        "height": 126
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "sprinter:ember:walk-left",
+      "role": "sprinter",
+      "shape": "diamond",
+      "team": "ember",
+      "pose": "walk-left",
+      "row": 2,
+      "column": 1,
+      "frame": {
+        "x": 172,
+        "y": 360,
+        "width": 135,
+        "height": 125
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 64,
+        "y": 87,
+        "width": 135,
+        "height": 125
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "sprinter:ember:walk-right",
+      "role": "sprinter",
+      "shape": "diamond",
+      "team": "ember",
+      "pose": "walk-right",
+      "row": 2,
+      "column": 2,
+      "frame": {
+        "x": 319,
+        "y": 360,
+        "width": 134,
+        "height": 126
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 63,
+        "y": 87,
+        "width": 134,
+        "height": 126
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "sprinter:ember:windup",
+      "role": "sprinter",
+      "shape": "diamond",
+      "team": "ember",
+      "pose": "windup",
+      "row": 2,
+      "column": 3,
+      "frame": {
+        "x": 471,
+        "y": 342,
+        "width": 119,
+        "height": 144
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 68,
+        "y": 69,
+        "width": 119,
+        "height": 144
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "sprinter:ember:contact",
+      "role": "sprinter",
+      "shape": "diamond",
+      "team": "ember",
+      "pose": "contact",
+      "row": 2,
+      "column": 4,
+      "frame": {
+        "x": 600,
+        "y": 379,
+        "width": 152,
+        "height": 107
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 49,
+        "y": 106,
+        "width": 152,
+        "height": 107
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "sprinter:ember:recover",
+      "role": "sprinter",
+      "shape": "diamond",
+      "team": "ember",
+      "pose": "recover",
+      "row": 2,
+      "column": 5,
+      "frame": {
+        "x": 758,
+        "y": 373,
+        "width": 135,
+        "height": 114
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 59,
+        "y": 100,
+        "width": 135,
+        "height": 114
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "sprinter:azure:idle",
+      "role": "sprinter",
+      "shape": "diamond",
+      "team": "azure",
+      "pose": "idle",
+      "row": 2,
+      "column": 6,
+      "frame": {
+        "x": 898,
+        "y": 361,
+        "width": 137,
+        "height": 125
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 51,
+        "y": 88,
+        "width": 137,
+        "height": 125
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "sprinter:azure:walk-left",
+      "role": "sprinter",
+      "shape": "diamond",
+      "team": "azure",
+      "pose": "walk-left",
+      "row": 2,
+      "column": 7,
+      "frame": {
+        "x": 1040,
+        "y": 360,
+        "width": 144,
+        "height": 126
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 45,
+        "y": 87,
+        "width": 144,
+        "height": 126
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "sprinter:azure:walk-right",
+      "role": "sprinter",
+      "shape": "diamond",
+      "team": "azure",
+      "pose": "walk-right",
+      "row": 2,
+      "column": 8,
+      "frame": {
+        "x": 1184,
+        "y": 359,
+        "width": 135,
+        "height": 127
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 42,
+        "y": 86,
+        "width": 135,
+        "height": 127
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "sprinter:azure:windup",
+      "role": "sprinter",
+      "shape": "diamond",
+      "team": "azure",
+      "pose": "windup",
+      "row": 2,
+      "column": 9,
+      "frame": {
+        "x": 1340,
+        "y": 346,
+        "width": 121,
+        "height": 140
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 50,
+        "y": 73,
+        "width": 121,
+        "height": 140
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "sprinter:azure:contact",
+      "role": "sprinter",
+      "shape": "diamond",
+      "team": "azure",
+      "pose": "contact",
+      "row": 2,
+      "column": 10,
+      "frame": {
+        "x": 1471,
+        "y": 379,
+        "width": 151,
+        "height": 107
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 33,
+        "y": 106,
+        "width": 151,
+        "height": 107
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "sprinter:azure:recover",
+      "role": "sprinter",
+      "shape": "diamond",
+      "team": "azure",
+      "pose": "recover",
+      "row": 2,
+      "column": 11,
+      "frame": {
+        "x": 1632,
+        "y": 372,
+        "width": 128,
+        "height": 114
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 46,
+        "y": 99,
+        "width": 128,
+        "height": 114
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "healer:ember:idle",
+      "role": "healer",
+      "shape": "cross",
+      "team": "ember",
+      "pose": "idle",
+      "row": 3,
+      "column": 0,
+      "frame": {
+        "x": 33,
+        "y": 508,
+        "width": 100,
+        "height": 136
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 73,
+        "y": 74,
+        "width": 100,
+        "height": 136
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "healer:ember:walk-left",
+      "role": "healer",
+      "shape": "cross",
+      "team": "ember",
+      "pose": "walk-left",
+      "row": 3,
+      "column": 1,
+      "frame": {
+        "x": 168,
+        "y": 499,
+        "width": 115,
+        "height": 146
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 60,
+        "y": 65,
+        "width": 115,
+        "height": 146
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "healer:ember:walk-right",
+      "role": "healer",
+      "shape": "cross",
+      "team": "ember",
+      "pose": "walk-right",
+      "row": 3,
+      "column": 2,
+      "frame": {
+        "x": 311,
+        "y": 500,
+        "width": 109,
+        "height": 146
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 55,
+        "y": 66,
+        "width": 109,
+        "height": 146
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "healer:ember:windup",
+      "role": "healer",
+      "shape": "cross",
+      "team": "ember",
+      "pose": "windup",
+      "row": 3,
+      "column": 3,
+      "frame": {
+        "x": 461,
+        "y": 498,
+        "width": 111,
+        "height": 150
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 58,
+        "y": 64,
+        "width": 111,
+        "height": 150
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "healer:ember:contact",
+      "role": "healer",
+      "shape": "cross",
+      "team": "ember",
+      "pose": "contact",
+      "row": 3,
+      "column": 4,
+      "frame": {
+        "x": 609,
+        "y": 508,
+        "width": 143,
+        "height": 137
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 58,
+        "y": 74,
+        "width": 143,
+        "height": 137
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "healer:ember:recover",
+      "role": "healer",
+      "shape": "cross",
+      "team": "ember",
+      "pose": "recover",
+      "row": 3,
+      "column": 5,
+      "frame": {
+        "x": 753,
+        "y": 496,
+        "width": 124,
+        "height": 149
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 54,
+        "y": 62,
+        "width": 124,
+        "height": 149
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "healer:azure:idle",
+      "role": "healer",
+      "shape": "cross",
+      "team": "azure",
+      "pose": "idle",
+      "row": 3,
+      "column": 6,
+      "frame": {
+        "x": 908,
+        "y": 502,
+        "width": 100,
+        "height": 143
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 61,
+        "y": 68,
+        "width": 100,
+        "height": 143
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "healer:azure:walk-left",
+      "role": "healer",
+      "shape": "cross",
+      "team": "azure",
+      "pose": "walk-left",
+      "row": 3,
+      "column": 7,
+      "frame": {
+        "x": 1038,
+        "y": 501,
+        "width": 111,
+        "height": 143
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 43,
+        "y": 67,
+        "width": 111,
+        "height": 143
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "healer:azure:walk-right",
+      "role": "healer",
+      "shape": "cross",
+      "team": "azure",
+      "pose": "walk-right",
+      "row": 3,
+      "column": 8,
+      "frame": {
+        "x": 1182,
+        "y": 500,
+        "width": 111,
+        "height": 144
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 40,
+        "y": 66,
+        "width": 111,
+        "height": 144
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "healer:azure:windup",
+      "role": "healer",
+      "shape": "cross",
+      "team": "azure",
+      "pose": "windup",
+      "row": 3,
+      "column": 9,
+      "frame": {
+        "x": 1334,
+        "y": 495,
+        "width": 108,
+        "height": 153
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 44,
+        "y": 61,
+        "width": 108,
+        "height": 153
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "healer:azure:contact",
+      "role": "healer",
+      "shape": "cross",
+      "team": "azure",
+      "pose": "contact",
+      "row": 3,
+      "column": 10,
+      "frame": {
+        "x": 1485,
+        "y": 507,
+        "width": 133,
+        "height": 138
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 47,
+        "y": 73,
+        "width": 133,
+        "height": 138
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "healer:azure:recover",
+      "role": "healer",
+      "shape": "cross",
+      "team": "azure",
+      "pose": "recover",
+      "row": 3,
+      "column": 11,
+      "frame": {
+        "x": 1623,
+        "y": 499,
+        "width": 125,
+        "height": 146
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 37,
+        "y": 65,
+        "width": 125,
+        "height": 146
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "bomber:ember:idle",
+      "role": "bomber",
+      "shape": "orb",
+      "team": "ember",
+      "pose": "idle",
+      "row": 4,
+      "column": 0,
+      "frame": {
+        "x": 29,
+        "y": 672,
+        "width": 110,
+        "height": 110
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 69,
+        "y": 99,
+        "width": 110,
+        "height": 110
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "bomber:ember:walk-left",
+      "role": "bomber",
+      "shape": "orb",
+      "team": "ember",
+      "pose": "walk-left",
+      "row": 4,
+      "column": 1,
+      "frame": {
+        "x": 178,
+        "y": 672,
+        "width": 110,
+        "height": 107
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 70,
+        "y": 99,
+        "width": 110,
+        "height": 107
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "bomber:ember:walk-right",
+      "role": "bomber",
+      "shape": "orb",
+      "team": "ember",
+      "pose": "walk-right",
+      "row": 4,
+      "column": 2,
+      "frame": {
+        "x": 324,
+        "y": 671,
+        "width": 118,
+        "height": 110
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 68,
+        "y": 98,
+        "width": 118,
+        "height": 110
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "bomber:ember:windup",
+      "role": "bomber",
+      "shape": "orb",
+      "team": "ember",
+      "pose": "windup",
+      "row": 4,
+      "column": 3,
+      "frame": {
+        "x": 475,
+        "y": 648,
+        "width": 104,
+        "height": 137
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 72,
+        "y": 75,
+        "width": 104,
+        "height": 137
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "bomber:ember:contact",
+      "role": "bomber",
+      "shape": "orb",
+      "team": "ember",
+      "pose": "contact",
+      "row": 4,
+      "column": 4,
+      "frame": {
+        "x": 614,
+        "y": 673,
+        "width": 143,
+        "height": 110
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 63,
+        "y": 100,
+        "width": 143,
+        "height": 110
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "bomber:ember:recover",
+      "role": "bomber",
+      "shape": "orb",
+      "team": "ember",
+      "pose": "recover",
+      "row": 4,
+      "column": 5,
+      "frame": {
+        "x": 760,
+        "y": 680,
+        "width": 124,
+        "height": 102
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 61,
+        "y": 107,
+        "width": 124,
+        "height": 102
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "bomber:azure:idle",
+      "role": "bomber",
+      "shape": "orb",
+      "team": "azure",
+      "pose": "idle",
+      "row": 4,
+      "column": 6,
+      "frame": {
+        "x": 902,
+        "y": 672,
+        "width": 115,
+        "height": 112
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 55,
+        "y": 99,
+        "width": 115,
+        "height": 112
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "bomber:azure:walk-left",
+      "role": "bomber",
+      "shape": "orb",
+      "team": "azure",
+      "pose": "walk-left",
+      "row": 4,
+      "column": 7,
+      "frame": {
+        "x": 1049,
+        "y": 672,
+        "width": 113,
+        "height": 110
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 54,
+        "y": 99,
+        "width": 113,
+        "height": 110
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "bomber:azure:walk-right",
+      "role": "bomber",
+      "shape": "orb",
+      "team": "azure",
+      "pose": "walk-right",
+      "row": 4,
+      "column": 8,
+      "frame": {
+        "x": 1197,
+        "y": 672,
+        "width": 117,
+        "height": 110
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 55,
+        "y": 99,
+        "width": 117,
+        "height": 110
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "bomber:azure:windup",
+      "role": "bomber",
+      "shape": "orb",
+      "team": "azure",
+      "pose": "windup",
+      "row": 4,
+      "column": 9,
+      "frame": {
+        "x": 1344,
+        "y": 648,
+        "width": 112,
+        "height": 137
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 54,
+        "y": 75,
+        "width": 112,
+        "height": 137
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "bomber:azure:contact",
+      "role": "bomber",
+      "shape": "orb",
+      "team": "azure",
+      "pose": "contact",
+      "row": 4,
+      "column": 10,
+      "frame": {
+        "x": 1479,
+        "y": 672,
+        "width": 143,
+        "height": 110
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 41,
+        "y": 99,
+        "width": 143,
+        "height": 110
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "bomber:azure:recover",
+      "role": "bomber",
+      "shape": "orb",
+      "team": "azure",
+      "pose": "recover",
+      "row": 4,
+      "column": 11,
+      "frame": {
+        "x": 1633,
+        "y": 679,
+        "width": 124,
+        "height": 103
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 47,
+        "y": 106,
+        "width": 124,
+        "height": 103
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "slime:ember:idle",
+      "role": "slime",
+      "shape": "slime",
+      "team": "ember",
+      "pose": "idle",
+      "row": 5,
+      "column": 0,
+      "frame": {
+        "x": 47,
+        "y": 807,
+        "width": 84,
+        "height": 62
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 87,
+        "y": 146,
+        "width": 84,
+        "height": 62
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "slime:ember:walk-left",
+      "role": "slime",
+      "shape": "slime",
+      "team": "ember",
+      "pose": "walk-left",
+      "row": 5,
+      "column": 1,
+      "frame": {
+        "x": 189,
+        "y": 804,
+        "width": 86,
+        "height": 62
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 81,
+        "y": 143,
+        "width": 86,
+        "height": 62
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "slime:ember:walk-right",
+      "role": "slime",
+      "shape": "slime",
+      "team": "ember",
+      "pose": "walk-right",
+      "row": 5,
+      "column": 2,
+      "frame": {
+        "x": 337,
+        "y": 802,
+        "width": 90,
+        "height": 65
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 81,
+        "y": 141,
+        "width": 90,
+        "height": 65
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "slime:ember:windup",
+      "role": "slime",
+      "shape": "slime",
+      "team": "ember",
+      "pose": "windup",
+      "row": 5,
+      "column": 3,
+      "frame": {
+        "x": 486,
+        "y": 797,
+        "width": 85,
+        "height": 68
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 83,
+        "y": 136,
+        "width": 85,
+        "height": 68
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "slime:ember:contact",
+      "role": "slime",
+      "shape": "slime",
+      "team": "ember",
+      "pose": "contact",
+      "row": 5,
+      "column": 4,
+      "frame": {
+        "x": 644,
+        "y": 820,
+        "width": 90,
+        "height": 48
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 93,
+        "y": 159,
+        "width": 90,
+        "height": 48
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "slime:ember:recover",
+      "role": "slime",
+      "shape": "slime",
+      "team": "ember",
+      "pose": "recover",
+      "row": 5,
+      "column": 5,
+      "frame": {
+        "x": 771,
+        "y": 816,
+        "width": 91,
+        "height": 52
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 72,
+        "y": 155,
+        "width": 91,
+        "height": 52
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "slime:azure:idle",
+      "role": "slime",
+      "shape": "slime",
+      "team": "azure",
+      "pose": "idle",
+      "row": 5,
+      "column": 6,
+      "frame": {
+        "x": 920,
+        "y": 809,
+        "width": 84,
+        "height": 59
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 73,
+        "y": 148,
+        "width": 84,
+        "height": 59
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "slime:azure:walk-left",
+      "role": "slime",
+      "shape": "slime",
+      "team": "azure",
+      "pose": "walk-left",
+      "row": 5,
+      "column": 7,
+      "frame": {
+        "x": 1064,
+        "y": 804,
+        "width": 93,
+        "height": 63
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 69,
+        "y": 143,
+        "width": 93,
+        "height": 63
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "slime:azure:walk-right",
+      "role": "slime",
+      "shape": "slime",
+      "team": "azure",
+      "pose": "walk-right",
+      "row": 5,
+      "column": 8,
+      "frame": {
+        "x": 1212,
+        "y": 805,
+        "width": 85,
+        "height": 62
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 70,
+        "y": 144,
+        "width": 85,
+        "height": 62
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "slime:azure:windup",
+      "role": "slime",
+      "shape": "slime",
+      "team": "azure",
+      "pose": "windup",
+      "row": 5,
+      "column": 9,
+      "frame": {
+        "x": 1358,
+        "y": 797,
+        "width": 84,
+        "height": 70
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 68,
+        "y": 136,
+        "width": 84,
+        "height": 70
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "slime:azure:contact",
+      "role": "slime",
+      "shape": "slime",
+      "team": "azure",
+      "pose": "contact",
+      "row": 5,
+      "column": 10,
+      "frame": {
+        "x": 1509,
+        "y": 817,
+        "width": 92,
+        "height": 52
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 71,
+        "y": 156,
+        "width": 92,
+        "height": 52
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    },
+    {
+      "id": "slime:azure:recover",
+      "role": "slime",
+      "shape": "slime",
+      "team": "azure",
+      "pose": "recover",
+      "row": 5,
+      "column": 11,
+      "frame": {
+        "x": 1643,
+        "y": 814,
+        "width": 89,
+        "height": 54
+      },
+      "orig": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "trim": {
+        "x": 57,
+        "y": 153,
+        "width": 89,
+        "height": 54
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.8203125
+      }
+    }
+  ]
+}
