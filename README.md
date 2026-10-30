@@ -88,6 +88,8 @@ Open `/stream-demo` for a direct stream-style preview: the battle fills the stag
 
 The dashboard and spectator page's existing **Theater view** and **Fullscreen** buttons also open this complete layout in place. They keep the same room URL, canvas, unit-label and sound state; Escape/Exit theater returns to the original workspace. The old battlefield-only expanded layout has been replaced.
 
+The broadcaster's authorizing session can use soldier buttons with its existing channel account. Stream chat's **Send to Twitch** composer posts actual Twitch messages and checks acceptance independently of the iframe login; the Community Forge field remains a direct game-command input. Owners can **Start rematch** in theater when a round ends. See [chat and control repair](docs/chat-controls-repair.md) for authentication, errors and verification limits.
+
 A browser session can own four matches. To free a slot, open `/dashboard` and use **Close match** beside a recent match or next to Reset in an active match. Closing stops its battle/Twitch connections and removes the room after confirmation. Reset and closing a browser tab do not free a slot.
 
 ## Free local AI
