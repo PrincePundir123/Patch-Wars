@@ -59,6 +59,17 @@ test('Sunstone uses real artwork and pose animation while pause preserves author
     expect(await canvas.getAttribute('data-pose-updates')).toBe(poses);
     const after = (await (await page.request.get(`/api/rooms/${room}`)).json()).game;
     expect(after).toEqual(before);
+    for (const action of ['reset', 'start']) {
+      const result = await page.request.post(`/api/rooms/${room}/control`, {
+        headers: { Origin: new URL(page.url()).origin },
+        data: { action },
+      });
+      expect(result.ok()).toBe(true);
+    }
+    await expect
+      .poll(async () => Number(await canvas.getAttribute('data-visual-resets')))
+      .toBeGreaterThan(0);
+    await expect(page.locator('canvas')).toHaveAttribute('data-sunstone-retained', 'yes');
     expect(errors).toEqual([]);
   } finally {
     const video = page.video();

@@ -212,6 +212,7 @@ export function Arena({
       if (host.current) {
         host.current.dataset.artDirection = 'sunstone';
         host.current.dataset.animationFrames = String(SOLDIER_COLUMNS);
+        host.current.dataset.visualResets = '0';
         host.current.dataset.artworkStatus =
           unitAsset.status === 'fulfilled' ? 'ready' : 'fallback';
       }
@@ -286,6 +287,16 @@ export function Arena({
         presentationTick =
           s.tick + (s.phase === 'battle' ? Math.min((now - snapshotAt) / 50, 2) : 0);
         if (changed) {
+          // A rematch can reuse IDs and appearances; discard the previous round's gait/attack state.
+          if (previousGame && (s.tick < previousTick || s.seed !== previousGame.seed)) {
+            for (const node of nodes.values()) node.root.destroy({ children: true });
+            nodes.clear();
+            reproject = true;
+            if (host.current)
+              host.current.dataset.visualResets = String(
+                Number(host.current.dataset.visualResets ?? 0) + 1,
+              );
+          }
           const present = new Set(s.units.map((u) => u.id));
           for (const [id, node] of nodes)
             if (!present.has(id)) {
