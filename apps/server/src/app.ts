@@ -103,7 +103,10 @@ export async function buildApp(options: ServerOptions = {}) {
   });
   await app.register(websocket, { options: { maxPayload: 1024 } });
   const sessions = new Map<string, Session>();
-  const viewers = new Map<string, { identity: TwitchIdentity; checkedAt: number }>();
+  const viewers = new Map<
+    string,
+    { identity: TwitchIdentity; checkedAt: number; invalid?: boolean }
+  >();
   const extension = options.extension ?? {
     clientId: process.env.TWITCH_EXTENSION_CLIENT_ID ?? '',
     secret: process.env.TWITCH_EXTENSION_SECRET ?? '',
@@ -117,7 +120,16 @@ export async function buildApp(options: ServerOptions = {}) {
   const clients = new Map<string, Set<WebSocket>>();
   const compactClients = new WeakSet<WebSocket>();
   const sentCatalogs = new WeakMap<WebSocket, string>();
-  const connections = new Map<string, { client: EventSubClient; identity: TwitchIdentity }>();
+  const connections = new Map<
+    string,
+    {
+      client: EventSubClient;
+      identity: TwitchIdentity;
+      authorizedSession: string;
+      checkedAt: number;
+      invalid?: boolean;
+    }
+  >();
   const probeProvider = createProviderProbe();
   app.decorate('rooms', rooms);
   app.addHook('onRequest', async (req, reply) => {
@@ -236,20 +248,52 @@ export async function buildApp(options: ServerOptions = {}) {
   const viewerCommand = z
     .object({ channelId: z.string().regex(/^\d+$/), text: z.string().min(1).max(220) })
     .strict();
+  const playerFor = (sessionId?: string, roomId?: string) => {
+    if (!sessionId) return undefined;
+    const viewer = viewers.get(sessionId);
+    if (viewer) return viewer.invalid ? undefined : { player: viewer, source: 'viewer' as const };
+    if (!roomId) return undefined;
+    const connection = [...connections.entries()].find(
+      ([key, c]) => key.startsWith(`${roomId}:`) && c.authorizedSession === sessionId && !c.invalid,
+    )?.[1];
+    return connection ? { player: connection, source: 'channel' as const } : undefined;
+  };
+  const authenticatedPlayer = async (sessionId: string | undefined, roomId: string) => {
+    const resolved = playerFor(sessionId, roomId);
+    if (!resolved)
+      throw Object.assign(new Error('Sign in with Twitch to use chat and deploy units.'), {
+        statusCode: 401,
+      });
+    if (Date.now() - resolved.player.checkedAt > 300000) {
+      try {
+        await resolved.player.identity.validate();
+        resolved.player.checkedAt = Date.now();
+      } catch {
+        resolved.player.invalid = true;
+        throw Object.assign(new Error('Twitch sign-in expired. Sign in again to continue.'), {
+          statusCode: 401,
+        });
+      }
+    }
+    return resolved.player;
+  };
   app.get('/api/viewer', async (req) => {
+    const { room: roomId } = z.object({ room: z.string().uuid().optional() }).parse(req.query);
     const session = getSession(req.cookies.pw_session);
-    const viewer = session ? viewers.get(session.id) : undefined;
-    return { login: viewer?.identity.login ?? null };
+    const resolved = playerFor(session?.id, roomId);
+    return {
+      login: resolved?.player.identity.login ?? null,
+      ...(roomId
+        ? {
+            source: resolved?.source ?? null,
+            canManage: !!session && rooms.get(roomId)?.owner === session.id,
+          }
+        : {}),
+    };
   });
   app.post<{ Params: { id: string } }>('/api/rooms/:id/viewer-command', async (req) => {
     const session = getSession(req.cookies.pw_session);
-    const viewer = session ? viewers.get(session.id) : undefined;
-    if (!viewer)
-      throw Object.assign(new Error('Sign in with Twitch to deploy units.'), { statusCode: 401 });
-    if (Date.now() - viewer.checkedAt > 300000) {
-      await viewer.identity.validate();
-      viewer.checkedAt = Date.now();
-    }
+    const viewer = await authenticatedPlayer(session?.id, req.params.id);
     const body = viewerCommand.parse(req.body);
     const { room, channel } = liveChannel(req.params.id, body.channelId);
     return {
@@ -264,6 +308,20 @@ export async function buildApp(options: ServerOptions = {}) {
         'viewer',
       ),
     };
+  });
+  app.post<{ Params: { id: string } }>('/api/rooms/:id/chat', async (req) => {
+    const session = getSession(req.cookies.pw_session);
+    const viewer = await authenticatedPlayer(session?.id, req.params.id);
+    const body = z
+      .object({ channelId: z.string().regex(/^\d+$/), text: z.string().trim().min(1).max(450) })
+      .strict()
+      .parse(req.body);
+    const { channel } = liveChannel(req.params.id, body.channelId);
+    let result:{messageId:string};
+    try{result = await viewer.identity.sendChat(channel.id, body.text);}
+    catch(error){if((error as {statusCode?:number}).statusCode===401)viewer.invalid=true;throw error;}
+    // EventSub is the sole game-input path for this message. Never execute it here too.
+    return { message: 'Message sent to Twitch.', messageId: result.messageId };
   });
   app.post('/api/viewer/logout', async (req) => {
     const session = getSession(req.cookies.pw_session);
@@ -666,7 +724,12 @@ export async function buildApp(options: ServerOptions = {}) {
         channel.status = status;
       },
     );
-    connections.set(key, { identity, client });
+    connections.set(key, {
+      identity,
+      client,
+      authorizedSession: pending.session,
+      checkedAt: Date.now(),
+    });
     client.start();
     return reply.redirect(`/dashboard?room=${r.id}`);
   });

@@ -177,10 +177,11 @@ export class TwitchIdentity {
       signal: AbortSignal.timeout(10000),
     });
     if (r.status === 401 && retry) {
-      await this.renew();
+      try { await this.renew(); }
+      catch { throw Object.assign(new Error('Twitch sign-in expired. Sign in again to continue.'),{statusCode:401}); }
       return this.api(path, body, false);
     }
-    if (!r.ok) throw new Error(`Twitch API rejected the request (${r.status}).`);
+    if (!r.ok) throw Object.assign(new Error(`Twitch API rejected the request (${r.status}).`),{statusCode:r.status===401?401:r.status===429?429:400});
     return r.json();
   }
   async revoke() {
@@ -194,6 +195,39 @@ export class TwitchIdentity {
     this.refresh = '';
   }
   private sendGate = new RateGate();
+  async sendChat(channel: string, message: string) {
+    if (!this.sendGate.allow('all', 15, 30000) || !this.sendGate.allow(channel, 1, 2000))
+      throw Object.assign(
+        new Error('Twitch chat cooldown. Wait two seconds before sending again.'),
+        { statusCode: 429 },
+      );
+    const result = z
+      .object({
+        data: z
+          .array(
+            z.object({
+              message_id: z.string(),
+              is_sent: z.boolean(),
+              drop_reason: z.object({ code: z.string(), message: z.string().max(500) }).nullish(),
+            }),
+          )
+          .length(1),
+      })
+      .parse(
+        await this.api('chat/messages', {
+          broadcaster_id: channel,
+          sender_id: this.userId,
+          message: message.slice(0, 450),
+        }),
+      );
+    const sent = result.data[0]!;
+    if (!sent.is_sent || !sent.message_id)
+      throw new Error(
+        sent.drop_reason?.message ||
+          'Twitch did not send this message. Check channel chat restrictions.',
+      );
+    return { messageId: sent.message_id };
+  }
   async say(channel: string, message: string) {
     if (!this.sendGate.allow('all', 15, 30000) || !this.sendGate.allow(channel, 1, 2000)) return;
     return this.api('chat/messages', {
