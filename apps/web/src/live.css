@@ -1,8 +1,8 @@
 .live-experience {
-  --chat-width: 296px;
-  --chat-space: 386px;
+  --chat-width: 400px;
+  --chat-space: 490px;
   height: 100dvh;
-  min-height: 480px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background: #101c19;
@@ -13,6 +13,10 @@
 }
 .live-experience.chat-hidden {
   --chat-space: 0px;
+}
+.live-experience.chat-expanded {
+  --chat-width: 560px;
+  --chat-space: 650px;
 }
 .live-experience [hidden] {
   display: none !important;
@@ -411,15 +415,84 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid #8b90636b;
-  border-radius: 10px;
+  border: 1px solid #65715880;
+  border-radius: 6px;
   /* Twitch rejects owner/mod chat when a filtered ancestor compromises visibility. */
   background: #11211e;
   box-shadow: 0 8px 24px #0005;
 }
+.community-dock-header {
+  display: flex;
+  align-items: center;
+  flex: 0 0 54px;
+  gap: 9px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #40523e;
+  background: #15271f;
+}
+.community-dock-mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: 1px solid #697359;
+  border-radius: 6px;
+  color: #dfc990;
+}
+.community-dock-title {
+  flex: 1;
+  min-width: 0;
+}
+.community-dock-title strong {
+  display: block;
+  font-size: 13px;
+  color: #f2ecd9;
+}
+.community-dock-title small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+  color: #b9c5b6;
+  font-size: 10px;
+}
+.community-dock-title i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #889083;
+}
+.community-dock-title i.is-connected {
+  background: #a4cbae;
+}
+.community-expand,
+.community-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-shrink: 0;
+  min-height: 32px;
+  border: 1px solid #5c694e;
+  border-radius: 4px;
+  background: #20372b;
+  color: #efdfba;
+  padding: 5px 7px;
+  font-size: 10px !important;
+}
+.community-close {
+  width: 32px;
+  padding: 5px;
+}
+.community-expand:hover,
+.community-close:hover {
+  border-color: #d9c28e;
+  background: #2d4333;
+}
 .live-community-tabs {
   display: flex;
-  height: 43px;
+  height: 42px;
   flex-shrink: 0;
   border-bottom: 1px solid #52604480;
 }
@@ -430,7 +503,8 @@
   border-bottom: 2px solid transparent;
   background: none;
   color: #c4cdbd;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 600;
 }
 .live-community-tabs button[aria-pressed='true'] {
   border-bottom-color: #e4c382;
@@ -447,12 +521,24 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex-shrink: 0;
+  min-height: 42px;
   padding: 11px 14px;
   border-bottom: 1px solid #43513a66;
-  font-size: 11px;
+  font-size: 12px;
+}
+.live-chat-heading strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .live-chat-heading a {
-  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  font-size: 11px;
   color: #e4c382;
 }
 .twitch-chat-shell {
@@ -460,11 +546,31 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #78836b #17211b;
+}
+.twitch-chat-shell::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.twitch-chat-shell::-webkit-scrollbar-track {
+  background: #17211b;
+}
+.twitch-chat-shell::-webkit-scrollbar-thumb {
+  background: #78836b;
+  border: 2px solid #17211b;
+  border-radius: 8px;
 }
 .twitch-chat-shell iframe {
+  display: block;
   width: 100%;
-  flex: 1;
-  min-height: 80px;
+  height: 100%;
+  flex: 1 0 480px;
+  min-width: 360px;
+  min-height: 480px;
   border: 0;
   background: #18181b;
 }
@@ -656,8 +762,8 @@
 }
 @media (min-width: 1700px) {
   .live-experience {
-    --chat-width: 320px;
-    --chat-space: 410px;
+    --chat-width: 420px;
+    --chat-space: 510px;
   }
   .deployment-dock {
     max-width: calc(100% - var(--chat-space) - 32px);
@@ -676,8 +782,8 @@
 }
 @media (max-width: 900px) and (min-width: 701px) {
   .live-experience {
-    --chat-width: 254px;
-    --chat-space: 338px;
+    --chat-width: 380px;
+    --chat-space: 470px;
   }
   .live-header {
     padding: 0 12px;
@@ -709,8 +815,8 @@
 @media (max-width: 700px) {
   .live-experience {
     --chat-space: 0px;
-    --mobile-chat: clamp(190px, 28dvh, 250px);
-    min-height: 560px;
+    --mobile-chat: clamp(280px, 40dvh, 360px);
+    min-height: 0;
   }
   .live-header {
     height: 66px;
@@ -866,10 +972,10 @@
     bottom: 8px;
     width: auto;
     height: calc(var(--mobile-chat) - 16px);
-    border-radius: 8px;
+    border-radius: 6px;
   }
   .live-community-tabs {
-    height: 31px;
+    height: 38px;
   }
   .live-community-tabs button {
     font-size: 10px;
@@ -877,6 +983,31 @@
   .live-chat-heading {
     padding: 7px 10px;
     font-size: 10px;
+  }
+  .community-dock-header {
+    padding: 7px 9px;
+    gap: 7px;
+    flex-basis: 56px;
+  }
+  .community-expand,
+  .community-close {
+    min-height: 40px;
+  }
+  .community-close {
+    width: 40px;
+  }
+  .live-experience.chat-expanded {
+    --chat-space: 0px;
+  }
+  .chat-expanded .live-community {
+    top: 8px;
+    bottom: 64px;
+    height: auto;
+  }
+  .chat-expanded .stream-tools {
+    top: auto;
+    bottom: 8px;
+    flex-direction: row;
   }
   .live-command-form {
     padding: 6px 9px;
@@ -934,8 +1065,8 @@
 @media (max-height: 520px) and (min-width: 701px) {
   .live-experience {
     min-height: 320px;
-    --chat-width: 250px;
-    --chat-space: 338px;
+    --chat-width: 380px;
+    --chat-space: 470px;
   }
   .live-header {
     height: 36px;

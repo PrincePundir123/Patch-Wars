@@ -13,6 +13,10 @@ import { UnitPortrait } from './UnitPortrait.js';
 import { api, ApiError } from './store.js';
 import { ChatCircleDots } from '@phosphor-icons/react/dist/csr/ChatCircleDots';
 import { Sword } from '@phosphor-icons/react/dist/csr/Sword';
+import { ArrowsOutSimple } from '@phosphor-icons/react/dist/csr/ArrowsOutSimple';
+import { ArrowsInSimple } from '@phosphor-icons/react/dist/csr/ArrowsInSimple';
+import { X } from '@phosphor-icons/react/dist/csr/X';
+import { ArrowSquareOut } from '@phosphor-icons/react/dist/csr/ArrowSquareOut';
 
 export function LiveExperience({
   s,
@@ -59,6 +63,9 @@ export function LiveExperience({
   const [tab, setTab] = useState<'chat' | 'forge'>('chat');
   const [embed, setEmbed] = useState(false);
   const [communityOpen, setCommunityOpen] = useState(false);
+  const [chatExpanded, setChatExpanded] = useState(false);
+  const chatViewport = useRef<HTMLDivElement>(null);
+  const chatToggle = useRef<HTMLButtonElement>(null);
   const [soldiersOpen, setSoldiersOpen] = useState(false);
   const channels = s.channels.filter((c) => c.status.startsWith('connected'));
   const channel = channels.find((c) => c.id === channelId) ?? channels[0];
@@ -119,6 +126,27 @@ export function LiveExperience({
   useEffect(() => {
     if (!inline && communityOpen && s.mode === 'live' && channel?.id) setEmbed(true);
   }, [channel?.id, s.mode, inline, communityOpen]);
+  useEffect(() => {
+    const viewport = chatViewport.current;
+    if (!viewport || !embed || inline || !communityOpen || tab !== 'chat') return;
+    let previousHeight = viewport.clientHeight;
+    let atBottom = viewport.scrollHeight - viewport.clientHeight - viewport.scrollTop < 4;
+    const rememberPosition = () => {
+      atBottom = viewport.scrollHeight - viewport.clientHeight - viewport.scrollTop < 4;
+    };
+    const observer = new ResizeObserver(() => {
+      if (!viewport.clientHeight) return;
+      // Preserve a user's scroll position; keep the composer reachable when a full-height dock shrinks.
+      if (atBottom || previousHeight >= 480) viewport.scrollTop = viewport.scrollHeight;
+      previousHeight = viewport.clientHeight;
+    });
+    observer.observe(viewport);
+    viewport.addEventListener('scroll', rememberPosition, { passive: true });
+    return () => {
+      observer.disconnect();
+      viewport.removeEventListener('scroll', rememberPosition);
+    };
+  }, [embed, inline, communityOpen, tab]);
   async function send(command: string) {
     if (busy || cooldown) return;
     setBusy(true);
@@ -181,7 +209,7 @@ export function LiveExperience({
   return (
     <div
       role={embedded ? undefined : 'main'}
-      className={`live-experience ${inline ? 'inline-experience' : 'stream-stage'}${communityOpen ? '' : ' chat-hidden'}${soldiersOpen ? '' : ' soldiers-hidden'}`}
+      className={`live-experience ${inline ? 'inline-experience' : 'stream-stage'}${communityOpen ? '' : ' chat-hidden'}${communityOpen && chatExpanded ? ' chat-expanded' : ''}${soldiersOpen ? '' : ' soldiers-hidden'}`}
       ref={root}
     >
       <header className="live-header" hidden={inline}>
@@ -375,6 +403,7 @@ export function LiveExperience({
             <button
               className="stream-tool"
               aria-label="Chat"
+              ref={chatToggle}
               title={communityOpen ? 'Hide chat' : 'Open chat'}
               aria-expanded={communityOpen}
               aria-controls="stream-community"
@@ -389,7 +418,10 @@ export function LiveExperience({
               title={soldiersOpen ? 'Hide soldiers' : 'Choose a soldier'}
               aria-expanded={soldiersOpen}
               aria-controls="stream-soldiers"
-              onClick={() => setSoldiersOpen((open) => !open)}
+              onClick={() => {
+                setSoldiersOpen((open) => !open);
+                setChatExpanded(false);
+              }}
             >
               <Sword size={24} aria-hidden="true" />
               <span className="stream-tool-tip">Choose a soldier</span>
@@ -407,18 +439,59 @@ export function LiveExperience({
           aria-label="Community chat and Forge"
           hidden={inline || !communityOpen}
         >
+          <div className="community-dock-header">
+            <span className="community-dock-mark" aria-hidden="true">
+              <ChatCircleDots size={20} />
+            </span>
+            <div className="community-dock-title">
+              <strong>Community</strong>
+              <small>
+                <i className={channel ? 'is-connected' : ''} />
+                {s.mode === 'demo'
+                  ? 'Simulated replay'
+                  : channel
+                    ? 'Twitch connected'
+                    : 'Not connected'}
+              </small>
+            </div>
+            <button
+              className="community-expand"
+              aria-label={chatExpanded ? 'Restore chat size' : 'Expand chat'}
+              aria-pressed={chatExpanded}
+              title={chatExpanded ? 'Restore docked chat' : 'Expand chat for more room'}
+              onClick={() => setChatExpanded((expanded) => !expanded)}
+            >
+              {chatExpanded ? (
+                <ArrowsInSimple size={16} aria-hidden="true" />
+              ) : (
+                <ArrowsOutSimple size={16} aria-hidden="true" />
+              )}
+              <span>{chatExpanded ? 'Restore' : 'Expand'}</span>
+            </button>
+            <button
+              className="community-close"
+              aria-label="Close community panel"
+              title="Close community panel"
+              onClick={() => {
+                setCommunityOpen(false);
+                chatToggle.current?.focus();
+              }}
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          </div>
           <div className="live-community-tabs">
             <button aria-pressed={tab === 'chat'} onClick={() => setTab('chat')}>
               Stream chat
             </button>
             <button aria-pressed={tab === 'forge'} onClick={() => setTab('forge')}>
-              Community Forge <span>{s.proposals.length}</span>
+              Community Forge {s.proposals.length > 0 && <span>{s.proposals.length}</span>}
             </button>
           </div>
           {tab === 'chat' ? (
             <>
               <div className="live-chat-heading">
-                <strong>
+                <strong title={channel ? `#${channel.name}` : undefined}>
                   {s.mode === 'demo'
                     ? 'Replay activity'
                     : channel
@@ -431,16 +504,27 @@ export function LiveExperience({
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Open chat ↗
+                    Open chat <ArrowSquareOut size={13} aria-hidden="true" />
                   </a>
                 )}
               </div>
               {s.mode === 'live' && channel ? (
-                <div className="twitch-chat-shell">
+                <div
+                  className="twitch-chat-shell"
+                  ref={chatViewport}
+                  tabIndex={0}
+                  role="region"
+                  aria-label="Scrollable Twitch chat"
+                >
                   {embed ? (
                     <iframe
                       title={`${channel.name} Twitch chat`}
                       src={`https://www.twitch.tv/embed/${encodeURIComponent(channel.name)}/chat?parent=${encodeURIComponent(location.hostname)}&darkpopout`}
+                      onLoad={() => {
+                        // On a short screen, start at the real composer instead of clipping it below the dock.
+                        const viewport = chatViewport.current;
+                        if (viewport) viewport.scrollTop = viewport.scrollHeight;
+                      }}
                     />
                   ) : (
                     <div className="live-chat-placeholder">
