@@ -10,6 +10,14 @@ Updated browser checks assert default collapse, repeated icon toggles, a retaine
 
 The focused 11 browser cases, all 134 unit/integration tests, typecheck, lint, web/server build and extension build passed. An initial broader run shared an already-used test server: one page loaded during a rebuild and three later checks reached the normal global match-capacity limit. Those are recorded as test-run failures, not waived assertions. The final full suite passed all **27 browser cases in 2.9 minutes** on a fresh isolated server after the build. The development server and real Twitch room were not restarted. Updated screenshots show the collapsed desktop stage and the expanded desktop/mobile panels.
 
+## Follow-up: Twitch reported the chat window was obscured
+
+The owner's screenshot identified Twitch's specific owner/moderator visibility restriction, rather than a missing soldier authorization. Chromium's visibility observer reproduced a compromised iframe under the chat panel's `backdrop-filter`. The panel now uses an opaque background without that filter. Custom launcher tooltips are suppressed while chat is open so they cannot extend over its content; native button titles and accessible names remain. No chat permissions, game rules or backend routes changed.
+
+The regression check observes a mock send button near the bottom of a cross-origin chat iframe with `IntersectionObserver` visibility tracking. It checks desktop, portrait phone, landscape phone, launcher hover and the dashboard theater entry, in addition to existing panel toggles and identity boundaries. This verifies browser visibility, not a real Twitch message submission; the owner must refresh the page and retry the official composer while signed into Twitch.
+
+The final focused run passed all 11 browser cases on an isolated built server in 1.6 minutes. Typecheck, lint and the web/server build passed. An earlier development-server run timed out in a theater case and was stopped; the isolated run passed that case. No backend restart or Twitch reauthorization is required for this CSS update.
+
 ## Original repair record
 
 The supplied screenshot showed a completed battle, disabled soldier cards, a separate viewer sign-in request and Twitch's embedded composer. Deployment is intentionally blocked after a result, but there was no owner rematch action in the expanded view. The broadcaster's existing channel authorization was not being reused for player controls, and the iframe's independent Twitch session made writing chat confusing.

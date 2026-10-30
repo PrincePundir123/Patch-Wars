@@ -81,7 +81,7 @@ test('live arena keeps Twitch sign-in and channel chat separate from operator pe
   await page.route('https://www.twitch.tv/embed/**', (route) =>
     route.fulfill({
       contentType: 'text/html',
-      body: '<!doctype html><title>Mock Twitch chat</title><p>External chat mocked for layout testing</p>',
+      body: '<!doctype html><title>Mock Twitch chat</title><p>External chat mocked for layout testing</p><button style="position:fixed;bottom:8px;right:8px;width:100px;height:30px">Chat</button>',
     }),
   );
   await page.goto('/demo');
@@ -119,6 +119,38 @@ test('live arena keeps Twitch sign-in and channel chat separate from operator pe
   await expect(page.locator('.live-command-form')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Send to Twitch', exact: true })).toHaveCount(0);
   await expect(page.getByTitle('testchannel Twitch chat')).toHaveCount(1);
+  // A painted iframe can still fail Chromium's occlusion check (e.g. filtered ancestors).
+  // Observe from inside the cross-origin frame, as an embedded chat client would.
+  const chatComposer = page
+    .frameLocator('iframe[title="testchannel Twitch chat"]')
+    .getByRole('button', { name: 'Chat', exact: true });
+  const chatIsUnobscured = () =>
+    chatComposer.evaluate(
+      (button) =>
+        new Promise<boolean>((resolve) => {
+          const observer = new IntersectionObserver(
+            ([entry]) => {
+              observer.disconnect();
+              resolve((entry as IntersectionObserverEntry & { isVisible: boolean }).isVisible);
+            },
+            { trackVisibility: true, delay: 100 } as IntersectionObserverInit & {
+              trackVisibility: boolean;
+              delay: number;
+            },
+          );
+          observer.observe(button);
+        }),
+    );
+  await expect.poll(chatIsUnobscured).toBe(true);
+  await page.getByRole('button', { name: 'Choose a soldier', exact: true }).hover();
+  await expect.poll(chatIsUnobscured).toBe(true);
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 844, height: 390 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await expect.poll(chatIsUnobscured).toBe(true);
+  }
   await expect(page.getByRole('link', { name: 'Open chat', exact: false })).toHaveAttribute(
     'href',
     'https://www.twitch.tv/popout/testchannel/chat',
@@ -126,6 +158,11 @@ test('live arena keeps Twitch sign-in and channel chat separate from operator pe
   await expect(
     page.getByRole('button', { name: /Reset|Start battle|Pause/, exact: true }),
   ).toHaveCount(0);
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto(`/dashboard?room=${room}`);
+  await page.getByRole('button', { name: 'Theater view', exact: true }).click();
+  await openBattlePanels(page);
+  await expect.poll(chatIsUnobscured).toBe(true);
 });
 
 test('packaged extension uses helper authorization, renders units and submits one authenticated action', async ({

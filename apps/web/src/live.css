@@ -414,9 +414,9 @@
   overflow: hidden;
   border: 1px solid #8b90636b;
   border-radius: 10px;
-  background: #11211ef0;
+  /* Twitch rejects owner/mod chat when a filtered ancestor compromises visibility. */
+  background: #11211e;
   box-shadow: 0 8px 24px #0005;
-  backdrop-filter: blur(10px);
 }
 .live-community-tabs {
   display: flex;
@@ -1065,6 +1065,10 @@
 .stream-tool:hover .stream-tool-tip,
 .stream-tool:focus-visible .stream-tool-tip {
   opacity: 1;
+}
+.stream-stage:not(.chat-hidden) .stream-tool-tip {
+  /* Native title/accessible names remain; custom tooltips must not cover chat. */
+  display: none;
 }
 .stream-display-notice {
   position: absolute;
