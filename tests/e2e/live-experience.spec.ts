@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { openBattlePanels } from './panels.js';
 
 test('live arena deploys through the existing demo command handler and fits desktop and phones', async ({
   page,
@@ -10,6 +11,18 @@ test('live arena deploys through the existing demo command handler and fits desk
   const room = new URL(page.url()).pathname.split('/').at(-1)!;
   await expect(page.locator('.live-experience canvas')).toBeVisible();
   await expect(page.getByText('SIMULATED REPLAY · FIXTURE FORGE', { exact: true })).toBeVisible();
+  await expect(page.locator('.deployment-dock')).toBeHidden();
+  await expect(page.locator('.live-community')).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Chat', exact: true })).toHaveAttribute(
+    'aria-expanded',
+    'false',
+  );
+  await expect(page.getByRole('button', { name: 'Choose a soldier', exact: true })).toHaveAttribute(
+    'aria-expanded',
+    'false',
+  );
+  await page.screenshot({ path: 'docs/screenshots/live-arena-collapsed.png' });
+  await openBattlePanels(page);
   const before = await (await page.request.get(`/api/rooms/${room}`)).json();
   await page.getByRole('button', { name: 'Deploy Archer', exact: true }).click();
   await expect(page.locator('.deployment-status')).toContainText('Archer deployed.');
@@ -39,10 +52,14 @@ test('live arena deploys through the existing demo command handler and fits desk
   await page.locator('canvas').evaluate((node) => {
     node.dataset.retained = 'yes';
   });
-  await page.getByRole('button', { name: 'Hide chat', exact: true }).click();
+  await page.getByRole('button', { name: 'Chat', exact: true }).click();
   await expect(page.locator('.live-community')).toBeHidden();
-  await page.getByRole('button', { name: 'Show chat', exact: true }).click();
+  await page.getByRole('button', { name: 'Chat', exact: true }).click();
   await expect(page.locator('.live-community')).toBeVisible();
+  await expect(page.locator('canvas')).toHaveAttribute('data-retained', 'yes');
+  await page.getByRole('button', { name: 'Choose a soldier', exact: true }).click();
+  await expect(page.locator('.deployment-dock')).toBeHidden();
+  await page.getByRole('button', { name: 'Choose a soldier', exact: true }).click();
   await expect(page.locator('canvas')).toHaveAttribute('data-retained', 'yes');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'docs/screenshots/live-arena-desktop.png' });
@@ -81,6 +98,7 @@ test('live arena keeps Twitch sign-in and channel chat separate from operator pe
     });
   });
   await page.goto(`/play/${room}`);
+  await openBattlePanels(page);
   await expect(page.getByRole('link', { name: 'Sign in with Twitch to deploy' })).toHaveAttribute(
     'href',
     new RegExp(`/auth/twitch/viewer\\?room=${room}&origin=`),
@@ -90,10 +108,17 @@ test('live arena keeps Twitch sign-in and channel chat separate from operator pe
     'src',
     /parent=localhost/,
   );
-  await page.getByRole('button', { name: 'Unload chat', exact: true }).click();
-  await expect(page.getByTitle('testchannel Twitch chat')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Load Twitch chat', exact: true }).click();
+  await page
+    .getByTitle('testchannel Twitch chat')
+    .evaluate((node) => node.setAttribute('data-retained', 'yes'));
+  await page.getByRole('button', { name: 'Chat', exact: true }).click();
+  await expect(page.getByTitle('testchannel Twitch chat')).toBeHidden();
+  await page.getByRole('button', { name: 'Chat', exact: true }).click();
   await expect(page.getByTitle('testchannel Twitch chat')).toBeVisible();
+  await expect(page.getByTitle('testchannel Twitch chat')).toHaveAttribute('data-retained', 'yes');
+  await expect(page.locator('.live-command-form')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Send to Twitch', exact: true })).toHaveCount(0);
+  await expect(page.getByTitle('testchannel Twitch chat')).toHaveCount(1);
   await expect(page.getByRole('link', { name: 'Open chat', exact: false })).toHaveAttribute(
     'href',
     'https://www.twitch.tv/popout/testchannel/chat',

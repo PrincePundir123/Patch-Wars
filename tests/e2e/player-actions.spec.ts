@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openBattlePanels } from './panels.js';
 async function liveLayout(page: Page, options: { results?: boolean } = {}) {
   await page.route('https://www.twitch.tv/embed/**', (route) =>
     route.fulfill({ contentType: 'text/html', body: '<p>Mocked external Twitch chat history</p>' }),
@@ -35,9 +36,10 @@ async function liveLayout(page: Page, options: { results?: boolean } = {}) {
   });
   await page.goto(`/dashboard?room=${room}`);
   await page.getByRole('button', { name: 'Theater view', exact: true }).click();
+  await openBattlePanels(page);
   return { room, state };
 }
-test('the connected host can send chat after a result, start a rematch and deploy from the same theater', async ({
+test('the host has only the official chat composer and can rematch and deploy from the same theater', async ({
   page,
 }) => {
   const { room } = await liveLayout(page, { results: true });
@@ -45,26 +47,18 @@ test('the connected host can send chat after a result, start a rematch and deplo
   await expect(page.getByRole('button', { name: 'Deploy Archer', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Start rematch', exact: true })).toBeVisible();
   const messages: unknown[] = [];
-  let accepted = false;
   await page.route(`**/api/rooms/${room}/chat`, (route) => {
     messages.push(route.request().postDataJSON());
-    return accepted
-      ? route.fulfill({ json: { message: 'Message sent to Twitch.', messageId: 'mock-twitch-id' } })
-      : route.fulfill({ status: 400, json: { error: 'Twitch held the message for moderation.' } });
+    return route.fulfill({
+      status: 500,
+      json: { error: 'The removed app composer must not send requests.' },
+    });
   });
-  const input = page.getByLabel('Send Twitch chat as streamer', { exact: true });
-  await input.fill('good game');
-  await page.getByRole('button', { name: 'Send to Twitch', exact: true }).click();
-  await expect(page.locator('.chat-send-status')).toContainText('held the message');
-  await expect(input).toHaveValue('good game');
-  accepted = true;
-  await page.getByRole('button', { name: 'Send to Twitch', exact: true }).click();
-  await expect(page.locator('.chat-send-status')).toContainText('Sent to #testchannel');
-  await expect(input).toHaveValue('');
-  expect(messages).toEqual([
-    { channelId: '100', text: 'good game' },
-    { channelId: '100', text: 'good game' },
-  ]);
+  await expect(page.getByTitle('testchannel Twitch chat')).toBeVisible();
+  await expect(page.getByTitle('testchannel Twitch chat')).toHaveCount(1);
+  await expect(page.locator('.live-command-form')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Send to Twitch', exact: true })).toHaveCount(0);
+  expect(messages).toEqual([]);
   await page.getByRole('button', { name: 'Start rematch', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Start rematch', exact: true })).toHaveCount(0);
   // OAuth/channel display is mocked; bridge the click into the real owned demo handler.
@@ -91,7 +85,10 @@ test('the connected host can send chat after a result, start a rematch and deplo
     ),
   ).toBe(true);
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.getByRole('button', { name: 'Send to Twitch', exact: true })).toBeInViewport();
+  await expect(page.getByRole('button', { name: 'Chat', exact: true })).toBeInViewport();
+  await expect(
+    page.getByRole('button', { name: 'Choose a soldier', exact: true }),
+  ).toBeInViewport();
 });
 test('expired soldier authorization shows the sign-in action instead of silently leaving unusable buttons', async ({
   page,

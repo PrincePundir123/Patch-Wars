@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { openBattlePanels } from './panels.js';
 
 async function pausedReplay(page: Page) {
   await page.goto('/demo');
@@ -33,6 +34,9 @@ test('theater fills a laptop viewport without remounting the arena or changing m
   const enter = page.getByRole('button', { name: 'Theater view', exact: true });
   await enter.click();
   await expect(page.getByRole('dialog', { name: 'Expanded battlefield' })).toBeVisible();
+  await expect(page.locator('.deployment-dock')).toBeHidden();
+  await expect(page.locator('.live-community')).toBeHidden();
+  await openBattlePanels(page);
   await expect(page.getByRole('button', { name: 'Deploy Archer', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Stream chat', exact: true })).toBeVisible();
   await expect(page.locator('.deployment-dock')).toBeVisible();
@@ -105,6 +109,7 @@ test('the existing dashboard theater exposes live chat and soldier controls on t
   await page.goto(`/dashboard?room=${id}`);
   await page.getByRole('button', { name: 'Theater view', exact: true }).click();
   const stage = page.getByRole('dialog', { name: 'Expanded battlefield', exact: true });
+  await openBattlePanels(page);
   await expect(stage.getByRole('button', { name: 'Deploy Archer', exact: true })).toBeVisible();
   await expect(
     stage.getByRole('link', { name: 'Sign in with Twitch to deploy', exact: true }),
