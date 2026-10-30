@@ -1,6 +1,6 @@
 .live-experience {
   --chat-width: 296px;
-  --chat-space: 324px;
+  --chat-space: 386px;
   height: 100dvh;
   min-height: 480px;
   display: flex;
@@ -403,7 +403,7 @@
 .live-community {
   position: absolute;
   top: 14px;
-  right: 14px;
+  right: 74px;
   bottom: 16px;
   width: var(--chat-width);
   z-index: 6;
@@ -658,7 +658,7 @@
 @media (min-width: 1700px) {
   .live-experience {
     --chat-width: 320px;
-    --chat-space: 350px;
+    --chat-space: 410px;
   }
   .deployment-dock {
     max-width: calc(100% - var(--chat-space) - 32px);
@@ -678,7 +678,7 @@
 @media (max-width: 900px) and (min-width: 701px) {
   .live-experience {
     --chat-width: 254px;
-    --chat-space: 280px;
+    --chat-space: 338px;
   }
   .live-header {
     padding: 0 12px;
@@ -936,7 +936,7 @@
   .live-experience {
     min-height: 320px;
     --chat-width: 250px;
-    --chat-space: 278px;
+    --chat-space: 338px;
   }
   .live-header {
     height: 36px;
@@ -1017,6 +1017,91 @@
   }
 }
 /* Keep one mounted canvas while the existing theater/fullscreen controls change layout. */
+.stream-tools {
+  position: absolute;
+  right: 14px;
+  top: calc(50% - 54px);
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.live-experience .stream-tool {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
+  padding: 0;
+  border: 1px solid #9d9f76;
+  border-radius: 50%;
+  background: #16291fe8;
+  color: #e7d3a5;
+  box-shadow: 0 4px 16px #0006;
+  backdrop-filter: blur(8px);
+}
+.live-experience .stream-tool[aria-expanded='true'] {
+  background: #e0c080;
+  border-color: #ffdf9b;
+  color: #1c291e;
+}
+.live-experience .stream-tool:hover {
+  border-color: #ffe0a0;
+}
+.stream-tool-tip {
+  pointer-events: none;
+  position: absolute;
+  right: calc(100% + 10px);
+  padding: 6px 9px;
+  border: 1px solid #89916a;
+  border-radius: 5px;
+  background: #13261f;
+  color: #f6e8c7;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+}
+.stream-tool:hover .stream-tool-tip,
+.stream-tool:focus-visible .stream-tool-tip {
+  opacity: 1;
+}
+.stream-display-notice {
+  position: absolute;
+  z-index: 9;
+  left: 18px;
+  top: 105px;
+  max-width: calc(100% - 110px);
+  margin: 0;
+  padding: 9px 12px !important;
+  border: 1px solid #bda871;
+  border-radius: 6px;
+  background: #18291fe8;
+  color: #f6dfac;
+}
+.stream-stage.soldiers-hidden .arena-bottom {
+  bottom: 16px;
+}
+@media (max-width: 700px) {
+  .stream-tools {
+    right: 8px;
+    top: 111px;
+    gap: 10px;
+  }
+  .live-experience .stream-tool {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+  .stream-display-notice {
+    top: 110px;
+    left: 8px;
+    font-size: 10px !important;
+  }
+  .live-community {
+    right: 8px;
+  }
+}
 .live-experience.inline-experience,
 .inline-experience > .live-columns,
 .inline-experience .live-battle-column,

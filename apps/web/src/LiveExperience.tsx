@@ -11,6 +11,8 @@ import { Link } from 'react-router-dom';
 import type { Snapshot, Team } from '../../../packages/shared/src/index.js';
 import { UnitPortrait } from './UnitPortrait.js';
 import { api, ApiError } from './store.js';
+import { ChatCircleDots } from '@phosphor-icons/react/dist/csr/ChatCircleDots';
+import { Sword } from '@phosphor-icons/react/dist/csr/Sword';
 
 export function LiveExperience({
   s,
@@ -40,8 +42,6 @@ export function LiveExperience({
   const [canManage, setCanManage] = useState(false);
   const [authError, setAuthError] = useState('');
   const [authChecking, setAuthChecking] = useState(true);
-  const [chatReceipt, setChatReceipt] = useState('');
-  const [chatBusy, setChatBusy] = useState(false);
   const identityRequest = useRef(0);
   const previousBattleState = useRef(
     `${s.roomId}:${s.game.phase}:${s.paused}:${s.commandsEnabled}`,
@@ -56,10 +56,10 @@ export function LiveExperience({
   );
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(false);
-  const [cooldownMs, setCooldownMs] = useState(1600);
   const [tab, setTab] = useState<'chat' | 'forge'>('chat');
   const [embed, setEmbed] = useState(false);
-  const [communityOpen, setCommunityOpen] = useState(true);
+  const [communityOpen, setCommunityOpen] = useState(false);
+  const [soldiersOpen, setSoldiersOpen] = useState(false);
   const channels = s.channels.filter((c) => c.status.startsWith('connected'));
   const channel = channels.find((c) => c.id === channelId) ?? channels[0];
   const currentTeam = s.mode === 'demo' ? team : (channel?.team ?? 'ember');
@@ -110,12 +110,15 @@ export function LiveExperience({
   }, [s.roomId, s.game.phase, s.paused, s.commandsEnabled]);
   useEffect(() => {
     if (!cooldown) return;
-    const timer = setTimeout(() => setCooldown(false), cooldownMs);
+    const timer = setTimeout(() => setCooldown(false), 1600);
     return () => clearTimeout(timer);
-  }, [cooldown, cooldownMs]);
+  }, [cooldown]);
   useEffect(() => {
-    setEmbed(!inline && s.mode === 'live' && !!channel?.id);
-  }, [channel?.id, s.mode, inline]);
+    setEmbed(false);
+  }, [channel?.id, s.roomId]);
+  useEffect(() => {
+    if (!inline && communityOpen && s.mode === 'live' && channel?.id) setEmbed(true);
+  }, [channel?.id, s.mode, inline, communityOpen]);
   async function send(command: string) {
     if (busy || cooldown) return;
     setBusy(true);
@@ -132,7 +135,6 @@ export function LiveExperience({
               channelId: channel?.id,
             });
       setReceipt(result.message);
-      setCooldownMs(1600);
       setCooldown(true);
     } catch (error) {
       setReceipt((error as Error).message);
@@ -152,32 +154,9 @@ export function LiveExperience({
       setReceipt('Fullscreen is unavailable. This view already fills the browser window.');
     }
   }
-  async function submit(event: FormEvent) {
+  function submit(event: FormEvent) {
     event.preventDefault();
-    if (!text.trim()) return;
-    if (s.mode === 'live' && tab === 'chat') {
-      if (chatBusy || cooldown) return;
-      setChatBusy(true);
-      setChatReceipt('');
-      try {
-        const sent=await api<{messageId:string}>(`/api/rooms/${s.roomId}/chat`, { text: text.trim(), channelId: channel?.id });
-        if(!sent.messageId)throw new Error('Twitch did not confirm this message. Please try again.');
-        setText('');
-        setChatReceipt(
-          `Sent to #${channel?.name}. Chat commands appear in the battle receipt when Twitch delivers them.`,
-        );
-        setCooldownMs(2100);
-        setCooldown(true);
-      } catch (error) {
-        setChatReceipt((error as Error).message);
-        if (error instanceof ApiError && error.status === 401) {
-          setLogin(null);
-          setAuthError(error.message);
-        }
-      } finally {
-        setChatBusy(false);
-      }
-    } else void send(text.trim());
+    if (text.trim()) void send(text.trim());
   }
   async function hostAction(action: 'start' | 'resume' | 'rematch') {
     setBusy(true);
@@ -199,11 +178,10 @@ export function LiveExperience({
     }
   }
   const canSend = s.mode === 'demo' || !!login;
-  const isTwitchChat = s.mode === 'live' && tab === 'chat';
   return (
     <div
       role={embedded ? undefined : 'main'}
-      className={`live-experience ${inline ? 'inline-experience' : 'stream-stage'}${communityOpen ? '' : ' chat-hidden'}`}
+      className={`live-experience ${inline ? 'inline-experience' : 'stream-stage'}${communityOpen ? '' : ' chat-hidden'}${soldiersOpen ? '' : ' soldiers-hidden'}`}
       ref={root}
     >
       <header className="live-header" hidden={inline}>
@@ -222,13 +200,6 @@ export function LiveExperience({
           )}
           <Link to={`/spectate/${s.roomId}`}>Match details</Link>
           <button
-            aria-expanded={communityOpen}
-            aria-controls="stream-community"
-            onClick={() => setCommunityOpen((open) => !open)}
-          >
-            {communityOpen ? 'Hide chat' : 'Show chat'}
-          </button>
-          <button
             aria-pressed={embedded ? fullscreenActive : undefined}
             onClick={() => (onFullscreen ? onFullscreen() : void fullscreen())}
           >
@@ -239,7 +210,12 @@ export function LiveExperience({
       <div className="live-columns">
         <section className="live-battle-column" aria-label="Live battle and deployment">
           <div className="live-battle">{children}</div>
-          <section className="deployment-dock" aria-label="Deploy units" hidden={inline}>
+          <section
+            id="stream-soldiers"
+            className="deployment-dock"
+            aria-label="Deploy units"
+            hidden={inline || !soldiersOpen}
+          >
             <div className="deployment-heading">
               <div>
                 <span className="eyebrow">REINFORCEMENTS</span>
@@ -320,7 +296,6 @@ export function LiveExperience({
                     (s.mode === 'live' && !channel) ||
                     blocked ||
                     busy ||
-                    chatBusy ||
                     cooldown ||
                     s.game.energy[currentTeam] < b.stats.spawnCost
                   }
@@ -335,12 +310,8 @@ export function LiveExperience({
                 </button>
               ))}
             </div>
-            <div
-              className={`deployment-status${displayNotice ? ' display-notice' : ''}`}
-              role="status"
-            >
-              {displayNotice ||
-                receipt ||
+            <div className="deployment-status" role="status">
+              {receipt ||
                 authError ||
                 (s.mode === 'live' && !channel
                   ? 'Twitch channel disconnected. Reconnect it from the control room.'
@@ -399,6 +370,37 @@ export function LiveExperience({
             )}
           </section>
         </section>
+        {!inline && (
+          <div className="stream-tools" role="toolbar" aria-label="Battle panels">
+            <button
+              className="stream-tool"
+              aria-label="Chat"
+              title={communityOpen ? 'Hide chat' : 'Open chat'}
+              aria-expanded={communityOpen}
+              aria-controls="stream-community"
+              onClick={() => setCommunityOpen((open) => !open)}
+            >
+              <ChatCircleDots size={24} aria-hidden="true" />
+              <span className="stream-tool-tip">Chat</span>
+            </button>
+            <button
+              className="stream-tool"
+              aria-label="Choose a soldier"
+              title={soldiersOpen ? 'Hide soldiers' : 'Choose a soldier'}
+              aria-expanded={soldiersOpen}
+              aria-controls="stream-soldiers"
+              onClick={() => setSoldiersOpen((open) => !open)}
+            >
+              <Sword size={24} aria-hidden="true" />
+              <span className="stream-tool-tip">Choose a soldier</span>
+            </button>
+          </div>
+        )}
+        {!inline && displayNotice && (
+          <p className="stream-display-notice display-notice" role="status">
+            {displayNotice}
+          </p>
+        )}
         <aside
           id="stream-community"
           className="live-community"
@@ -451,10 +453,6 @@ export function LiveExperience({
                       <button onClick={() => setEmbed(true)}>Load Twitch chat</button>
                     </div>
                   )}
-                  <p className="chat-fallback">
-                    Chat blocked? Use Open chat above.{' '}
-                    {embed && <button onClick={() => setEmbed(false)}>Unload chat</button>}
-                  </p>
                 </div>
               ) : (
                 <div className="live-activity" aria-label="Replay activity">
@@ -514,60 +512,37 @@ export function LiveExperience({
               )}
             </section>
           )}
-          {canSend && (
+          {canSend && (s.mode === 'demo' || tab === 'forge') && (
             <form className="live-command-form" onSubmit={(event) => void submit(event)}>
               <label htmlFor="live-command">
-                {s.mode === 'demo'
-                  ? 'Simulated command'
-                  : isTwitchChat
-                    ? `Send Twitch chat as ${login}`
-                    : 'Game command'}
+                {s.mode === 'demo' ? 'Simulated command' : 'Game command'}
               </label>
               <div>
                 <input
                   id="live-command"
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  placeholder={
-                    isTwitchChat
-                      ? `Message #${channel?.name ?? 'channel'} or !spawn archer`
-                      : '!forge a moss guardian'
-                  }
-                  maxLength={isTwitchChat ? 450 : 220}
+                  placeholder="!forge a moss guardian"
+                  maxLength={220}
                   required
                 />
-                <button
-                  disabled={
-                    busy ||
-                    chatBusy ||
-                    cooldown ||
-                    (!isTwitchChat && blocked) ||
-                    (s.mode === 'live' && !channel)
-                  }
-                >
-                  {chatBusy ? 'Sending…' : isTwitchChat ? 'Send to Twitch' : 'Send'}
+                <button disabled={busy || cooldown || blocked || (s.mode === 'live' && !channel)}>
+                  Send
                 </button>
               </div>
               <small>
                 {s.mode === 'demo'
                   ? 'Local simulation only. Never sent to Twitch.'
-                  : isTwitchChat
-                    ? `Posts to #${channel?.name ?? 'your channel'} using your connected Twitch account. Conversation works between battles too.`
-                    : 'Game commands go to the arena. Use Stream chat for conversation.'}
+                  : 'Game commands go to the arena. Use Stream chat for conversation.'}
               </small>
-              {chatReceipt && (
-                <p className="chat-send-status" role="status">
-                  {chatReceipt}
-                </p>
-              )}
             </form>
           )}
-          {!canSend && s.mode === 'live' && (
+          {!canSend && s.mode === 'live' && tab === 'forge' && (
             <div className="chat-auth-prompt">
               <p>
                 {authChecking
                   ? 'Checking your Twitch account…'
-                  : 'Sign in once to send chat and use the soldier controls.'}
+                  : 'Sign in to propose units and vote. Twitch chat uses its own login.'}
               </p>
               {!authChecking && <a href={signInUrl}>Sign in with Twitch</a>}
             </div>
