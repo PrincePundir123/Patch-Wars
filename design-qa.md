@@ -1,53 +1,32 @@
-# Sunstone visual and interaction QA
+# Streaming and castle-lane visual QA
 
-Date: October 30, 2026.
+Date: October 31, 2026.
 
-## Evidence and state
+## Target and evidence
 
-- Source visual truth: `docs/design/sunstone/selected-reference.png`, 1672 × 941 pixels.
-- Browser implementation: `docs/screenshots/sunstone-desktop.png`, 1920 × 1080 pixels, 1920 × 1080 CSS viewport, device scale factor 1.
-- Phone implementation: `docs/screenshots/sunstone-mobile.png`, 390 × 844 pixels/CSS pixels, device scale factor 1.
-- Full-view and focused comparison input: `docs/screenshots/sunstone-comparison.png`. Opened and reviewed with both reference and implementation in the same image. The second row compares soldier silhouettes, material treatment, team colors and ground contact at a larger scale.
-- Runtime recording: `docs/screenshots/sunstone-motion.webm`, captured from the actual browser fixture replay, including deployment, active pose changes, viewport switching and pause.
-- The source is an illustrative battle concept with a lower animation-study strip. The implementation is a running fixture match with real scores/timer/health and retained deployment/account controls. Numerical match values and exact combat poses differ intentionally. The study strip is excluded from the product UI. This review assesses the chosen art direction and working product rather than claiming pixel-identical combat state or 3D rendering.
+The selected source is the user's attached 1672×941 PATCH WARS reference: navigation and scoreboard, dominant host video, right chat, lower-right soldier chooser and bottom castle battle. The source remains in the conversation; no local copy of that attachment was supplied. Its person/video frame and chat are illustrative content, not an available broadcast.
 
-## Comparison history
+Implementation: `docs/screenshots/streaming-desktop.png` at 1672×941 CSS pixels, `streaming-mobile.png` at 390×844, `castle-lane-desktop.png` at 1920×1080 and `castle-lane-mobile.png`. `castle-motion.webm` records actual fixture movement, deployment, resize and pause. Captures use labeled simulation, not real video/chat. Prior Sunstone QA is archived in `docs/design/sunstone/qa-before-streaming.md`.
 
-1. Initial implementation capture: **blocked**. P2: a wide camera made portrait soldiers too small and the CSS background repeated beyond the fitted canvas. Fixed by introducing a portrait projection, fitting the background inside the renderer and using a solid forest surround. The same canvas and authoritative state survive camera changes.
-2. Revised desktop/mobile captures: the repeated background is gone and the portrait view has larger readable unit silhouettes. Desktop HUD was narrowed to a centered maximum of 880 pixels to give the battlefield more visual space. P2 fixes are verified in the final screenshots and combined comparison. The initial pause assertion also sampled the diagnostic counter before its periodic flush; the check now waits for the bounded interpolation/diagnostic window to settle, then requires unchanged poses and exact authoritative state equality.
+## Iterations
 
-## Required fidelity surfaces
+1. P2: inherited aspect ratio narrowed the battle to part of the video width. Fixed with explicit responsive width and independent strip height.
+2. P2: grid sizing gave the canvas its intrinsic height and clipped soldiers below the strip. Fixed by positioning the canvas inside its bounds and deriving Pixi camera height from the measured viewport ratio. Units/effects share the fitted ground baseline. A browser assertion now requires the full canvas rectangle to fit inside the strip.
+3. P2: adding Deploy changed a last-child selector and joined role/name on one line. Fixed with a named text wrapper. Broadcast start/empty-state controls move above the open soldier tray.
+4. Revised captures show both castles and complete grounded soldier silhouettes. Chat retains scrolling/expansion. No fake streamer photograph, messages, viewer count or LIVE badge were introduced.
 
-| Surface                          | Review result                                                                                                                                                                                                                                                                                                                                                 |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Fonts and typography             | Georgia display lettering and existing Arial/system interface text preserve the reference's serif/compact sans-serif hierarchy. Team names, timer, energy, cost and unit labels remain legible. Long real team/channel names keep existing wrapping behavior. No external fonts or text baked into the arena.                                                 |
-| Spacing and layout               | Warm open courtyard, opposing teams, centered compact scoreboard, bottom-left soldier tray and separate right icon rail match the concept's hierarchy. Account/rematch controls and real base-health bars intentionally remain. Portrait camera and tray fit without horizontal overflow; chat is independently toggleable.                                   |
-| Colors and tokens                | Ivory/sandstone scene, evergreen `#14251e` chrome, warm ivory text and brass accents follow the selected direction. Existing orange/cyan team semantics remain consistent across bars, outfits, rings and events. Official chat stays unfiltered and opaque.                                                                                                  |
-| Image quality and asset fidelity | The arena, five human roles, slime and portraits are original generated raster assets based on the selected concept. Human poses replace the prior animal stickers. Alpha, explicit frame rectangles and common foot anchors were checked. WebP files preserve dimensions and reduce network weight. No placeholder/CSS-drawn characters replace the artwork. |
-| Copy and app content             | Actual unit names, costs 5/4/3/4/5, team energy, match timer, health, command receipts and simulated-replay labels remain. No paid coins, invented upgrades, fake chat, concept-board labels or animation-study UI were added.                                                                                                                                |
+## Fidelity surfaces
 
-## Interaction and regression verification
+- Typography: serif brand/team names, compact sans-serif controls and readable numeric timer; existing Phosphor icons.
+- Layout: dark header, main-column scoreboard, large broadcast region, optional right chat, lower-right deployment tray, horizontal battle below; independently collapsible controls.
+- Colors: near-black panels, ivory lettering, orange Ember, cyan Azure, restrained brass borders. Native chat ancestors remain opaque and unfiltered.
+- Images: generated castle artwork and existing Sunstone human sprites/portraits. The measured camera preserves gates and full soldier bodies without stretching artwork.
+- Content: actual health, costs, energy, phases and receipts. Demo labels remain visible. Sprinter retains its existing command/name instead of silently becoming Assassin.
 
-- Typecheck, lint, web/server production build and extension build passed.
-- All **138 unit/integration tests across 29 files** passed, including projection, distance-based gait, reduced motion, depth bounds and every one of the 72 frame rectangles/anchors.
-- All **28 Chromium browser cases passed** on the final fresh isolated built server in 4.1 minutes. This includes real fixture deployment and pose progression, portrait camera switching with a retained canvas, pause with exact game equality, clearing animation state on rematch while retaining the canvas, Forge, roster filters/details, OBS, fullscreen/fallbacks, renderer recovery, offscreen suspension, reduced motion and permission boundaries.
-- The existing cross-origin chat visibility regression passed in desktop/phone/theater contexts. External Twitch iframe contents and native extension authorization are mocked where noted in those tests. No new real Twitch send, consent, Hosted Test acceptance or live broadcast is claimed.
-- The Sunstone browser case captured no page errors. The local frame sample recorded a mean interval of about 16.8 ms; this is one automated Chromium sample, not a guarantee for physical phones or all GPUs.
-- No files changed in game-core, server, shared contracts or Twitch adapter. The development server and its real Twitch room were not restarted.
+## Intentional differences and acceptance limits
 
-## Remaining polish
+The source's illustrative host image and custom chat become official connected-channel Twitch video/chat frames. Their internal content/controls cannot be freely restyled. Invented costs and health totals become actual values. Panels initially collapse to preserve the requested icon toggles. Narrow player regions offer an external stream link. Native playback controls have space below the tray. Fixture matches show an honest video empty state.
 
-- P3: the generated atlas contains small weapon-tip cuts in a few touching Guardian/Archer attack cells. Contact and damage remain correct. An artist-authored sprite pass could remove those minor edge limitations.
-- This is six-pose-per-team 2D sprite animation, not skeletal 3D animation. Generated Forge units use the supported appearance roles. The recorded fixture replay verifies the shipped presentation; real device and live streaming checks remain separate acceptance steps.
+Responsive composition and local runtime UI review pass. Pixel-identical source comparison is **not signed off**: the original raster is unavailable as a local combined comparison artifact, and the real broadcast state has not been supplied. Actual host video, authenticated native chat and public-host acceptance remain manual checks. No exact screenshot equality or completed live broadcasting is claimed.
 
-## Implementation checklist
-
-- [x] Selected reference and generated sources retained.
-- [x] Browser delivery art encoded with alpha and unchanged dimensions.
-- [x] Team-specific motion poses, target facing, depth, shadows and bounded event effects integrated.
-- [x] Portrait framing and pause behavior verified without simulation changes.
-- [x] Existing gameplay and chat protections retained.
-- [x] Same-input full-view and focused visual comparison reviewed after fixes.
-- [x] Automated checks, screenshots and runtime recording saved.
-
-final result: passed
+final result: blocked — strict source-raster/live-state comparison remains pending; implementation and local interaction verification are recorded separately.

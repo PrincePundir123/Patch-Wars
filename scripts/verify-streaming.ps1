@@ -1,4 +1,5 @@
 # Run browser checks in fresh-server batches without weakening API rate limits.
+param([string]$Batch = 'all')
 $ErrorActionPreference = 'Stop'
 $projectPath = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $projectPath
@@ -14,10 +15,12 @@ $env:PLAYWRIGHT_BASE_URL = 'http://localhost:3002'
 New-Item -ItemType Directory -Force '.data/stream-verification' | Out-Null
 $groups = @(
   @{ name = 'app'; files = @('app.spec.ts') },
-  @{ name = 'controls'; files = @('chat-dock.spec.ts', 'close-match.spec.ts', 'display.spec.ts', 'live-experience.spec.ts', 'player-actions.spec.ts') },
+  @{ name = 'workspace'; files = @('chat-dock.spec.ts', 'close-match.spec.ts', 'display.spec.ts') },
+  @{ name = 'players'; files = @('live-experience.spec.ts', 'player-actions.spec.ts') },
   @{ name = 'streaming'; files = @('priorities.spec.ts', 'streaming.spec.ts', 'sunstone.spec.ts') }
 )
 foreach ($group in $groups) {
+  if ($Batch -ne 'all' -and $group.name -notin $Batch.Split(',')) { continue }
   $streamServer = Start-Process -FilePath 'node' -ArgumentList 'dist/server/index.js' -WorkingDirectory $projectPath -WindowStyle Hidden -PassThru -RedirectStandardOutput ".data/stream-verification/$($group.name)-server.log" -RedirectStandardError ".data/stream-verification/$($group.name)-errors.log"
   try {
     $ready = $false

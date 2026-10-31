@@ -1,5 +1,7 @@
 # Live arena and native Twitch extension
 
+Latest streaming layout: the connected host's Twitch broadcast sits above the castle lane in expanded theater and `/play/:room`. See [broadcast setup and lane rules](castle-streaming.md). Start streaming in OBS, then select **Watch broadcast**; OAuth alone does not transmit video. OBS uses its separate overlay and never embeds the watched broadcast back into itself.
+
 The video reference combines a broadcast battle with controls on top of Twitch's player. PATCH WARS now provides two related surfaces while keeping the deterministic game, shared team energy, command grammar, cooldowns, Forge validation, voting and host permissions intact.
 
 ## Open the complete web view

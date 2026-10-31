@@ -23,7 +23,8 @@ Development operator controls also work on localhost when `WEB_ORIGIN` points to
 
 - Authoritative 20 Hz seeded combat, five starter classes, energy costs, base attacks, shields, slows, healing, splash and non-recursive splitting.
 - React/PixiJS interface, voting, actual Forge lifecycle, behavior preview, results, mobile layout and reduced-motion support.
-- Sunstone Battleground artwork, team-specific human soldier sprites, distance-driven walking, attack poses, depth sorting and event-driven combat effects. Portrait framing keeps phone battles readable; game balance remains server-authoritative. See [Sunstone implementation](docs/sunstone-battleground.md).
+- Castle-to-castle lane combat with Sunstone artwork, team-specific human soldier sprites, distance-driven walking, attack poses and event-driven combat effects. Both castles remain visible in the shared horizontal camera. See [streaming and lane setup](docs/castle-streaming.md).
+- Reference-based streaming view: connected host's official Twitch video player above the battle strip, independently toggled soldier controls and one official chat. Start the broadcast in OBS, then choose **Watch broadcast**. Small player regions offer **Open stream** instead. Live video playback still requires host acceptance testing; demo video/chat are explicitly fixtures.
 - Field Studio interface: ivory workspace, forest navigation, a dark battle stage and responsive operator forms.
 - Theater view fills the browser window; Fullscreen uses the native browser API with a theater fallback. The whole battlefield stays visible without changing the match or restarting its canvas.
 - Read-only spectators and transparent OBS overlay; sequenced snapshots and reconnect recovery.

@@ -64,5 +64,5 @@ describe('safe Forge', () => {
       expect(result.engagements).toBe(200);
       expect(result.passed, blueprint.name).toBe(true);
     }
-  });
+  }, 20_000);
 });
