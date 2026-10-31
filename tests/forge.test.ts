@@ -49,4 +49,20 @@ describe('safe Forge', () => {
     expect(r.winRate).toBeLessThanOrEqual(1);
     expect(r.passed).toBe(true);
   });
+  it('keeps every demo archetype inside the unchanged lane balance acceptance band', async () => {
+    const provider = new FixtureForgeProvider();
+    for (const idea of [
+      'a splitting slime',
+      'a healing medic',
+      'a shield guard',
+      'a frost ranger',
+    ]) {
+      const blueprint = validateBlueprint(
+        await provider.generateUnit(idea, new AbortController().signal),
+      );
+      const result = await balance(blueprint, 200);
+      expect(result.engagements).toBe(200);
+      expect(result.passed, blueprint.name).toBe(true);
+    }
+  });
 });

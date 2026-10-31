@@ -204,7 +204,9 @@ export function Arena({
           : undefined;
       if (backdrop) app.stage.addChild(backdrop);
       let reproject = true;
-      const project = projectToLane;
+      let ground = 192;
+      let unitScale = 1;
+      const project = (x: number, y: number) => projectToLane(x, y, ground);
       host.current?.appendChild(app.canvas);
       useBattle.getState().setRenderer('ready');
       app.canvas.setAttribute('aria-label', 'Animated battlefield with Ember and Azure units');
@@ -224,14 +226,17 @@ export function Arena({
       app.stage.addChild(watermark);
       const resizeCamera = () => {
         if (stopped || !host.current) return;
+        const box = host.current.getBoundingClientRect();
         const width = 1200,
-          height = 260;
+          height = Math.max(100, Math.round((width * box.height) / Math.max(1, box.width)));
+        ground = height - 24;
+        unitScale = box.width <= 700 ? 1.7 : 1;
         app.renderer.resize(width, height);
         host.current.dataset.camera = 'lane';
         if (backdrop) {
-          const scale = Math.max(width / backdrop.texture.width, height / backdrop.texture.height);
+          const scale = width / backdrop.texture.width;
           backdrop.scale.set(scale);
-          backdrop.position.set((width - backdrop.width) / 2, (height - backdrop.height) / 2);
+          backdrop.position.set(0, ground - backdrop.height * 0.62);
         }
         field.clear();
         if (!transparent && !backdrop) field.rect(0, 0, width, height).fill(0xceb98f);
@@ -411,7 +416,7 @@ export function Arena({
           n.root.x += dx;
           n.root.y += dy;
           n.root.zIndex = n.root.y;
-          n.root.scale.set(perspectiveScale(u.y));
+          n.root.scale.set(perspectiveScale(u.y) * unitScale);
           const pose = soldierPose({
             distance: n.distance,
             moving: n.moving && now - snapshotAt < 150,

@@ -14,8 +14,8 @@ export function projectToArena(x: number, y: number, portrait = false) {
 }
 
 // Shared lane coordinates for units and acknowledged combat effects.
-export function projectToLane(x: number, y: number) {
-  return { x: 70 + (x / 1200) * 1060, y: 192 + (y - 270) * 0.1 };
+export function projectToLane(x: number, y: number, ground = 192) {
+  return { x: 70 + (x / 1200) * 1060, y: ground + (y - 270) * 0.1 };
 }
 
 export function soldierRow(shape: string) {

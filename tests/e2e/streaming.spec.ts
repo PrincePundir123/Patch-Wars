@@ -18,6 +18,9 @@ test('streaming composition preserves deployment and reserves the castle lane on
   const lane = await page.locator('.arena-wrap').boundingBox();
   const video = await page.locator('.broadcast-player').boundingBox();
   expect(lane!.y).toBeGreaterThanOrEqual(video!.y + video!.height);
+  const canvas = await page.locator('.arena-canvas canvas').boundingBox();
+  expect(canvas!.height).toBeLessThanOrEqual(lane!.height);
+  expect(canvas!.y + canvas!.height).toBeLessThanOrEqual(lane!.y + lane!.height);
   await page.screenshot({ path: 'docs/screenshots/streaming-desktop.png' });
   for (const viewport of [
     { width: 390, height: 844 },

@@ -19,11 +19,11 @@ Reference: [official Twitch video embeds](https://dev.twitch.tv/docs/embed/video
 ## Authoritative lane rules
 
 - All units and split children occupy logical Y=270. Gates deploy at X=90 and X=1110; castle targets remain X=60 and X=1140.
-- Simultaneous reinforcements queue behind the gate in bounded 20-unit offsets (maximum 80). Spawn order and target tie-breaks use deterministic entity IDs.
+- Simultaneous reinforcements queue behind the gate in bounded 20-unit offsets (maximum 80). Spawn order and target tie-breaks use deterministic entity IDs. Castle artwork is fitted without horizontal cropping, and sprite/effect coordinates use the same lane projection in every view.
 - Units march toward the closest living opponent, stop at their existing attack range, then continue toward the enemy castle when no opponent remains. Steps clamp at attack range.
 - Friendly units are nonblocking. This deliberately allows faster melee units to pass stationary friendly archers, avoiding permanent gate congestion. Large armies can overlap; there are no invisible alternate combat lanes or client-only collision decisions.
 - Existing 20 Hz rate, starter health/damage/range/speed/costs, attack cooldowns, slow, shield, heal, splash, split caps, endgame movement modifier and authorization remain in place.
-- Lane concentration increased the Prism Slime fixture's mirrored win rate to 80%. Its health was reduced from 95 to 75, producing 60% wins over 200 equal-cost mirrored engagements. The 25–75% acceptance threshold is unchanged.
+- Lane concentration increased the Prism Slime fixture's mirrored win rate to 80%. Its health was reduced from 95 to 75. The final queued-spawn evaluation gives 56.5% wins over 200 equal-cost mirrored engagements. Frost Ranger fixture cost increased from 5 to 6 (60% wins); Aegis Guard fixture damage increased from 10 to 13 (40% wins). Bloom Medic remains unchanged (60%). Starter units and the 25–75% acceptance threshold are unchanged. These are fixture balance adjustments, not silent edits to live generated blueprints.
 - Sprite gait, facing and event-driven combat effects use the existing Sunstone atlas. The new background is generated artwork; provenance is in `docs/design/castle-lane/README.md`.
 
 ## Verification boundaries

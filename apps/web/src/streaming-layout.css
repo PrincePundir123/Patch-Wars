@@ -52,10 +52,13 @@
   background: #2b302a;
 }
 .stream-stage .live-battle .arena-canvas {
-  display: grid;
-  place-items: center;
+  display: block;
 }
 .stream-stage .live-battle .arena-canvas canvas {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  max-height: 100%;
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -130,6 +133,9 @@
 }
 .broadcast-placeholder svg {
   color: #cbbd91;
+}
+.stream-stage:not(.soldiers-hidden) .broadcast-placeholder {
+  margin: 22px auto auto;
 }
 .broadcast-placeholder h2 {
   font:
@@ -341,6 +347,9 @@
   }
   .stream-stage .broadcast-placeholder p {
     font-size: 11px;
+  }
+  .stream-stage:not(.soldiers-hidden) .broadcast-placeholder p {
+    display: none;
   }
   .stream-stage .broadcast-caption span {
     display: none;

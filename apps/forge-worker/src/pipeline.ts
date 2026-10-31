@@ -65,7 +65,7 @@ export class FixtureForgeProvider implements ForgeProvider {
         ...STARTERS[0]!,
         id: 'aegis-guard',
         name: 'Aegis Guard',
-        stats: { ...STARTERS[0]!.stats, spawnCost: 6 },
+        stats: { ...STARTERS[0]!.stats, spawnCost: 6, attackDamage: 13 },
         abilities: [{ op: 'shield', event: 'spawn', amount: 30 }],
         sourcePrompt: idea,
       };
@@ -73,7 +73,7 @@ export class FixtureForgeProvider implements ForgeProvider {
       ...STARTERS[1]!,
       id: 'frost-ranger',
       name: 'Frost Ranger',
-      stats: { ...STARTERS[1]!.stats, spawnCost: 5 },
+      stats: { ...STARTERS[1]!.stats, spawnCost: 6 },
       abilities: [{ op: 'slow', event: 'hit', duration: 30 }],
       sourcePrompt: idea,
     };
