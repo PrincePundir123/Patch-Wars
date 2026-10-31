@@ -6,6 +6,7 @@ import './styles.css';
 import './redesign.css';
 import './studio.css';
 import './live.css';
+import './streaming-layout.css';
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>

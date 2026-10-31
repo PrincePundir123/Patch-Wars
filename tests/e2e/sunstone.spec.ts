@@ -20,7 +20,7 @@ test('Sunstone uses real artwork and pose animation while pause preserves author
     await expect(canvas).toHaveAttribute('data-art-direction', 'sunstone');
     await expect(canvas).toHaveAttribute('data-artwork-status', 'ready');
     await expect(canvas).toHaveAttribute('data-animation-frames', '12');
-    await expect(canvas).toHaveAttribute('data-camera', 'landscape');
+    await expect(canvas).toHaveAttribute('data-camera', 'lane');
     await page.locator('canvas').evaluate((node) => (node.dataset.sunstoneRetained = 'yes'));
     await page.getByRole('button', { name: 'Choose a soldier', exact: true }).click();
     await page.getByRole('button', { name: 'Deploy Archer', exact: true }).click();
@@ -35,16 +35,16 @@ test('Sunstone uses real artwork and pose animation while pause preserves author
       })
       .toBeGreaterThan(300);
     await page.mouse.move(2, 2);
-    await page.screenshot({ path: 'docs/screenshots/sunstone-desktop.png' });
+    await page.screenshot({ path: 'docs/screenshots/castle-lane-desktop.png' });
     await page.setViewportSize({ width: 390, height: 844 });
-    await expect(canvas).toHaveAttribute('data-camera', 'portrait');
+    await expect(canvas).toHaveAttribute('data-camera', 'lane');
     await expect(page.locator('canvas')).toHaveAttribute('data-sunstone-retained', 'yes');
     await expect(page.getByRole('button', { name: 'Chat', exact: true })).toBeInViewport();
     await expect(page.getByRole('button', { name: 'Deploy Archer', exact: true })).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
-    await page.screenshot({ path: 'docs/screenshots/sunstone-mobile.png' });
+    await page.screenshot({ path: 'docs/screenshots/castle-lane-mobile.png' });
     const response = await page.request.post(`/api/rooms/${room}/control`, {
       headers: { Origin: new URL(page.url()).origin },
       data: { action: 'pause' },
@@ -74,6 +74,7 @@ test('Sunstone uses real artwork and pose animation while pause preserves author
   } finally {
     const video = page.video();
     await context.close();
-    await video?.saveAs('docs/screenshots/sunstone-motion.webm');
+    await video?.saveAs('docs/screenshots/castle-motion.webm');
   }
 });
+

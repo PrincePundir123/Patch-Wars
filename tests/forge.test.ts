@@ -47,5 +47,6 @@ describe('safe Forge', () => {
     expect(r.peakEntities).toBeLessThanOrEqual(160);
     expect(r.winRate).toBeGreaterThanOrEqual(0);
     expect(r.winRate).toBeLessThanOrEqual(1);
+    expect(r.passed).toBe(true);
   });
 });

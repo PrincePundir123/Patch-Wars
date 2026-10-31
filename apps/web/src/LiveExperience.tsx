@@ -10,6 +10,7 @@ import {
 import { Link } from 'react-router-dom';
 import type { Snapshot, Team } from '../../../packages/shared/src/index.js';
 import { UnitPortrait } from './UnitPortrait.js';
+import { BroadcastPlayer } from './BroadcastPlayer.js';
 import { api, ApiError } from './store.js';
 import { ChatCircleDots } from '@phosphor-icons/react/dist/csr/ChatCircleDots';
 import { Sword } from '@phosphor-icons/react/dist/csr/Sword';
@@ -237,6 +238,7 @@ export function LiveExperience({
       </header>
       <div className="live-columns">
         <section className="live-battle-column" aria-label="Live battle and deployment">
+          {!inline && <BroadcastPlayer channel={channel?.name} demo={s.mode === 'demo'} />}
           <div className="live-battle">{children}</div>
           <section
             id="stream-soldiers"
@@ -331,10 +333,11 @@ export function LiveExperience({
                 >
                   <UnitPortrait shape={b.appearance.shape} />
                   <span className="deployment-cost">⚡ {b.stats.spawnCost}</span>
-                  <span>
+                  <span className="deployment-unit-name">
                     <small>{b.archetype}</small>
                     <strong>{b.name}</strong>
                   </span>
+                  <span className="deployment-action">Deploy</span>
                 </button>
               ))}
             </div>

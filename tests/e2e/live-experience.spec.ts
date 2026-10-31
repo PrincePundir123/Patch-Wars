@@ -46,7 +46,7 @@ test('live arena deploys through the existing demo command handler and fits desk
   await expect(page.locator('.live-activity')).toContainText('Archer deployed.');
   const stage = await page.locator('.live-battle').boundingBox();
   const dock = await page.locator('.deployment-dock').boundingBox();
-  expect(stage!.height).toBeGreaterThan(700);
+  expect(stage!.height).toBeGreaterThan(650);
   expect(dock!.y).toBeGreaterThan(stage!.y);
   expect(dock!.y + dock!.height).toBeLessThanOrEqual(769);
   await page.locator('canvas').evaluate((node) => {

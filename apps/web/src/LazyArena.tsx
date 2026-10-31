@@ -57,7 +57,7 @@ export function Arena(props: ComponentProps<typeof RendererType>) {
   }, [requested]);
   const placeholder = (
     <div className="renderer-placeholder" data-transparent={props.transparent || undefined}>
-      {!props.transparent && <img src="/art/sunstone-arena.webp" alt="" loading="lazy" />}
+      {!props.transparent && <img src="/art/castle-lane.webp" alt="" loading="lazy" />}
       <span role="status">
         {requested ? 'Loading battlefield…' : 'Battle preview starts when you scroll here.'}
       </span>

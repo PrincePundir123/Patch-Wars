@@ -366,7 +366,7 @@
   border-radius: 2px;
   background-size: 300% 200%;
 }
-.deployment-card > span:last-child {
+.deployment-card > .deployment-unit-name {
   display: flex;
   flex-direction: column;
   align-items: center;

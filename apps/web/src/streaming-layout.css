@@ -1,0 +1,410 @@
+/* Reference streaming composition; isolated from operator and OBS surfaces. */
+.stream-stage {
+  --chat-space: 420px;
+  --chat-width: 400px;
+  --lane-height: clamp(160px, 22vh, 230px);
+  background: #090a0c;
+  color: #f2eee3;
+}
+.stream-stage.chat-expanded {
+  --chat-space: 580px;
+  --chat-width: 560px;
+}
+.stream-stage.chat-hidden {
+  --chat-space: 0px;
+}
+.stream-stage .live-header {
+  background: #0c0d0f;
+  border-color: #303237;
+  height: 50px;
+}
+.stream-stage .live-brand {
+  color: #eadbad;
+  font-weight: 500;
+}
+.stream-stage .live-header button {
+  background: #151619;
+  border-color: #424348;
+}
+.stream-stage .live-battle {
+  background: #090a0c;
+}
+.stream-stage .live-battle::before {
+  display: none;
+}
+.stream-stage .live-battle .scoreboard {
+  inset: 0 calc(var(--chat-space) + 8px) auto 8px;
+  width: auto;
+  min-height: 88px;
+  padding: 8px 16px;
+  background: #101114;
+  border: 0;
+  border-bottom: 1px solid #353536;
+  border-radius: 0;
+}
+.stream-stage .live-battle .arena-wrap {
+  inset: auto calc(var(--chat-space) + 8px) 8px 8px;
+  height: var(--lane-height);
+  width: calc(100% - var(--chat-space) - 16px);
+  aspect-ratio: auto;
+  border: 1px solid #555044;
+  border-radius: 5px;
+  background: #2b302a;
+}
+.stream-stage .live-battle .arena-canvas {
+  display: grid;
+  place-items: center;
+}
+.stream-stage .live-battle .arena-canvas canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.stream-stage .live-battle .arena-location {
+  top: 5px;
+  left: 6px;
+  font-size: 7px;
+  padding: 4px 6px;
+}
+.stream-stage .live-battle .arena-bottom {
+  display: none;
+}
+.stream-stage .live-battle .broadcast-controls {
+  top: 94px;
+  left: 18px;
+  font-size: 9px;
+}
+.stream-stage .live-battle .command-feedback {
+  top: 34px;
+  max-width: 330px;
+}
+.stream-stage .live-battle .arena-message,
+.stream-stage .live-battle .results {
+  width: min(420px, 80%);
+  padding: 10px 16px;
+  border-radius: 5px;
+}
+.stream-stage .live-battle .arena-message h2,
+.stream-stage .live-battle .results h2 {
+  font-size: 21px;
+  margin: 4px 0;
+}
+.stream-stage .live-battle .arena-message p,
+.stream-stage .live-battle .results p {
+  font-size: 11px;
+  margin: 5px 0;
+}
+.stream-stage .live-battle .results svg {
+  width: 20px;
+  height: 20px;
+}
+.broadcast-player {
+  position: absolute;
+  top: 132px;
+  bottom: calc(var(--lane-height) + 18px);
+  left: 8px;
+  right: calc(var(--chat-space) + 8px);
+  background: #141519;
+  border: 1px solid #303238;
+  border-radius: 6px;
+  overflow: hidden;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+}
+.broadcast-player iframe {
+  width: 100%;
+  flex: 1;
+  min-height: 300px;
+  border: 0;
+}
+.broadcast-placeholder {
+  margin: auto;
+  max-width: 570px;
+  padding: 20px 30px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.broadcast-placeholder svg {
+  color: #cbbd91;
+}
+.broadcast-placeholder h2 {
+  font:
+    30px Georgia,
+    serif;
+  color: #f0e8d5;
+  margin: 0;
+}
+.broadcast-placeholder p {
+  font:
+    13px/1.6 Arial,
+    sans-serif;
+  color: #b5b4bb;
+  margin: 0;
+}
+.broadcast-placeholder .eyebrow {
+  font-size: 9px;
+  color: #d8c697;
+  letter-spacing: 1.5px;
+}
+.broadcast-placeholder button {
+  margin-top: 8px;
+  background: #e4d3a5;
+  border: 0;
+  border-radius: 4px;
+  color: #17150f;
+  padding: 11px 18px;
+  font-weight: 600;
+}
+.broadcast-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 12px;
+  font-size: 10px;
+  color: #b8b5ad;
+  border-top: 1px solid #36363a;
+}
+.broadcast-caption a {
+  color: #eed39a;
+  white-space: nowrap;
+}
+.broadcast-loading {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  background: #141519;
+  padding: 8px;
+  font-size: 12px;
+}
+.stream-stage .deployment-dock {
+  left: auto;
+  right: calc(var(--chat-space) + 20px);
+  bottom: calc(var(--lane-height) + 76px);
+  max-width: calc(100% - var(--chat-space) - 36px);
+  max-height: calc(100% - var(--lane-height) - 145px);
+  overflow: auto;
+  background: #111315;
+  border-color: #67604d;
+  border-radius: 6px;
+}
+.stream-stage .deployment-card {
+  background: #181b1e;
+  border-color: #51514c;
+  border-radius: 4px;
+}
+.deployment-action {
+  display: block;
+  margin-top: 4px;
+  padding: 4px 9px;
+  background: #245c38;
+  border: 1px solid #3a8051;
+  border-radius: 3px;
+  color: #f5f5ed;
+  font:
+    600 10px Arial,
+    sans-serif;
+}
+.deployment-card:disabled .deployment-action {
+  background: #292d2b;
+  border-color: #454b46;
+}
+.stream-stage .deployment-heading h2 {
+  font:
+    600 14px Arial,
+    sans-serif;
+}
+.stream-stage .live-community {
+  top: 8px;
+  right: 8px;
+  bottom: 8px;
+  background: #111114;
+  border-color: #39393e;
+}
+.stream-stage .community-dock-header {
+  background: #141417;
+  border-color: #333338;
+}
+.stream-stage .community-dock-title strong {
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.stream-stage .community-expand,
+.stream-stage .community-close {
+  background: #202025;
+  border-color: #4b4b50;
+}
+.stream-stage .live-community-tabs {
+  border-color: #39393e;
+}
+.stream-stage .live-chat-heading {
+  background: #17171b;
+}
+.stream-stage .stream-tools {
+  right: calc(var(--chat-space) + 18px);
+  top: 86px;
+  flex-direction: row;
+  gap: 8px;
+}
+.stream-stage .stream-tool {
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  background: #202125;
+  border-color: #605e52;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+.stream-stage .stream-tool svg {
+  width: 19px;
+  height: 19px;
+}
+.stream-stage .stream-tool[aria-expanded='true'] {
+  background: #d9c38d;
+  color: #171510;
+}
+.stream-stage .stream-tool-tip {
+  display: none;
+}
+/* A supported Twitch embed needs 400x300. Reserve room or use the external link. */
+@media (min-width: 701px) {
+  .stream-stage .live-battle-column {
+    min-height: 660px;
+  }
+  .stream-stage .live-columns {
+    overflow-y: auto;
+  }
+  .stream-stage .live-community {
+    position: fixed;
+    top: 58px;
+  }
+}
+@media (max-width: 1100px) and (min-width: 701px) {
+  .stream-stage:not(.chat-hidden) .broadcast-player {
+    overflow: auto;
+  }
+  .stream-stage:not(.chat-hidden) .broadcast-player iframe {
+    min-width: 400px;
+  }
+  .stream-stage .deployment-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+}
+@media (max-width: 700px) {
+  .stream-stage {
+    --lane-height: 180px;
+    --chat-space: 0px;
+  }
+  .stream-stage .live-header {
+    padding: 0 9px;
+    gap: 8px;
+  }
+  .stream-stage .live-brand {
+    font-size: 17px;
+  }
+  .stream-stage .live-header-actions {
+    gap: 8px;
+    font-size: 9px;
+  }
+  .stream-stage .live-battle-column {
+    min-height: 650px;
+  }
+  .stream-stage .live-columns {
+    overflow-y: auto;
+  }
+  .stream-stage .live-battle .scoreboard {
+    right: 8px;
+    min-height: 80px;
+    padding: 8px;
+  }
+  .stream-stage .live-battle .team-detail h2 {
+    font-size: 22px;
+  }
+  .stream-stage .live-battle .broadcast-controls {
+    top: 87px;
+  }
+  .stream-stage .broadcast-player {
+    top: 130px;
+    right: 8px;
+    bottom: calc(var(--lane-height) + 16px);
+  }
+  .stream-stage .broadcast-placeholder {
+    padding: 16px;
+  }
+  .stream-stage .broadcast-placeholder h2 {
+    font-size: 24px;
+  }
+  .stream-stage .broadcast-placeholder p {
+    font-size: 11px;
+  }
+  .stream-stage .broadcast-caption span {
+    display: none;
+  }
+  .stream-stage .live-battle .arena-wrap {
+    right: 8px;
+    width: calc(100% - 16px);
+  }
+  .stream-stage .stream-tools {
+    top: 83px;
+    right: 8px;
+  }
+  .stream-stage .deployment-dock {
+    left: 8px;
+    right: 8px;
+    bottom: calc(var(--lane-height) + 25px);
+    width: auto;
+    max-width: none;
+    max-height: 260px;
+  }
+  .stream-stage .deployment-heading {
+    flex-wrap: wrap;
+  }
+  .stream-stage .deployment-account {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .stream-stage .deployment-units {
+    overflow-x: auto;
+  }
+  .stream-stage .live-community {
+    position: fixed;
+    top: auto;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    width: auto;
+    height: min(42dvh, 370px);
+    z-index: 12;
+  }
+  .stream-stage:not(.chat-hidden) .deployment-dock {
+    bottom: 45dvh;
+    max-height: 190px;
+  }
+  .stream-stage.chat-expanded .live-community {
+    top: 58px;
+    bottom: 64px;
+    height: auto;
+  }
+  .stream-stage.chat-expanded .stream-tools {
+    position: fixed;
+    top: auto;
+    bottom: 8px;
+    right: 8px;
+    z-index: 13;
+  }
+  .stream-stage.chat-expanded .deployment-dock {
+    display: none;
+  }
+}
+/* Non-stream views and OBS share the same horizontal, uncropped lane. */
+.arena-wrap:not(.stream-stage .arena-wrap):has(.arena-canvas[data-camera='lane']) {
+  aspect-ratio: 1200 / 260;
+}
+.arena-canvas[data-camera='lane'] {
+  aspect-ratio: 1200 / 260;
+}
