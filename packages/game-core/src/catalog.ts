@@ -41,7 +41,9 @@ export const STARTERS: Blueprint[] = [
   ]),
 ];
 export const SLIME: Blueprint = {
-  ...unit('prism-slime', 'Prism Slime', 'summoner', 'slime', 95, 8, 26, 1.3, 5, [
+  // Lane concentration strengthens splitting; keep the fixture within the same
+  // mirrored 25–75% acceptance band without weakening the Forge safety gate.
+  ...unit('prism-slime', 'Prism Slime', 'summoner', 'slime', 75, 8, 26, 1.3, 5, [
     { op: 'split', event: 'death', count: 3, scale: 0.3 },
   ]),
   description: 'One falls. Three rise. Splits into three smaller slimes on defeat.',

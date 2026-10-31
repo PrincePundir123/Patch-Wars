@@ -7,6 +7,8 @@
 } from '../../shared/src/index.js';
 export const TICK_RATE = 20,
   MAX_ENTITIES = 160;
+export const LANE_Y = 270;
+export const CASTLE_X = { ember: 60, azure: 1140 } as const;
 import { STARTERS } from './catalog.js';
 export { STARTERS, SLIME } from './catalog.js';
 export function createGame(seed = 2026, duration = 180): GameState {
@@ -60,12 +62,16 @@ export function spawn(
     return false;
   if (!free) s.energy[team] -= b.stats.spawnCost;
   const scale = at?.scale ?? 1;
+  const gate = team === 'ember' ? 90 : 1110;
+  const waiting = s.units.filter(
+    (u) => u.team === team && u.hp > 0 && Math.abs(u.x - gate) <= 80,
+  ).length;
   const u: Entity = {
     id: s.nextId++,
     blueprintId: id,
     team,
-    x: at?.x ?? (team === 'ember' ? 90 : 1110),
-    y: at?.y ?? 135 + Math.floor(random(s) * 7) * 42,
+    x: at?.x ?? gate + (team === 'ember' ? -1 : 1) * Math.min(waiting * 20, 80),
+    y: LANE_Y,
     hp: Math.max(1, Math.round(b.stats.maxHealth * scale)),
     maxHp: Math.max(1, Math.round(b.stats.maxHealth * scale)),
     shield: 0,
@@ -135,16 +141,18 @@ export function step(s: GameState, autoSpawn = true) {
     const target = s.units
       .filter((v) => v.team !== u.team && v.hp > 0)
       .sort((a, b) => distance(u, a) - distance(u, b) || a.id - b.id)[0];
-    const destX = target?.x ?? (u.team === 'ember' ? 1140 : 60),
-      destY = target?.y ?? 270;
+    const destX = target?.x ?? CASTLE_X[other(u.team)],
+      destY = LANE_Y;
     const d = Math.hypot(destX - u.x, destY - u.y);
     if (d > stats.attackRange) {
       const speed =
         stats.moveSpeed *
         (u.slowUntil > s.tick ? 0.5 : 1) *
         (s.tick > s.durationTicks * 0.8 ? 1.35 : 1);
-      u.x += ((destX - u.x) / d) * speed;
-      u.y += ((destY - u.y) / d) * speed;
+      // One logical lane. Allies are nonblocking: ranged units cannot lock melee
+      // reinforcements inside their own gate. Clamp steps to avoid crossing a target.
+      u.x += Math.sign(destX - u.x) * Math.min(speed, Math.max(0, d - stats.attackRange));
+      u.y = LANE_Y;
       continue;
     }
     if (u.cooldown > 0) continue;
