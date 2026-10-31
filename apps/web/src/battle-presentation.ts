@@ -1,7 +1,7 @@
 // Presentation only. Combat positions, damage and timing remain server-authoritative.
 export const SOLDIER_ROWS = ['shield', 'arrow', 'diamond', 'cross', 'orb', 'slime'] as const;
 export const SOLDIER_COLUMNS = 12;
-export const SUNSTONE_ARENA = '/art/sunstone-arena.webp';
+export const SUNSTONE_ARENA = '/art/castle-lane.webp';
 export const SUNSTONE_SOLDIERS = '/art/sunstone-units.webp';
 
 export function projectToArena(x: number, y: number, portrait = false) {
@@ -11,6 +11,11 @@ export function projectToArena(x: number, y: number, portrait = false) {
     x: (72 + x * 0.88) * scale + (1200 - 1200 * scale) / 2,
     y: (168 + (y - 80) * 0.65) * scale,
   };
+}
+
+// Shared lane coordinates for units and acknowledged combat effects.
+export function projectToLane(x: number, y: number) {
+  return { x: 70 + (x / 1200) * 1060, y: 192 + (y - 270) * 0.1 };
 }
 
 export function soldierRow(shape: string) {

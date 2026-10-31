@@ -8,7 +8,7 @@ import { useBattle } from './store.js';
 import soldierAtlas from './art/sunstone-units.json';
 import {
   perspectiveScale,
-  projectToArena,
+  projectToLane,
   soldierPose,
   SOLDIER_COLUMNS,
   SOLDIER_ROWS,
@@ -203,9 +203,8 @@ export function Arena({
           ? new Sprite(arenaAsset.value)
           : undefined;
       if (backdrop) app.stage.addChild(backdrop);
-      let portraitCamera = false,
-        reproject = true;
-      const project = (x: number, y: number) => projectToArena(x, y, portraitCamera);
+      let reproject = true;
+      const project = projectToLane;
       host.current?.appendChild(app.canvas);
       useBattle.getState().setRenderer('ready');
       app.canvas.setAttribute('aria-label', 'Animated battlefield with Ember and Azure units');
@@ -219,18 +218,16 @@ export function Arena({
       const field = new Graphics();
       app.stage.addChild(field);
       const watermark = new Text({
-        text: 'SUNSTONE // BATTLEGROUND',
+        text: 'SUNSTONE // CASTLE LANE',
         style: { fontFamily: 'monospace', fontSize: 9, fill: 0x76684c, letterSpacing: 3 },
       });
       app.stage.addChild(watermark);
       const resizeCamera = () => {
         if (stopped || !host.current) return;
-        const box = host.current.getBoundingClientRect();
-        portraitCamera = box.width <= 700 && box.height > box.width;
-        const width = portraitCamera ? 720 : 1200,
-          height = portraitCamera ? 1100 : 675;
+        const width = 1200,
+          height = 260;
         app.renderer.resize(width, height);
-        host.current.dataset.camera = portraitCamera ? 'portrait' : 'landscape';
+        host.current.dataset.camera = 'lane';
         if (backdrop) {
           const scale = Math.max(width / backdrop.texture.width, height / backdrop.texture.height);
           backdrop.scale.set(scale);
