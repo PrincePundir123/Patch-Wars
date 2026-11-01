@@ -21,10 +21,12 @@ Development operator controls also work on localhost when `WEB_ORIGIN` points to
 
 ## Features
 
+- Optional verified Bits soldier activations through the Twitch Extension, with fixed 10–50 Bits products, persistent SQLite fulfillment records, recovery and broadcaster controls. Free demos remain available. Charging is disabled by default and real Twitch acceptance is still required; see [paid deployment setup](docs/paid-deployments.md).
+
 - Authoritative 20 Hz seeded combat, five starter classes, energy costs, base attacks, shields, slows, healing, splash and non-recursive splitting.
 - React/PixiJS interface, voting, actual Forge lifecycle, behavior preview, results, mobile layout and reduced-motion support.
-- Castle-to-castle lane combat with Sunstone artwork, team-specific human soldier sprites, distance-driven walking, attack poses and event-driven combat effects. Both castles remain visible in the shared horizontal camera. See [streaming and lane setup](docs/castle-streaming.md).
-- Reference-based streaming view: connected host's official Twitch video player above the battle strip, independently toggled soldier controls and one official chat. Start the broadcast in OBS, then choose **Watch broadcast**. Small player regions offer **Open stream** instead. Live video playback still requires host acceptance testing; demo video/chat are explicitly fixtures.
+- Castle-to-castle lane combat with Sunstone artwork, team-specific human soldier sprites, distance-driven walking, attack poses and event-driven combat effects. Both castles remain visible in the shared horizontal camera, with full tower tops over the video in stream view. See [streaming and lane setup](docs/castle-streaming.md).
+- Streaming view: the connected host's official Twitch video fills the scene behind a transparent castle-and-platform foreground, with clean tower cutouts, sharper rendering at desktop widths, stream status above the existing controls, independently toggled soldier controls and one official chat. Video edges can be cropped to fill the space. Start the broadcast in OBS, then choose **Watch broadcast**. Small player regions offer **Open stream** instead. Live video playback still requires host acceptance testing; demo video/chat are explicitly fixtures.
 - Field Studio interface: ivory workspace, forest navigation, a dark battle stage and responsive operator forms.
 - Theater view fills the browser window; Fullscreen uses the native browser API with a theater fallback. The whole battlefield stays visible without changing the match or restarting its canvas.
 - Read-only spectators and transparent OBS overlay; sequenced snapshots and reconnect recovery.

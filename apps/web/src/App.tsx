@@ -25,6 +25,7 @@ import { BroadcastControls } from './BroadcastControls.js';
 import { WorkspaceShell } from './WorkspaceShell.js';
 import { ArenaDisplay } from './ArenaDisplay.js';
 import { ReadinessPanel } from './ReadinessPanel.js';
+import { PaymentsPanel } from './PaymentsPanel.js';
 import { CommandGuide } from './CommandGuide.js';
 import { LiveExperience } from './LiveExperience.js';
 import { api, useBattle } from './store.js';
@@ -985,6 +986,9 @@ function Dashboard({ demo = false, stream = false }: { demo?: boolean; stream?: 
               <span className="tiny-tag">OPERATOR ONLY</span>
             </div>
             <section className="operator-grid" id="controls" aria-label="Stream controls">
+              {active.mode === 'live' && (
+                <PaymentsPanel key={active.roomId} roomId={active.roomId} />
+              )}
               <div className="panel operator-panel">
                 <div className="panel-heading">
                   <h2>{active.mode === 'demo' ? 'REPLAY CONTROLS' : 'TWITCH CONNECTIONS'}</h2>

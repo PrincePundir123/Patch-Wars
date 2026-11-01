@@ -12,6 +12,13 @@ import { Room } from './room.js';
 import { originPolicy } from './origins.js';
 import { createProviderProbe } from './readiness.js';
 import { verifyExtensionToken } from './extension-auth.js';
+import { PaidDeployments, type PaymentsConfig } from './payments/service.js';
+import {
+  IntentRequest,
+  ReceiptRequest,
+  ReconcileRequest,
+  PaymentAdminRequest,
+} from '../../../packages/shared/src/payments.js';
 import type { ReadinessReport } from '../../../packages/shared/src/index.js';
 import { compactSnapshot } from '../../../packages/shared/src/snapshot-wire.js';
 import { ControlSchema, CommandSchema, TeamSchema } from '../../../packages/shared/src/index.js';
@@ -57,6 +64,7 @@ export type ServerOptions = {
   twitch?: TwitchConfig;
   webRoot?: string;
   extension?: { clientId: string; secret: string };
+  payments?: PaymentsConfig;
 };
 export async function buildApp(options: ServerOptions = {}) {
   const production = options.production ?? process.env.NODE_ENV === 'production';
@@ -114,6 +122,15 @@ export async function buildApp(options: ServerOptions = {}) {
   const extensionOrigin = /^[a-z0-9]+$/i.test(extension.clientId)
     ? `https://${extension.clientId.toLowerCase()}.ext-twitch.tv`
     : '';
+  const payments = new PaidDeployments(
+    options.payments ?? {
+      enabled: process.env.PAID_DEPLOYMENTS_ENABLED === 'true',
+      path: process.env.PAYMENTS_DB_PATH ?? resolve('.data/payments.sqlite'),
+      clientSecret: process.env.TWITCH_EXTENSION_CLIENT_SECRET ?? '',
+    },
+    extension.clientId,
+    extension.secret,
+  );
   const rooms = new Map<string, Room>();
   const oauth = new Map<string, PendingAuth>();
   const invites = new Map<string, { roomId: string; team: 'azure'; expires: number }>();
@@ -221,6 +238,7 @@ export async function buildApp(options: ServerOptions = {}) {
     provider,
     twitchConfigured: !!twitch.clientId,
     storage: 'memory',
+    payments: payments.store ? 'sqlite' : 'disabled',
   }));
   app.get('/api/me', async (req) => {
     const session = getSession(req.cookies.pw_session);
@@ -317,9 +335,13 @@ export async function buildApp(options: ServerOptions = {}) {
       .strict()
       .parse(req.body);
     const { channel } = liveChannel(req.params.id, body.channelId);
-    let result:{messageId:string};
-    try{result = await viewer.identity.sendChat(channel.id, body.text);}
-    catch(error){if((error as {statusCode?:number}).statusCode===401)viewer.invalid=true;throw error;}
+    let result: { messageId: string };
+    try {
+      result = await viewer.identity.sendChat(channel.id, body.text);
+    } catch (error) {
+      if ((error as { statusCode?: number }).statusCode === 401) viewer.invalid = true;
+      throw error;
+    }
     // EventSub is the sole game-input path for this message. Never execute it here too.
     return { message: 'Message sent to Twitch.', messageId: result.messageId };
   });
@@ -361,10 +383,12 @@ export async function buildApp(options: ServerOptions = {}) {
       energy: snapshot.game.energy[channel.team],
       commandsEnabled: snapshot.commandsEnabled,
       linked: !!identity.user_id,
+      host: identity.user_id === channel.id,
       catalog: snapshot.game.catalog,
       proposals: snapshot.proposals,
       roundPhase: snapshot.roundPhase,
       feedback: snapshot.commandFeedback.slice(0, 3),
+      payments: payments.display(room, channel.id, identity.user_id),
     };
   });
   app.post('/api/extension/command', async (req) => {
@@ -398,6 +422,110 @@ export async function buildApp(options: ServerOptions = {}) {
   app.options('/api/extension/*', async (_req, reply) =>
     reply.code(403).send({ error: 'Extension origin is not allowed.' }),
   );
+  const paymentIdentity = (authorization?: string) => {
+    const identity = extensionIdentity(authorization);
+    if (!identity.user_id)
+      throw Object.assign(new Error('Share your Twitch identity to activate a soldier.'), {
+        statusCode: 403,
+      });
+    return { ...identity, user_id: identity.user_id };
+  };
+  app.post('/api/extension/payments/intents', async (req) => {
+    const identity = paymentIdentity(req.headers.authorization);
+    const body = IntentRequest.parse(req.body);
+    const { room } = liveChannel(body.roomId, identity.channel_id);
+    if (
+      [...rooms.values()].filter(
+        (value) =>
+          value.mode === 'live' &&
+          value.channels.some(
+            (channel) =>
+              channel.id === identity.channel_id && channel.status.startsWith('connected'),
+          ),
+      ).length !== 1
+    )
+      throw new Error('Connect this channel to exactly one live match before activating soldiers.');
+    return payments.reserve(room, identity.channel_id, identity.user_id, body.sku);
+  });
+  app.post('/api/extension/payments/receipt', async (req) => {
+    const identity = paymentIdentity(req.headers.authorization);
+    const body = ReceiptRequest.parse(req.body);
+    return payments.receipt(body.intentId, body.receipt, identity.channel_id, identity.user_id);
+  });
+  app.post('/api/extension/payments/reconcile', async (req) => {
+    const identity = paymentIdentity(req.headers.authorization);
+    const body = ReconcileRequest.parse(req.body);
+    return payments.reconcile(
+      body.intentId,
+      body.transactionId,
+      identity.channel_id,
+      identity.user_id,
+    );
+  });
+  app.get<{ Params: { id: string } }>('/api/rooms/:id/payments', async (req) => {
+    const room = own(req.params.id, req.cookies.pw_session);
+    return {
+      enabled: !!payments.store,
+      channels: room.channels.map((channel) => {
+        const connection = connections.get(`${room.id}:${channel.team}`);
+        const canManage =
+          !!connection &&
+          !connection.invalid &&
+          connection.authorizedSession === room.owner &&
+          connection.identity.userId === channel.id;
+        return {
+          id: channel.id,
+          name: channel.name,
+          accepting: payments.store?.accepting(channel.id) ?? false,
+          canManage,
+          records: canManage ? (payments.store?.records(channel.id) ?? []) : [],
+        };
+      }),
+    };
+  });
+  const managePayments = (body: z.infer<typeof PaymentAdminRequest>) => {
+    if (!payments.store) throw new Error('Bits deployment is not configured.');
+    if (body.action === 'accepting') payments.store.setAccepting(body.channelId, body.accepting);
+    else {
+      const record = payments.store.get(body.id);
+      if (!record || record.channelId !== body.channelId) throw new Error('Activation not found.');
+      payments.store.resolve(body.id, body.action, body.channelId, body.note);
+    }
+    return { ok: true };
+  };
+  app.post('/api/extension/payments/admin', async (req) => {
+    const identity = paymentIdentity(req.headers.authorization);
+    const body = PaymentAdminRequest.parse(req.body);
+    if (
+      identity.role !== 'broadcaster' ||
+      identity.user_id !== identity.channel_id ||
+      body.channelId !== identity.channel_id
+    )
+      throw Object.assign(new Error('Only this channel’s broadcaster can manage activations.'), {
+        statusCode: 403,
+      });
+    return managePayments(body);
+  });
+  app.post<{ Params: { id: string } }>('/api/rooms/:id/payments', async (req) => {
+    const room = own(req.params.id, req.cookies.pw_session);
+    const body = PaymentAdminRequest.parse(req.body);
+    const { channel } = liveChannel(room.id, body.channelId);
+    // Financial administration requires the channel's real OAuth connection, not
+    // ownership of a room that happens to include another broadcaster's team.
+    const connection = connections.get(`${room.id}:${channel.team}`);
+    if (
+      !connection ||
+      connection.invalid ||
+      connection.authorizedSession !== room.owner ||
+      connection.identity.userId !== channel.id
+    )
+      throw Object.assign(
+        new Error('Only this channel’s authorized broadcaster can manage its activations.'),
+        { statusCode: 403 },
+      );
+    await authenticatedPlayer(room.owner, room.id);
+    return managePayments(body);
+  });
   app.get<{ Params: { id: string } }>(
     '/api/rooms/:id/readiness',
     async (req): Promise<ReadinessReport> => {
@@ -487,6 +615,7 @@ export async function buildApp(options: ServerOptions = {}) {
       Number(process.env.FORGE_TIMEOUT_MS ?? 90000),
     );
     rooms.set(room.id, room);
+    room.paidDeployments = mode === 'live' && !!payments.store;
     return { id: room.id };
   });
   app.get<{ Params: { id: string } }>('/api/rooms/:id', async (req) =>
@@ -803,6 +932,7 @@ export async function buildApp(options: ServerOptions = {}) {
               }
             }
           }
+          if (frame % 10 === 0) payments.drain(rooms.values());
           frame++;
         }, 50);
   const cleanup = setInterval(() => {
@@ -825,6 +955,10 @@ export async function buildApp(options: ServerOptions = {}) {
       }
     for (const set of clients.values()) for (const socket of set) socket.ping();
   }, 30000);
+  const paymentSync =
+    options.clock === false || !payments.store
+      ? undefined
+      : setInterval(() => void payments.sync(), 15000);
   const webRoot = options.webRoot ?? resolve('dist/web');
   const extensionRoot = resolve('dist/extension');
   if (existsSync(resolve(extensionRoot, 'viewer.html'))) {
@@ -869,6 +1003,8 @@ export async function buildApp(options: ServerOptions = {}) {
   app.addHook('onClose', async () => {
     clearInterval(clock);
     clearInterval(cleanup);
+    clearInterval(paymentSync);
+    payments.close();
     for (const r of rooms.values()) r.dispose();
     for (const c of connections.values()) c.client.stop();
     for (const set of clients.values()) for (const s of set) s.close();

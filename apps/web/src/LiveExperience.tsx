@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { Link } from 'react-router-dom';
 import type { Snapshot, Team } from '../../../packages/shared/src/index.js';
+import { SOLDIER_PRODUCTS } from '../../../packages/shared/src/payments.js';
 import { UnitPortrait } from './UnitPortrait.js';
 import { BroadcastPlayer } from './BroadcastPlayer.js';
 import { api, ApiError } from './store.js';
@@ -207,6 +208,10 @@ export function LiveExperience({
     }
   }
   const canSend = s.mode === 'demo' || !!login;
+  const paidViewer =
+    s.mode === 'live' &&
+    !!s.paidDeployments &&
+    (!login || login.toLowerCase() !== channel?.name.toLowerCase());
   return (
     <div
       role={embedded ? undefined : 'main'}
@@ -322,6 +327,7 @@ export function LiveExperience({
                   aria-label={`Deploy ${b.name}`}
                   title={`${b.name} · ${b.archetype} · ${b.stats.spawnCost} team energy`}
                   disabled={
+                    paidViewer ||
                     !canSend ||
                     (s.mode === 'live' && !channel) ||
                     blocked ||
@@ -332,16 +338,36 @@ export function LiveExperience({
                   onClick={() => void send(`!spawn ${b.id}`)}
                 >
                   <UnitPortrait shape={b.appearance.shape} />
-                  <span className="deployment-cost">⚡ {b.stats.spawnCost}</span>
+                  <span className="deployment-cost">
+                    {paidViewer
+                      ? `${SOLDIER_PRODUCTS.find((product) => product.unitId === b.id)?.bits ?? '—'} Bits`
+                      : `⚡ ${b.stats.spawnCost}`}
+                  </span>
                   <span className="deployment-unit-name">
                     <small>{b.archetype}</small>
                     <strong>{b.name}</strong>
                   </span>
-                  <span className="deployment-action">Deploy</span>
+                  <span className="deployment-action">
+                    {paidViewer ? 'Activate on Twitch' : 'Deploy'}
+                  </span>
                 </button>
               ))}
             </div>
             <div className="deployment-status" role="status">
+              {paidViewer && channel && (
+                <p>
+                  Activate a soldier in the PATCH WARS Extension on{' '}
+                  <a
+                    href={`https://www.twitch.tv/${encodeURIComponent(channel.name)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {channel.name}’s Twitch stream
+                  </a>
+                  . Confirm the Bits amount there. One activation deploys one soldier; confirmed
+                  actions wait for space or the next battle.
+                </p>
+              )}
               {receipt ||
                 authError ||
                 (s.mode === 'live' && !channel
@@ -354,9 +380,11 @@ export function LiveExperience({
                         : !s.commandsEnabled
                           ? 'The host has paused commands.'
                           : 'Waiting for the host to start.'
-                    : canSend
-                      ? 'Select a unit to deploy. Shared team energy · same chat cooldowns · no payment.'
-                      : 'Sign in to use unit buttons, or send !spawn archer in Twitch chat.')}
+                    : paidViewer
+                      ? 'Free viewer deployment is disabled in this paid match.'
+                      : canSend
+                        ? 'Select a unit to deploy. Shared team energy · same chat cooldowns · no payment.'
+                        : 'Sign in to use unit buttons, or send !spawn archer in Twitch chat.')}
             </div>
             {((canManage && (blocked || (s.mode === 'live' && !channel))) || authError) && (
               <div className="deployment-status-actions">

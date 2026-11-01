@@ -44,7 +44,7 @@ This repository contains the implementation and tested asset build. It is **not 
 
 Twitch's [extension policies](https://dev.twitch.tv/docs/extensions/guidelines-and-policies/) prohibit nested iframes. Consequently the native extension does not embed a second Twitch chat inside itself: Twitch supplies its existing chat beside the player. The web view uses the separate [official chat embed](https://dev.twitch.tv/docs/embed/chat/). Native fullscreen/chat placement follows Twitch's player UI; this implementation does not override Twitch's controls or promise that chat remains visible in every player fullscreen mode. [Helper and JWT documentation](https://dev.twitch.tv/docs/extensions/reference/) explains the identity mechanism.
 
-No paid soldier products, Bits transactions, wallet or native-extension approval are claimed. Unit cards deploy using the existing free team-energy economy. Tokens, rooms and viewer sessions remain memory-only; server restarts require a new match and reauthorization. Backend changes during this implementation restarted the development watcher, so previously open match URLs may be stale.
+Free mode uses the existing team-energy economy. Optional Bits soldier products, verified transactions, persistent fulfillment and broadcaster controls are now implemented behind `PAID_DEPLOYMENTS_ENABLED`; see [paid deployment setup](paid-deployments.md). There is no app wallet, and live Bits charging/native-extension approval are not claimed. Tokens, rooms and viewer sessions remain memory-only; server restarts require a new match and reauthorization, while the payment ledger survives. Backend changes can restart the development watcher, so previously open match URLs may be stale.
 
 ## Verification
 

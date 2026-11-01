@@ -417,3 +417,84 @@
 .arena-canvas[data-camera='lane'] {
   aspect-ratio: 1200 / 260;
 }
+
+/* A single broadcast scene: video behind the castle foreground, metadata above tools. */
+.stream-stage .broadcast-player {
+  top: 164px;
+  bottom: 8px;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+}
+.broadcast-viewport {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  container-type: size;
+}
+.broadcast-viewport iframe {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100cqw, 177.778cqh);
+  height: max(100cqh, 56.25cqw);
+  min-height: 0;
+  min-width: 0;
+  transform: translate(-50%, -50%);
+}
+.broadcast-viewport .broadcast-placeholder {
+  position: absolute;
+  inset: 0 0 var(--lane-height);
+  justify-content: center;
+}
+.stream-stage .broadcast-caption {
+  position: absolute;
+  top: -76px;
+  left: 0;
+  right: 0;
+  border: 0;
+  padding: 7px 10px;
+}
+.stream-stage .live-battle .broadcast-controls {
+  top: 120px;
+}
+.stream-stage .stream-tools {
+  top: 117px;
+}
+.stream-stage .live-battle .arena-wrap {
+  z-index: 2;
+  /* Keep the original ground anchor, with enough transparent headroom for full towers. */
+  height: max(var(--lane-height), calc((100vw - var(--chat-space) - 16px) * 0.227 + 16px));
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  pointer-events: none;
+}
+.stream-stage .live-battle .arena-message,
+.stream-stage .live-battle .results {
+  pointer-events: auto;
+}
+@media (max-width: 1100px) and (min-width: 701px) {
+  .stream-stage:not(.chat-hidden) .broadcast-player {
+    overflow: visible;
+  }
+  .stream-stage:not(.chat-hidden) .broadcast-player iframe {
+    min-width: 0;
+  }
+}
+@media (max-width: 700px) {
+  .stream-stage .broadcast-player {
+    top: 156px;
+    bottom: 8px;
+  }
+  .stream-stage .broadcast-caption {
+    top: -76px;
+  }
+  .stream-stage .live-battle .broadcast-controls {
+    top: 111px;
+  }
+  .stream-stage .stream-tools {
+    top: 108px;
+  }
+}

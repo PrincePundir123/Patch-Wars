@@ -2,6 +2,7 @@
 export const SOLDIER_ROWS = ['shield', 'arrow', 'diamond', 'cross', 'orb', 'slime'] as const;
 export const SOLDIER_COLUMNS = 12;
 export const SUNSTONE_ARENA = '/art/castle-lane.webp';
+export const SUNSTONE_FOREGROUND = '/art/castle-foreground-v2.png';
 export const SUNSTONE_SOLDIERS = '/art/sunstone-units.webp';
 
 export function projectToArena(x: number, y: number, portrait = false) {

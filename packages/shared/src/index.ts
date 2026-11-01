@@ -165,6 +165,7 @@ export type Snapshot = {
   seq: number;
   roomId: string;
   mode: 'demo' | 'live';
+  paidDeployments?: boolean;
   paused: boolean;
   game: GameState;
   proposals: Proposal[];

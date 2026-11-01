@@ -13,6 +13,7 @@ import {
   SOLDIER_COLUMNS,
   SOLDIER_ROWS,
   SUNSTONE_ARENA,
+  SUNSTONE_FOREGROUND,
   SUNSTONE_SOLDIERS,
 } from './battle-presentation.js';
 const COLORS = { ember: 0xff8255, azure: 0x65c9ff };
@@ -154,7 +155,8 @@ export function Arena({
       await app.init({
         width: 1200,
         height: 675,
-        backgroundAlpha: transparent ? 0 : 1,
+        // Keep an alpha-capable context when entering theater without remounting Pixi.
+        backgroundAlpha: 0,
         background: 0xc3b28b,
         antialias: true,
         resolution: Math.min(window.devicePixelRatio, coarse ? 1.5 : 2),
@@ -170,9 +172,10 @@ export function Arena({
         host.current.dataset.targetFps = String(targetFps);
         host.current.dataset.renderResolution = String(app.renderer.resolution);
       }
-      const [arenaAsset, unitAsset] = await Promise.allSettled([
+      const [arenaAsset, unitAsset, foregroundAsset] = await Promise.allSettled([
         transparent ? Promise.resolve(null) : loadArtwork(SUNSTONE_ARENA),
         loadArtwork(SUNSTONE_SOLDIERS),
+        transparent ? Promise.resolve(null) : loadArtwork(SUNSTONE_FOREGROUND),
       ]);
       if (stopped) {
         if (app.renderer) app.destroy(true);
@@ -203,6 +206,12 @@ export function Arena({
           ? new Sprite(arenaAsset.value)
           : undefined;
       if (backdrop) app.stage.addChild(backdrop);
+      // Real alpha follows every battlement, flag and gap; no approximate sky mask.
+      const foreground =
+        foregroundAsset.status === 'fulfilled' && foregroundAsset.value
+          ? new Sprite(foregroundAsset.value)
+          : undefined;
+      if (foreground) app.stage.addChild(foreground);
       let reproject = true;
       let ground = 192;
       let unitScale = 1;
@@ -231,12 +240,27 @@ export function Arena({
           height = Math.max(100, Math.round((width * box.height) / Math.max(1, box.width)));
         ground = height - 24;
         unitScale = box.width <= 700 ? 1.7 : 1;
-        app.renderer.resize(width, height);
+        // Match the physical display width rather than stretching a 1200px bitmap on desktop.
+        const resolution = Math.min(
+          Math.max(1, (box.width / width) * window.devicePixelRatio),
+          coarse ? 1.5 : 2,
+        );
+        app.renderer.resize(width, height, resolution);
+        host.current.dataset.renderResolution = String(resolution);
         host.current.dataset.camera = 'lane';
-        if (backdrop) {
-          const scale = width / backdrop.texture.width;
-          backdrop.scale.set(scale);
-          backdrop.position.set(0, ground - backdrop.height * 0.62);
+        const composite = !!host.current.closest('.stream-stage') && !transparent;
+        host.current.dataset.composite = String(composite);
+        app.renderer.background.color = transparent || composite ? 0x000000 : 0xc3b28b;
+        app.renderer.background.alpha = transparent || composite ? 0 : 1;
+        if (backdrop) backdrop.visible = !composite;
+        if (foreground) foreground.visible = composite;
+        const scenery = composite ? foreground : backdrop;
+        host.current.dataset.foregroundStatus = foreground ? 'ready' : 'fallback';
+        if (scenery) {
+          const scale = width / scenery.texture.width;
+          scenery.scale.set(scale);
+          scenery.position.set(0, ground - scenery.height * 0.62);
+          host.current.dataset.castleTop = String(scenery.y);
         }
         field.clear();
         if (!transparent && !backdrop) field.rect(0, 0, width, height).fill(0xceb98f);

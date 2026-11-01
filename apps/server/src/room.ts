@@ -40,6 +40,7 @@ export class Room {
   sharedChat = false;
   commandsEnabled = true;
   forgeEnabled = true;
+  paidDeployments = false;
   teamNames = { ember: 'Ember', azure: 'Azure' };
   lastAccess = Date.now();
   private voters = new Map<string, string>();
@@ -80,6 +81,7 @@ export class Room {
       seq: ++this.seq,
       roomId: this.id,
       mode: this.mode,
+      paidDeployments: this.mode === 'live' && this.paidDeployments,
       paused: this.paused,
       game: this.game,
       proposals: this.proposals,
@@ -208,6 +210,13 @@ export class Room {
     )
       return 'Command cooldown. Try again shortly.';
     const { command, argument } = parsed;
+    if (
+      this.mode === 'live' &&
+      this.paidDeployments &&
+      ['spawn', 'attack', 'defend'].includes(command) &&
+      m.userId !== m.channelId
+    )
+      return 'Viewer deployment requires a confirmed Bits activation in the PATCH WARS Twitch Extension.';
     if (command === 'help')
       return '!join Â· !spawn guardian Â· !attack Â· !defend Â· !forge idea Â· !vote p1 Â· !units Â· !score';
     if (command === 'score')

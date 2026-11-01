@@ -1,4 +1,5 @@
 // Validate the small display contract without shipping the game's full schema runtime.
+import { PaymentDisplay } from '../../packages/shared/src/payments.js';
 type Unit = {
   id: string;
   name: string;
@@ -15,6 +16,8 @@ export type ExtensionState = {
   energy: number;
   linked: boolean;
   catalog: Record<string, Unit>;
+  payments: PaymentDisplay;
+  host: boolean;
 };
 const invalid = () => new Error('The battle returned an invalid display state.');
 const object = (value: unknown): Record<string, unknown> => {
@@ -78,6 +81,16 @@ export function readExtensionState(raw: unknown): ExtensionState {
     linked: data.linked,
     energy: data.energy,
     catalog,
+    host: data.host === true,
+    payments: PaymentDisplay.parse(
+      data.payments ?? {
+        enabled: false,
+        accepting: false,
+        message: 'Free team-energy deployment. Bits are disabled.',
+        products: [],
+        records: [],
+      },
+    ),
   };
 }
 export function readCommandResult(raw: unknown) {
