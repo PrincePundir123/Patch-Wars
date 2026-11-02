@@ -1,0 +1,975 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Patch Wars: under the hood</title>
+    <!--
+  The film's "Under the hood" scene: PATCH WARS as an exploded stack, drawn with three.js and recorded
+  in real time by Playwright at 1920x1080.
+  three.html?dur=<seconds>&cues=<url-encoded {"twitch":s,"adapter":s,"forge":s,"gate":s,"blocked":s,
+    "balance":s,"arena":s,"satellites":s,"final":s}>   (the same keys also work in the #hash)
+  window.__ready turns true once fonts, three.js and the first frame are in.
+  window.__start() starts the clock; window.__seek(t) draws the exact frame at t seconds.
+  Every motion is a pure function of t: no transitions, no randomness, no accumulated state.
+-->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=block"
+    />
+    <style>
+      :root {
+        --bg0: #0b0d12;
+        --bg1: #121722;
+        --surface: #1a1f2b;
+        --text: #f4efe3;
+        --muted: #9aa3b5;
+        --gold: #f2c14e;
+        --ember: #ff7a3d;
+        --azure: #4cc3ff;
+        --danger: #e5484d;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        color: var(--text);
+        background: var(--bg0);
+      }
+      body {
+        background:
+          radial-gradient(ellipse 60% 55% at 52% 56%, rgba(242, 193, 78, 0.05), transparent 70%),
+          radial-gradient(circle, rgba(244, 239, 227, 0.05) 1.1px, transparent 1.7px) 0 0 / 36px 36px,
+          linear-gradient(180deg, var(--bg0) 0%, var(--bg1) 100%);
+      }
+      canvas {
+        position: absolute;
+        inset: 0;
+        display: block;
+      }
+      #hud,
+      #wires {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+        pointer-events: none;
+      }
+      .abs {
+        position: absolute;
+        left: 0;
+        top: 0;
+        will-change: transform, opacity;
+      }
+      .mono {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+      }
+      .eyebrow {
+        font: 500 22px 'JetBrains Mono', monospace;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: var(--gold);
+        white-space: nowrap;
+      }
+      .eyebrow i {
+        font-style: normal;
+        color: var(--muted);
+      }
+      .title {
+        white-space: nowrap;
+        text-align: center;
+      }
+      .title .in {
+        transform: translateX(-50%);
+      }
+      .title h1 {
+        margin: 0;
+        font: 700 76px/1 'Cinzel', Georgia, serif;
+        letter-spacing: 0.04em;
+        color: var(--text);
+        text-shadow: 0 0 40px rgba(242, 193, 78, 0.35);
+      }
+      .title p {
+        margin: 12px 0 0;
+        font: 400 24px 'Inter', sans-serif;
+        color: var(--muted);
+      }
+
+      /* Slab labels: a fixed right-aligned column on the left. */
+      .lab {
+        white-space: nowrap;
+        text-align: right;
+      }
+      .lab .in {
+        transform: translateX(-100%);
+      }
+      .lab .row {
+        display: flex;
+        justify-content: flex-end;
+        align-items: baseline;
+        gap: 16px;
+      }
+      .lab b {
+        font: 500 22px 'JetBrains Mono', monospace;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+      }
+      .lab h3 {
+        margin: 0;
+        font: 700 42px/1.05 'Cinzel', Georgia, serif;
+        letter-spacing: 0.02em;
+        color: var(--text);
+      }
+      .lab p {
+        margin: 6px 0 0;
+        font: 400 22px/1.32 'Inter', sans-serif;
+        color: var(--muted);
+      }
+      .lab p em {
+        font-style: normal;
+        color: var(--text);
+      }
+      .ember {
+        color: var(--ember) !important;
+      }
+      .azure {
+        color: var(--azure) !important;
+      }
+
+      /* Chips. */
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 18px 8px 14px;
+        border-radius: 999px;
+        font: 500 22px 'JetBrains Mono', monospace;
+        white-space: nowrap;
+      }
+      .chip svg {
+        width: 20px;
+        height: 20px;
+      }
+      .chip.gold {
+        background: var(--gold);
+        color: #17130a;
+        box-shadow: 0 0 30px rgba(242, 193, 78, 0.5);
+      }
+      .chip.soft {
+        background: rgba(242, 193, 78, 0.14);
+        border: 1.5px solid rgba(242, 193, 78, 0.8);
+        color: var(--gold);
+      }
+      .balchip .n {
+        display: inline-block;
+        min-width: 3ch;
+        text-align: right;
+      }
+      .balchip .st {
+        display: inline-block;
+        min-width: 8ch;
+      }
+      .balchip .in {
+        transform: translateY(-50%);
+        transform-origin: 0 50%;
+      }
+
+      /* Satellites on the right. */
+      .sat {
+        white-space: nowrap;
+      }
+      .sat .in {
+        transform: translateY(-50%);
+      }
+      .sat h4 {
+        margin: 0;
+        font: 600 34px/1 'Inter', sans-serif;
+        letter-spacing: -0.005em;
+      }
+      .sat small {
+        display: block;
+        margin-top: 6px;
+        font: 400 20px 'Inter', sans-serif;
+        color: var(--muted);
+      }
+
+      /* The injected-code packet and its stop. */
+      .tag .in {
+        transform: translateY(-50%);
+      }
+      .tag .pill {
+        padding: 8px 16px;
+        border: 1.5px solid var(--danger);
+        border-radius: 10px;
+        background: rgba(229, 72, 77, 0.14);
+        color: #ffb3b5;
+        font: 500 21px 'JetBrains Mono', monospace;
+        white-space: nowrap;
+      }
+      .callout .in {
+        transform: translateY(-50%);
+      }
+      .callout .box {
+        padding: 16px 24px 18px;
+        border: 2px solid var(--danger);
+        border-radius: 14px;
+        background: rgba(229, 72, 77, 0.13);
+        box-shadow: 0 0 44px rgba(229, 72, 77, 0.25);
+        white-space: nowrap;
+        transform-origin: 0 50%;
+      }
+      .callout .box .h {
+        font: 600 34px/1.1 'Inter', sans-serif;
+        color: var(--text);
+      }
+      .callout .box .h span {
+        color: var(--danger);
+      }
+      .callout .box .chip {
+        margin-top: 12px;
+        transform-origin: 0 50%;
+      }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  </head>
+  <body>
+    <svg id="wires" viewBox="0 0 1920 1080"></svg>
+    <div id="hud"></div>
+
+    <script>
+      (async () => {
+        const W = 1920;
+        const H = 1080;
+
+        // ---------- contract ----------
+        const params = new URLSearchParams(location.search);
+        const hashParams = new URLSearchParams(location.hash.slice(1));
+        const param = (k) => params.get(k) ?? hashParams.get(k);
+        const BEATS = ['twitch', 'adapter', 'forge', 'gate', 'blocked', 'balance', 'arena', 'satellites', 'final'];
+        const DEFAULT_CUES = { twitch: 0.5, adapter: 2.2, forge: 3.9, gate: 5.6, blocked: 6.5, balance: 9.8, arena: 12.2, satellites: 14.4, final: 18.4 };
+        const DEFAULT_DUR = 22;
+        const DUR = Number.isFinite(+param('dur')) && +param('dur') > 0 ? +param('dur') : DEFAULT_DUR;
+        // Without explicit cues, the defaults stretch to the requested duration.
+        const scale = DUR / DEFAULT_DUR;
+        let cues = Object.fromEntries(BEATS.map((k) => [k, DEFAULT_CUES[k] * scale]));
+        try {
+          const raw = param('cues');
+          if (raw) {
+            const got = JSON.parse(raw);
+            for (const k of BEATS) if (got && got[k] !== null && got[k] !== undefined && Number.isFinite(+got[k])) cues[k] = +got[k];
+          }
+        } catch (e) {
+          /* keep defaults */
+        }
+        const CUE = [cues.twitch, cues.adapter, cues.forge, cues.gate, cues.balance, cues.arena];
+
+        // ---------- time helpers ----------
+        const bezier = (x1, y1, x2, y2) => {
+          const cx = 3 * x1,
+            bx = 3 * (x2 - x1) - cx,
+            ax = 1 - cx - bx;
+          const cy = 3 * y1,
+            by = 3 * (y2 - y1) - cy,
+            ay = 1 - cy - by;
+          const sx = (t) => ((ax * t + bx) * t + cx) * t;
+          const sy = (t) => ((ay * t + by) * t + cy) * t;
+          return (x) => {
+            if (x <= 0) return 0;
+            if (x >= 1) return 1;
+            let lo = 0,
+              hi = 1,
+              t = x;
+            for (let i = 0; i < 32; i++) {
+              if (sx(t) < x) lo = t;
+              else hi = t;
+              t = (lo + hi) / 2;
+            }
+            return sy(t);
+          };
+        };
+        const ease = bezier(0.16, 1, 0.3, 1); // the film's one ease
+        const inOut = bezier(0.65, 0, 0.35, 1); // packet travel
+        const backOut = (p) => {
+          const c = 1.7;
+          return p <= 0 ? 0 : p >= 1 ? 1 : 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2);
+        };
+        const clamp01 = (v) => Math.min(1, Math.max(0, v));
+        const prog = (t, t0, dur) => clamp01((t - t0) / dur);
+        const lerp = (a, b, p) => a + (b - a) * p;
+        /** A fixed hash in [0, 1): the only "randomness" in the scene (seeded by index). */
+        const hash = (k, s) => {
+          const x = Math.sin(k * 127.1 + s * 311.7) * 43758.5453;
+          return x - Math.floor(x);
+        };
+        const mixHex = (a, b, p) => {
+          const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
+          const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
+          return `rgb(${pa.map((v, i) => Math.round(lerp(v, pb[i], clamp01(p)))).join(',')})`;
+        };
+        const el = (tag, cls, html = '') => {
+          const e = document.createElement(tag);
+          if (cls) e.className = cls;
+          e.innerHTML = html;
+          return e;
+        };
+        const svgEl = (tag, attrs) => {
+          const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+          for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+          return e;
+        };
+        const CHECK =
+          '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg>';
+        const hud = document.getElementById('hud');
+        const wires = document.getElementById('wires');
+
+        // ---------- palette ----------
+        const C = {
+          slab: '#151a24',
+          slabTop: '#1a1f2b',
+          edge: '#343c4e',
+          gold: '#f2c14e',
+          goldHot: '#ffe3a0',
+          ember: '#ff7a3d',
+          azure: '#4cc3ff',
+          danger: '#e5484d',
+          text: '#f4efe3',
+          muted: '#9aa3b5',
+          dimLine: '#3a4254',
+        };
+        const col = (hex) => new THREE.Color(hex);
+
+        // ---------- renderer ----------
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+        renderer.setPixelRatio(1);
+        renderer.setSize(W, H);
+        renderer.setClearColor(0x000000, 0);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.prepend(renderer.domElement);
+
+        const world = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(28, W / H, 0.1, 200);
+        const tmpV = new THREE.Vector3();
+        const toScreen = (v) => {
+          tmpV.copy(v).project(camera);
+          return { x: ((tmpV.x + 1) / 2) * W, y: ((1 - tmpV.y) / 2) * H };
+        };
+
+        // ---------- geometry constants ----------
+        const N = 6;
+        const SW = 4.4,
+          SD = 3.0,
+          ST = 0.22,
+          GAP = 1.42,
+          RISE = 1.4,
+          FLOOR = -1.7;
+        const SLAB_Y = Array.from({ length: N }, (_, i) => i * GAP);
+        const SATX = 5.3;
+        const LXR = 676; // right edge of the label column, page px
+
+        // ---------- lights and floor ----------
+        world.add(new THREE.HemisphereLight(0xfff1d6, 0x0b0d12, 0.55));
+        const key = new THREE.DirectionalLight(0xffffff, 1.0);
+        key.position.set(-4, 17, 9);
+        key.castShadow = true;
+        key.shadow.mapSize.set(2048, 2048);
+        key.shadow.radius = 6;
+        key.shadow.bias = -0.0005;
+        key.shadow.normalBias = 0.02;
+        Object.assign(key.shadow.camera, { left: -12, right: 12, top: 12, bottom: -12, near: 1, far: 50 });
+        world.add(key);
+        const rim = new THREE.DirectionalLight(0x4cc3ff, 0.35);
+        rim.position.set(8, 6, -9);
+        world.add(rim);
+        const rim2 = new THREE.DirectionalLight(0xff7a3d, 0.3);
+        rim2.position.set(-8, 4, -6);
+        world.add(rim2);
+        const accentLight = new THREE.PointLight(0xf2c14e, 0, 7, 1.6);
+        world.add(accentLight);
+        const redLight = new THREE.PointLight(0xe5484d, 0, 7, 1.6);
+        world.add(redLight);
+
+        const radialTex = (inner, outer) => {
+          const c = document.createElement('canvas');
+          c.width = c.height = 256;
+          const g = c.getContext('2d');
+          const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+          grad.addColorStop(0, inner);
+          grad.addColorStop(1, outer);
+          g.fillStyle = grad;
+          g.fillRect(0, 0, 256, 256);
+          return new THREE.CanvasTexture(c);
+        };
+        const pool = new THREE.Mesh(
+          new THREE.PlaneGeometry(22, 22),
+          new THREE.MeshBasicMaterial({ map: radialTex('rgba(242,193,78,0.07)', 'rgba(242,193,78,0)'), transparent: true, depthWrite: false }),
+        );
+        pool.rotation.x = -Math.PI / 2;
+        pool.position.set(0.6, FLOOR - 0.002, 0);
+        world.add(pool);
+        const shadowFloor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.ShadowMaterial({ opacity: 0.7 }));
+        shadowFloor.rotation.x = -Math.PI / 2;
+        shadowFloor.position.y = FLOOR;
+        shadowFloor.receiveShadow = true;
+        world.add(shadowFloor);
+
+        // ---------- slabs ----------
+        const roundRect = (w, d, r) => {
+          const s = new THREE.Shape();
+          const x = w / 2,
+            z = d / 2;
+          s.moveTo(-x + r, -z);
+          s.lineTo(x - r, -z);
+          s.quadraticCurveTo(x, -z, x, -z + r);
+          s.lineTo(x, z - r);
+          s.quadraticCurveTo(x, z, x - r, z);
+          s.lineTo(-x + r, z);
+          s.quadraticCurveTo(-x, z, -x, z - r);
+          s.lineTo(-x, -z + r);
+          s.quadraticCurveTo(-x, -z, -x + r, -z);
+          return s;
+        };
+        const slabShape = roundRect(SW, SD, 0.3);
+        const slabGeo = new THREE.ExtrudeGeometry(slabShape, {
+          depth: ST,
+          bevelEnabled: true,
+          bevelThickness: 0.02,
+          bevelSize: 0.02,
+          bevelSegments: 2,
+          curveSegments: 10,
+        });
+        slabGeo.rotateX(-Math.PI / 2);
+        slabGeo.translate(0, -ST / 2, 0);
+        const loopGeo = (y) => new THREE.BufferGeometry().setFromPoints(slabShape.getPoints(10).map((p) => new THREE.Vector3(p.x, y, -p.y)));
+        const topLoop = loopGeo(ST / 2 + 0.022);
+        const botLoop = loopGeo(-ST / 2 - 0.022);
+
+        const glowTex = (() => {
+          const c = document.createElement('canvas');
+          c.width = 512;
+          c.height = 384;
+          const g = c.getContext('2d');
+          g.shadowColor = '#ffffff';
+          g.shadowBlur = 46;
+          g.fillStyle = '#ffffff';
+          const rx = 92,
+            ry = 86;
+          const w = 512 - 2 * rx,
+            h = 384 - 2 * ry;
+          for (let i = 0; i < 2; i++) {
+            g.beginPath();
+            g.moveTo(rx + 24, ry);
+            g.arcTo(rx + w, ry, rx + w, ry + h, 24);
+            g.arcTo(rx + w, ry + h, rx, ry + h, 24);
+            g.arcTo(rx, ry + h, rx, ry, 24);
+            g.arcTo(rx, ry, rx + w, ry, 24);
+            g.fill();
+          }
+          return new THREE.CanvasTexture(c);
+        })();
+        const glowW = SW * (512 / (512 - 184));
+        const glowD = SD * (384 / (384 - 172));
+
+        const LAYERS = [
+          ['Twitch', 'chat commands · votes · Bits<br>EventSub · OAuth · Extension'],
+          ['Adapter', 'verify source · deduplicate<br>rate-limit'],
+          ['Forge', 'AI drafts a blueprint<br>Codex · Ollama · OpenAI provider'],
+          ['Safety gate', 'schema check + bounded ability language<br><em>no code execution</em>'],
+          ['Balance lab', '200 headless test battles<br>25–75% win-rate gate'],
+          ['Arena', 'deterministic 20 Hz battle<br><span class="ember">Ember</span> vs <span class="azure">Azure</span> · streamed to OBS'],
+        ];
+
+        const slabs = LAYERS.map(([name, sub], i) => {
+          const capMat = new THREE.MeshLambertMaterial({ color: C.slabTop, transparent: true, opacity: 0, emissive: col(C.gold), emissiveIntensity: 0 });
+          const sideMat = new THREE.MeshLambertMaterial({ color: C.slab, transparent: true, opacity: 0, emissive: col(C.gold), emissiveIntensity: 0 });
+          const mesh = new THREE.Mesh(slabGeo, [capMat, sideMat]);
+          mesh.castShadow = true;
+          const lineMat = new THREE.LineBasicMaterial({ color: C.edge, transparent: true, opacity: 0 });
+          mesh.add(new THREE.LineLoop(topLoop, lineMat), new THREE.LineLoop(botLoop, lineMat));
+          const glowMat = new THREE.MeshBasicMaterial({ map: glowTex, color: C.gold, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+          const glow = new THREE.Mesh(new THREE.PlaneGeometry(glowW, glowD), glowMat);
+          glow.rotation.x = -Math.PI / 2;
+          glow.position.y = -ST / 2 - 0.03;
+          glow.renderOrder = -1;
+          mesh.add(glow);
+          mesh.visible = false;
+          world.add(mesh);
+
+          const lead = svgEl('line', { 'stroke-width': 2, 'stroke-linecap': 'round', fill: 'none' });
+          const dot = svgEl('circle', { r: 5 });
+          wires.append(lead, dot);
+          const lab = el('div', 'abs lab', `<div class="in"><div class="row"><h3>${name}</h3><b>0${i + 1}</b></div><p>${sub}</p></div>`);
+          hud.append(lab);
+          return { mesh, capMat, sideMat, lineMat, glowMat, lead, dot, lab, num: lab.querySelector('b') };
+        });
+
+        // ---------- arena dressing: two castles and a few soldiers (deterministic) ----------
+        const arenaGroup = new THREE.Group();
+        slabs[5].mesh.add(arenaGroup);
+        const castleMat = (hex) => new THREE.MeshLambertMaterial({ color: '#1f2533', emissive: col(hex), emissiveIntensity: 0.55, transparent: true, opacity: 1 });
+        const castles = [
+          [-1.55, C.ember],
+          [1.55, C.azure],
+        ].map(([x, hex]) => {
+          const g = new THREE.Group();
+          const m = castleMat(hex);
+          const keep = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.55, 0.7), m);
+          keep.position.y = ST / 2 + 0.275;
+          const tower = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.42, 0.3), m);
+          tower.position.set(0, ST / 2 + 0.76, 0);
+          keep.castShadow = tower.castShadow = true;
+          g.add(keep, tower);
+          g.position.x = x;
+          arenaGroup.add(g);
+          return m;
+        });
+        const SOLDIERS = 8;
+        const soldierGeo = new THREE.BoxGeometry(0.12, 0.16, 0.12);
+        const soldiers = Array.from({ length: SOLDIERS }, (_, k) => {
+          const hex = k % 2 ? C.azure : C.ember;
+          const m = new THREE.Mesh(soldierGeo, new THREE.MeshBasicMaterial({ color: hex, transparent: true }));
+          arenaGroup.add(m);
+          return m;
+        });
+
+        // ---------- satellites (right column) ----------
+        const SATS = [
+          { name: 'OBS overlay', sub: 'browser source for the stream', slab: 5, y: SLAB_Y[5] + 0.15, ez: 0.3, dir: 1 },
+          { name: 'Codex', sub: 'built it', slab: 2, y: SLAB_Y[2] + 0.35, ez: -0.4, dir: -1 },
+          { name: 'EventSub', sub: 'chat · votes · cheers', slab: 0, y: SLAB_Y[0] + 0.65, ez: -0.5, dir: -1 },
+          { name: 'Bits in Extensions', sub: 'pay to deploy a soldier', slab: 0, y: SLAB_Y[0] - 0.75, ez: 0.6, dir: -1 },
+        ];
+        SATS.forEach((s, k) => (s.lit = cues.satellites + 0.35 * k));
+        const satGeo = new THREE.BoxGeometry(0.8, 0.36, 0.8);
+        const satEdges = new THREE.EdgesGeometry(satGeo);
+        const glowSprite = radialTex('rgba(255,255,255,1)', 'rgba(255,255,255,0)');
+        const makeGlowSprite = (hex, size) => {
+          const s = new THREE.Sprite(
+            new THREE.SpriteMaterial({ map: glowSprite, color: hex, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending }),
+          );
+          s.scale.setScalar(size);
+          return s;
+        };
+        SATS.forEach((s) => {
+          s.mat = new THREE.MeshLambertMaterial({ color: '#1a1f2b', emissive: col(C.gold), emissiveIntensity: 0, transparent: true, opacity: 0 });
+          s.mesh = new THREE.Mesh(satGeo, s.mat);
+          s.mesh.position.set(SATX, s.y, 0);
+          s.lineMat = new THREE.LineBasicMaterial({ color: C.edge, transparent: true, opacity: 0 });
+          s.mesh.add(new THREE.LineSegments(satEdges, s.lineMat));
+          world.add(s.mesh);
+          const sx = SW / 2;
+          const pts = [
+            new THREE.Vector3(SATX - 0.4, s.y, 0),
+            new THREE.Vector3(SATX - 0.75, s.y, 0),
+            new THREE.Vector3(sx + 0.5, SLAB_Y[s.slab], s.ez),
+            new THREE.Vector3(sx - 0.05, SLAB_Y[s.slab], s.ez),
+          ];
+          s.path = new THREE.CurvePath();
+          for (let i = 0; i < pts.length - 1; i++) s.path.add(new THREE.LineCurve3(pts[i], pts[i + 1]));
+          s.traceMat = new THREE.MeshBasicMaterial({ color: C.dimLine, transparent: true, opacity: 0 });
+          world.add(new THREE.Mesh(new THREE.TubeGeometry(s.path, 48, 0.022, 6, false), s.traceMat));
+          s.pulses = [0, 1].map(() => {
+            const p = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 8), new THREE.MeshBasicMaterial({ color: C.goldHot, transparent: true }));
+            p.add(makeGlowSprite(C.gold, 0.5));
+            world.add(p);
+            return p;
+          });
+          s.lab = el('div', 'abs sat', `<div class="in"><h4>${s.name}</h4><small>${s.sub}</small></div>`);
+          s.title = s.lab.querySelector('h4');
+          hud.append(s.lab);
+        });
+
+        // ---------- packets ----------
+        const makePacket = (core, halo, size = 1) => {
+          const m = new THREE.Mesh(new THREE.SphereGeometry(0.085 * size, 16, 12), new THREE.MeshBasicMaterial({ color: core, transparent: true }));
+          m.add(makeGlowSprite(halo, 0.85 * size));
+          m.visible = false;
+          world.add(m);
+          return m;
+        };
+        const POOL = 24;
+        const packets = Array.from({ length: POOL }, () => makePacket(C.goldHot, C.gold));
+        const SPAWN = cues.twitch + 0.6;
+        const SPACING = 0.45;
+        const MOVE0 = 0.7,
+          MOVE = 0.45,
+          PAUSE = 0.3,
+          EXIT = 0.8,
+          FADE = 0.35;
+        const LIFE = MOVE0 + N * PAUSE + (N - 1) * MOVE + EXIT + 0.1;
+        const surf = (j) => SLAB_Y[j] + ST / 2 + 0.11;
+        const inPlace = (j) => CUE[j] + 0.5;
+        // Packets keep to the left-centre of each slab so the red packet's lane stays clear.
+        const packetAt = (k, t) => {
+          const s0 = SPAWN + k * SPACING;
+          const tt = t - s0;
+          if (tt < 0) return null;
+          const x = -1.6 + 2.2 * hash(k, 1);
+          const z = -1.0 + 2.0 * hash(k, 2);
+          const startY = FLOOR + 0.35;
+          if (tt < MOVE0) return { x, y: lerp(startY, surf(0), inOut(tt / MOVE0)), z, a: clamp01(tt / 0.2), s: 1 };
+          let arrive = s0 + MOVE0;
+          for (let j = 0; j < N; j++) {
+            const dep = arrive + PAUSE;
+            const settle = 1 + 0.35 * Math.sin(Math.PI * prog(t, arrive, PAUSE));
+            if (t < dep) return { x, y: surf(j), z, a: 1, s: settle };
+            if (j === N - 1) {
+              const u = (t - dep) / EXIT;
+              if (u >= 1) return null;
+              return { x, y: surf(j) + 0.7 * ease(u), z, a: 1 - u, s: 1 };
+            }
+            if (inPlace(j + 1) > dep) {
+              const u = (t - dep) / FADE;
+              if (u >= 1) return null;
+              return { x, y: surf(j), z, a: 1 - u, s: 1 - 0.6 * u };
+            }
+            const u = (t - dep) / MOVE;
+            if (u < 1) return { x, y: lerp(surf(j), surf(j + 1), inOut(u)), z, a: 1, s: 1 };
+            arrive = dep + MOVE;
+          }
+          return null;
+        };
+
+        // The injected code: a red packet from Twitch, straight up, stopped under the Safety gate.
+        const RX = 1.55,
+          RZ = 1.0;
+        const RED_FROM = cues.blocked,
+          RED_MOVE = 1.0,
+          RED_HIT = RED_FROM + RED_MOVE,
+          RED_HOLD = 2.6;
+        const CALLOUT_OUT = cues.satellites - 0.3;
+        const redPacket = makePacket('#ff7a7e', C.danger, 1.4);
+        const redStart = new THREE.Vector3(RX, surf(0), RZ);
+        const redEnd = new THREE.Vector3(RX, SLAB_Y[3] - ST / 2 - 0.13, RZ);
+        const ringMat = (hex) =>
+          new THREE.MeshBasicMaterial({ color: hex, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
+        const redRing = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.5, 64), ringMat(C.danger));
+        redRing.rotation.x = -Math.PI / 2;
+        world.add(redRing);
+        const tag = el('div', 'abs tag', `<div class="in"><div class="pill">injected code: 'run this script'</div></div>`);
+        hud.append(tag);
+        const tagLead = svgEl('line', { stroke: C.danger, 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-dasharray': '4 6' });
+        wires.append(tagLead);
+        const callout = el(
+          'div',
+          'abs callout',
+          `<div class="in"><div class="box"><div class="h"><span>Blocked:</span><br>generated code never runs</div><div class="chip soft">${CHECK}kept: the idea</div></div></div>`,
+        );
+        hud.append(callout);
+        const calloutBox = callout.querySelector('.box');
+        const keptChip = callout.querySelector('.chip');
+        const calloutLead = svgEl('line', { stroke: C.danger, 'stroke-width': 2.5, 'stroke-linecap': 'round' });
+        const calloutDot = svgEl('circle', { r: 6, fill: C.danger });
+        wires.append(calloutLead, calloutDot);
+
+        // The Balance lab: pulse ring, flicker of test battles, then the chip.
+        const APPROVE = cues.balance + 1.4;
+        const balRing = new THREE.Mesh(new THREE.RingGeometry(0.96, 1.0, 96), ringMat(C.gold));
+        balRing.rotation.x = -Math.PI / 2;
+        world.add(balRing);
+        const balChip = el('div', 'abs balchip', `<div class="in"><span class="chip gold">${CHECK}<span><span class="n">200</span> test battles · <span class="st">approved</span></span></span></div>`);
+        hud.append(balChip);
+        const balInner = balChip.querySelector('.in');
+        const balN = balChip.querySelector('.n');
+        const balSt = balChip.querySelector('.st');
+        const balLead = svgEl('line', { stroke: C.gold, 'stroke-width': 2, 'stroke-linecap': 'round' });
+        wires.append(balLead);
+        // 200 tiny battles: a grid of cells on the slab that tick from dim to gold.
+        const CELLS = 200;
+        const cellGeo = new THREE.PlaneGeometry(0.13, 0.13);
+        const cells = Array.from({ length: CELLS }, (_, k) => {
+          const m = new THREE.Mesh(cellGeo, new THREE.MeshBasicMaterial({ color: C.gold, transparent: true, opacity: 0, depthWrite: false }));
+          m.rotation.x = -Math.PI / 2;
+          const cx = k % 20,
+            cz = Math.floor(k / 20);
+          m.position.set(-1.71 + cx * 0.18, ST / 2 + 0.026, -0.81 + cz * 0.18);
+          slabs[4].mesh.add(m);
+          return m;
+        });
+
+        // ---------- headings ----------
+        const eye = el('div', 'abs eyebrow', 'Patch Wars <i>· under the hood</i>');
+        hud.append(eye);
+        const title = el('div', 'abs title', `<div class="in"><h1>Under the hood</h1></div>`);
+        hud.append(title);
+
+        // ---------- camera ----------
+        const target = new THREE.Vector3();
+        camera.setViewOffset(W, H, -40, -20, W, H);
+        const placeCamera = (t) => {
+          const p = ease(clamp01(t / DUR));
+          const az = THREE.MathUtils.degToRad(-12 + 20 * p);
+          const elv = THREE.MathUtils.degToRad(19 - 2 * p);
+          const dist = 25.5 - 2.0 * p;
+          target.set(0.15, 3.5 + 0.15 * p, 0);
+          camera.position.set(target.x + dist * Math.sin(az) * Math.cos(elv), target.y + dist * Math.sin(elv), dist * Math.cos(az) * Math.cos(elv));
+          camera.lookAt(target);
+          camera.updateMatrixWorld();
+        };
+
+        const PITCH = 142;
+        const slotY = Array.from({ length: N }, (_, i) => 150 + (N - 1 - i) * PITCH);
+
+        // ---------- the frame, as a function of t ----------
+        const corner = new THREE.Vector3();
+        const sideCorner = (y, x0, side) => {
+          let best = null;
+          for (const cz of [SD / 2 - 0.09, -SD / 2 + 0.09]) {
+            corner.set(x0 + side * (SW / 2 - 0.09), y + ST / 2, cz);
+            const sp = toScreen(corner);
+            if (!best || side * sp.x > side * best.x) best = sp;
+          }
+          return best;
+        };
+        const setLine = (line, x1, y1, x2, y2, p) => {
+          const len = Math.hypot(x2 - x1, y2 - y1);
+          line.setAttribute('x1', x1.toFixed(1));
+          line.setAttribute('y1', y1.toFixed(1));
+          line.setAttribute('x2', x2.toFixed(1));
+          line.setAttribute('y2', y2.toFixed(1));
+          line.setAttribute('stroke-dasharray', `${len.toFixed(1)} ${(len + 10).toFixed(1)}`);
+          line.setAttribute('stroke-dashoffset', (len * (1 - p)).toFixed(1));
+        };
+
+        const frame = (t) => {
+          placeCamera(t);
+          const fin = ease(prog(t, cues.final, 0.8)); // everything lit, labels back to full
+
+          const ep = ease(prog(t, 0.05, 0.6)) * (1 - fin);
+          eye.style.transform = `translate(96px, ${(56 + 12 * (1 - ease(prog(t, 0.05, 0.6)))).toFixed(1)}px)`;
+          eye.style.opacity = ep.toFixed(3);
+          const tp0 = ease(prog(t, cues.final + 0.2, 0.7));
+          title.style.transform = `translate(${W / 2 + 40}px, ${(28 + 18 * (1 - tp0)).toFixed(1)}px)`;
+          title.style.opacity = tp0.toFixed(3);
+
+          const hit = t - RED_HIT;
+          const redFlash = hit > 0 ? Math.exp(-2.6 * hit) : 0;
+          const pulse = t > APPROVE ? Math.sin(Math.PI * prog(t, APPROVE, 0.7)) : 0;
+          const testing = prog(t, cues.balance + 0.4, APPROVE - cues.balance - 0.4); // 0..1 over the test battles
+          let accentY = 0,
+            accentW = 0;
+
+          slabs.forEach((s, i) => {
+            const p = ease(prog(t, CUE[i], 0.6));
+            const next = i < N - 1 ? CUE[i + 1] : Infinity;
+            const act0 = ease(prog(t, CUE[i] + 0.15, 0.35)) * (1 - ease(prog(t, next + 0.15, 0.4)));
+            const act = Math.max(act0, 0.7 * fin);
+            accentY += act0 * SLAB_Y[i];
+            accentW += act0;
+
+            s.mesh.visible = p > 0;
+            let x = 0;
+            if (i === 3 && hit > 0) x = 0.07 * Math.sin(2 * Math.PI * 15 * hit) * Math.exp(-6.5 * hit);
+            s.mesh.position.set(x, SLAB_Y[i] - RISE * (1 - p), 0);
+            const sc = i === 4 ? 1 + 0.03 * pulse : 1;
+            s.mesh.scale.set(sc, 1, sc);
+            const o = clamp01(p * 1.25);
+            s.capMat.opacity = o;
+            s.sideMat.opacity = o;
+            s.capMat.depthWrite = s.sideMat.depthWrite = o > 0.95;
+            const danger = i === 3 ? redFlash : 0;
+            s.capMat.emissiveIntensity = 0.14 * act + 0.25 * (i === 4 ? pulse : 0) + 0.35 * danger;
+            s.sideMat.emissiveIntensity = 0.08 * act;
+            s.capMat.emissive.set(C.gold).lerp(col(C.danger), danger);
+            s.lineMat.opacity = o;
+            s.lineMat.color.set(C.edge).lerp(col(C.gold), act).lerp(col(C.danger), danger);
+            s.glowMat.opacity = o * (0.4 * act + 0.5 * (i === 4 ? pulse : 0) + 0.7 * danger);
+            s.glowMat.color.set(C.gold).lerp(col(C.danger), danger);
+
+            // Label: leader draws on over 300 ms, then the text rises in; dims to 45% once the next slab arrives.
+            const lp = ease(prog(t, CUE[i] + 0.2, 0.3));
+            const tp = ease(prog(t, CUE[i] + 0.3, 0.45));
+            const dim = 1 - 0.55 * ease(prog(t, next + 0.15, 0.35)) * (1 - fin);
+            const lc = sideCorner(s.mesh.position.y, x, -1);
+            const ly = slotY[i] + 24;
+            setLine(s.lead, lc.x - 6, lc.y, LXR + 18, ly, lp);
+            s.lead.setAttribute('stroke', mixHex(C.dimLine, C.gold, act));
+            s.lead.setAttribute('opacity', lp > 0 ? dim.toFixed(3) : '0');
+            s.dot.setAttribute('cx', (lc.x - 6).toFixed(1));
+            s.dot.setAttribute('cy', lc.y.toFixed(1));
+            s.dot.setAttribute('fill', mixHex('#5a6274', C.gold, act));
+            s.dot.setAttribute('opacity', (clamp01(lp * 4) * dim).toFixed(3));
+            s.lab.style.transform = `translate(${LXR}px, ${(slotY[i] + 14 * (1 - tp)).toFixed(1)}px)`;
+            s.lab.style.opacity = (tp * dim).toFixed(3);
+            s.num.style.color = mixHex(C.muted, C.gold, act);
+          });
+
+          if (accentW > 0.001) {
+            accentLight.position.set(-0.4, accentY / accentW + 0.9, 1.4);
+            accentLight.intensity = 1.4 * Math.min(1, accentW) + 1.0 * pulse;
+          } else accentLight.intensity = 0.8 * fin;
+          if (fin > 0 && accentW <= 0.001) accentLight.position.set(0, SLAB_Y[3], 2);
+
+          // Arena: castles glow, soldiers march between them (pure function of t).
+          const ap = ease(prog(t, CUE[5], 0.6));
+          castles.forEach((m) => (m.opacity = clamp01(ap * 1.25)));
+          soldiers.forEach((m, k) => {
+            const lane = -0.9 + (Math.floor(k / 2) / 3) * 1.8;
+            const ph = (t * 0.32 + hash(k, 7)) % 1;
+            const dir = k % 2 ? -1 : 1;
+            const xx = dir * lerp(-1.15, 1.15, ph);
+            m.position.set(xx, ST / 2 + 0.08 + 0.03 * Math.abs(Math.sin(t * 9 + k)), lane);
+            m.material.opacity = clamp01(ap * 1.25) * Math.min(1, Math.sin(Math.PI * ph) * 4);
+          });
+
+          // Balance lab: 200 cells tick over as the test battles run.
+          cells.forEach((m, k) => {
+            const order = (k * 37) % CELLS; // deterministic shuffle
+            const on = prog(t, cues.balance + 0.4 + (order / CELLS) * (APPROVE - cues.balance - 0.6), 0.12);
+            const vis = ease(prog(t, CUE[4], 0.6));
+            m.material.opacity = vis * (0.08 + 0.55 * on * (1 - 0.5 * prog(t, APPROVE + 0.6, 1.0)));
+            m.material.color.set(order % 7 === 0 ? C.muted : C.gold);
+          });
+          const by = SLAB_Y[4] + ST / 2 + 0.03;
+          const yp = prog(t, APPROVE, 1.0);
+          balRing.position.set(0, by, 0);
+          const rs = 1.0 + 0.35 * ease(yp);
+          balRing.scale.set((SW / 2 + 0.1) * rs, (SD / 2 + 0.1) * rs, 1);
+          balRing.material.opacity = yp > 0 && yp < 1 ? 0.85 * (1 - yp) : 0;
+          // The chip sits right of the stack at the Balance lab row.
+          const brc = sideCorner(SLAB_Y[4], 0, 1);
+          const cp = backOut(prog(t, cues.balance + 0.5, 0.45));
+          const cA = clamp01(prog(t, cues.balance + 0.5, 0.15));
+          const bx = brc.x + 70;
+          setLine(balLead, brc.x + 6, brc.y, bx - 6, brc.y, ease(prog(t, cues.balance + 0.35, 0.3)));
+          balLead.setAttribute('opacity', cA.toFixed(3));
+          balChip.style.transform = `translate(${bx.toFixed(1)}px, ${brc.y.toFixed(1)}px)`;
+          balChip.style.opacity = cA.toFixed(3);
+          balInner.style.transform = `translateY(-50%) scale(${(0.6 + 0.4 * cp).toFixed(3)})`;
+          balN.textContent = String(Math.round(200 * testing));
+          balSt.textContent = t >= APPROVE ? 'approved' : 'running…';
+
+          // Satellites and their traces (appear and light on the satellites cue).
+          SATS.forEach((s) => {
+            const show = ease(prog(t, s.lit - 0.25, 0.6));
+            const lit = Math.max(ease(prog(t, s.lit, 0.45)), fin);
+            s.mat.opacity = show;
+            s.mat.emissiveIntensity = 0.3 * lit;
+            s.lineMat.opacity = show;
+            s.lineMat.color.set(C.edge).lerp(col(C.gold), lit);
+            s.traceMat.opacity = show * (0.4 + 0.6 * lit);
+            s.traceMat.color.set(C.dimLine).lerp(col(C.gold), lit);
+            s.pulses.forEach((p, m) => {
+              const run = t - s.lit;
+              if (run <= 0) {
+                p.visible = false;
+                return;
+              }
+              let u = (run / 1.5 + m / 2) % 1;
+              if (s.dir < 0) u = 1 - u;
+              p.visible = true;
+              s.path.getPointAt(u, p.position);
+              const a = lit * Math.min(1, Math.sin(Math.PI * u) * 3);
+              p.material.opacity = a;
+              p.children[0].material.opacity = a * 0.8;
+            });
+            const sp = toScreen(tmpV.set(SATX + 0.55, s.y, 0.4));
+            s.lab.style.transform = `translate(${(sp.x + 14).toFixed(1)}px, ${(sp.y + 10 * (1 - show)).toFixed(1)}px)`;
+            s.lab.style.opacity = (show * (0.55 + 0.45 * lit)).toFixed(3);
+            s.title.style.color = mixHex(C.muted, C.text, lit);
+          });
+
+          // Gold packets: up through every risen layer, pausing on each.
+          packets.forEach((p) => (p.visible = false));
+          const kMax = Math.floor((t - SPAWN) / SPACING);
+          for (let k = Math.max(0, Math.ceil((t - SPAWN - LIFE) / SPACING)); k <= kMax; k++) {
+            const st = packetAt(k, t);
+            if (!st) continue;
+            const p = packets[k % POOL];
+            p.visible = true;
+            p.position.set(st.x, st.y, st.z);
+            p.scale.setScalar(st.s);
+            p.material.opacity = st.a;
+            p.children[0].material.opacity = st.a * 0.75;
+          }
+
+          // The injected code.
+          const rp = prog(t, RED_FROM, RED_MOVE);
+          const gone = 1 - prog(t, RED_HIT + RED_HOLD, 0.5);
+          redPacket.visible = t >= RED_FROM && gone > 0;
+          if (redPacket.visible) {
+            redPacket.position.lerpVectors(redStart, redEnd, inOut(rp));
+            if (hit > 0) redPacket.position.x += 0.06 * Math.sin(2 * Math.PI * 15 * hit) * Math.exp(-6.5 * hit);
+            const a = clamp01(rp / 0.12) * gone;
+            redPacket.material.opacity = a;
+            redPacket.children[0].material.opacity = a * (0.8 + 0.2 * Math.sin(t * 9));
+            redPacket.scale.setScalar(1 + 0.25 * redFlash);
+          }
+          const rsp = toScreen(redPacket.position);
+          const stackR = sideCorner(redPacket.position.y, 0, 1).x;
+          const tagA = clamp01(prog(t, RED_FROM, 0.2)) * (1 - prog(t, RED_HIT + 0.1, 0.3));
+          const tagX = Math.max(stackR + 60, rsp.x + 120);
+          tag.style.transform = `translate(${tagX.toFixed(1)}px, ${rsp.y.toFixed(1)}px)`;
+          tag.style.opacity = tagA.toFixed(3);
+          setLine(tagLead, rsp.x + 10, rsp.y, tagX - 8, rsp.y, 1);
+          tagLead.setAttribute('stroke-dasharray', '4 6');
+          tagLead.setAttribute('stroke-dashoffset', '0');
+          tagLead.setAttribute('opacity', tagA.toFixed(3));
+
+          const bp = prog(t, RED_HIT, 0.8);
+          redRing.position.copy(redEnd).setY(redEnd.y + 0.04);
+          redRing.scale.setScalar(0.4 + 3.0 * ease(bp));
+          redRing.material.opacity = bp > 0 && bp < 1 ? (1 - bp) * 0.9 : 0;
+          redLight.position.copy(redEnd);
+          redLight.intensity = 5 * redFlash;
+
+          const cOut = 1 - ease(prog(t, CALLOUT_OUT, 0.35));
+          const clp = ease(prog(t, RED_HIT + 0.05, 0.3)) * cOut;
+          const cbp = ease(prog(t, RED_HIT + 0.2, 0.4));
+          const hitSp = toScreen(redEnd);
+          const gateR = sideCorner(SLAB_Y[3], 0, 1);
+          const boxX = Math.max(gateR.x + 60, hitSp.x + 110);
+          setLine(calloutLead, hitSp.x, hitSp.y, boxX, hitSp.y, ease(prog(t, RED_HIT + 0.05, 0.3)));
+          calloutLead.setAttribute('opacity', clp > 0 ? cOut.toFixed(3) : '0');
+          calloutDot.setAttribute('cx', hitSp.x.toFixed(1));
+          calloutDot.setAttribute('cy', hitSp.y.toFixed(1));
+          calloutDot.setAttribute('opacity', (clamp01(clp * 4) * cOut).toFixed(3));
+          callout.style.transform = `translate(${(boxX + 12 * (1 - cbp)).toFixed(1)}px, ${hitSp.y.toFixed(1)}px)`;
+          callout.style.opacity = (cbp * cOut).toFixed(3);
+          calloutBox.style.transform = `scale(${(0.94 + 0.06 * cbp).toFixed(3)})`;
+          const kp = backOut(prog(t, RED_HIT + 0.9, 0.45));
+          keptChip.style.opacity = clamp01(prog(t, RED_HIT + 0.9, 0.15)).toFixed(3);
+          keptChip.style.transform = `scale(${(0.6 + 0.4 * kp).toFixed(3)})`;
+        };
+
+        // ---------- clock ----------
+        let startAt = null;
+        let seekT = 0;
+        const draw = (t) => {
+          frame(t);
+          renderer.render(world, camera);
+        };
+        const loop = () => {
+          draw(startAt === null ? seekT : (performance.now() - startAt) / 1000);
+          requestAnimationFrame(loop);
+        };
+        window.__start = () => {
+          if (startAt === null) startAt = performance.now();
+        };
+        window.__seek = (t) => {
+          startAt = null;
+          seekT = +t || 0;
+          draw(seekT);
+        };
+        window.__cues = { ...cues, dur: DUR };
+
+        await Promise.all(
+          ['700 42px "Cinzel"', '700 76px "Cinzel"', '400 22px "Inter"', '600 34px "Inter"', '500 22px "JetBrains Mono"'].map((f) => document.fonts.load(f)),
+        );
+        await document.fonts.ready;
+        draw(0);
+        requestAnimationFrame(() => {
+          window.__ready = true;
+          requestAnimationFrame(loop);
+        });
+      })();
+    </script>
+  </body>
+</html>

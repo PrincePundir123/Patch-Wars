@@ -9,6 +9,8 @@ export default tseslint.config(
       'apps/web/dist/**',
       'playwright-report/**',
       'test-results/**',
+      // Film tooling: Node + browser scripts run outside the app build.
+      'video/**',
     ],
   },
   js.configs.recommended,

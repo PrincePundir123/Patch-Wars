@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Snapshot } from '../../../packages/shared/src/index.js';
+import { play } from './sfx.js';
 
 export function BroadcastControls({
   s,
@@ -13,30 +14,34 @@ export function BroadcastControls({
   const [sound, setSound] = useState(false);
   const [error, setError] = useState('');
   const audio = useRef<AudioContext | null>(null);
-  const cue = `${s.roomId}:${s.game.phase}:${s.forge?.id ?? ''}:${s.forge?.status ?? ''}`;
-  const last = useRef(cue);
+  const forgeCue = `${s.roomId}:${s.game.phase}:${s.forge?.id ?? ''}:${s.forge?.status ?? ''}`;
+  const last = useRef(forgeCue);
+  const counts = useRef({ spawned: s.game.spawned, votes: 0, room: s.roomId, at: 0 });
   useEffect(() => {
-    if (last.current === cue) return;
-    last.current = cue;
-    if (!sound || !audio.current || (s.game.phase !== 'results' && s.forge?.status !== 'deployed'))
-      return;
+    if (last.current === forgeCue) return;
+    last.current = forgeCue;
     const ctx = audio.current;
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-    oscillator.frequency.setValueAtTime(s.game.phase === 'results' ? 660 : 440, ctx.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.18);
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.06, ctx.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.3);
-    oscillator.onended = () => {
-      oscillator.disconnect();
-      gain.disconnect();
-    };
-    oscillator.start();
-    oscillator.stop(ctx.currentTime + 0.31);
-  }, [cue, sound, s.game.phase, s.forge?.status]);
+    if (!sound || !ctx) return;
+    if (s.game.phase === 'results') play(ctx, 'victory');
+    else if (s.forge?.status === 'generating') play(ctx, 'forge');
+    else if (s.forge?.status === 'approved') play(ctx, 'reveal');
+    else if (s.forge?.status === 'deployed') play(ctx, 'deploy');
+  }, [forgeCue, sound, s.game.phase, s.forge?.status]);
+  // Spawns and votes are frequent, so they are throttled to one soft cue per 250 ms.
+  const votes = s.proposals.reduce((sum, p) => sum + p.votes, 0);
+  useEffect(() => {
+    const c = counts.current;
+    const fresh = c.room !== s.roomId;
+    const spawned = s.game.spawned > c.spawned;
+    const voted = votes > c.votes;
+    counts.current = { spawned: s.game.spawned, votes, room: s.roomId, at: c.at };
+    const ctx = audio.current;
+    if (fresh || !sound || !ctx || (!spawned && !voted)) return;
+    const now = performance.now();
+    if (now - c.at < 250) return;
+    counts.current.at = now;
+    play(ctx, spawned ? 'spawn' : 'vote', 0.8);
+  }, [s.game.spawned, votes, s.roomId, sound]);
   useEffect(
     () => () => {
       void audio.current?.close();
@@ -54,6 +59,7 @@ export function BroadcastControls({
       await audio.current.resume();
       setSound(true);
       setError('');
+      play(audio.current, 'coin', 0.7);
     } catch {
       setError('Audio unavailable in this browser. Visual cues remain active.');
     }
@@ -67,7 +73,7 @@ export function BroadcastControls({
       <button aria-pressed={sound} onClick={() => void toggleSound()}>
         Sound: {sound ? 'on' : 'off'}
       </button>
-      <small>Sound marks Forge deployments and match results.</small>
+      <small>Synthesized cues for spawns, votes, the Forge anvil, deployments and victory.</small>
       {error && <small role="alert">{error}</small>}
     </div>
   );

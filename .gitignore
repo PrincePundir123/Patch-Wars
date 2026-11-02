@@ -10,3 +10,7 @@ playwright-report/
 .data/
 *.log
 .forge-home/
+
+# film voice reference (owner-supplied, not published)
+video/refs/*.wav
+__pycache__/

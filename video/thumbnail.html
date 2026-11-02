@@ -1,0 +1,32 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>PATCH WARS thumbnail</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@800&family=Inter:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root { --gold:#f2c14e; --ember:#ff7a3d; --azure:#4cc3ff; --twitch:#9146ff; }
+  html,body{margin:0;width:100vw;height:100vh;overflow:hidden;background:#0b0d12;font-family:Inter,sans-serif;color:#f4efe3}
+  .bg{position:absolute;inset:0;background:radial-gradient(900px 600px at 0% 0%,rgba(255,122,61,.28),transparent 60%),radial-gradient(900px 600px at 100% 100%,rgba(76,195,255,.24),transparent 60%),#0b0d12}
+  .frame{position:absolute;border-radius:2vw;border:.25vw solid #2a3242;inset:2vw;}
+  .copy{position:absolute;left:5vw;top:9vh;width:44vw}
+  .kick{display:inline-flex;gap:.8vw;align-items:center;font-weight:800;font-size:1.7vw;letter-spacing:.12em;color:#fff;background:var(--twitch);padding:.7vw 1.3vw;border-radius:99px}
+  h1{font-family:Cinzel,serif;font-weight:800;font-size:9vw;line-height:.95;margin:3vh 0 0;letter-spacing:.01em;-webkit-text-stroke:.12vw #f4efe3;text-shadow:0 .6vw 2.5vw rgba(0,0,0,.6)}
+  h1 span{color:var(--gold);-webkit-text-stroke:.12vw var(--gold)}
+  .line{margin-top:3.5vh;font-size:3.4vw;font-weight:800;line-height:1.15}
+  .line b{color:var(--ember)} .line i{color:var(--azure);font-style:normal}
+  .chips{margin-top:4vh;display:flex;gap:1vw;flex-wrap:wrap}
+  .chips span{font-size:1.6vw;font-weight:800;padding:.6vw 1.1vw;border-radius:99px;border:.15vw solid #3a4356;background:rgba(22,27,36,.85)}
+  .shot{position:absolute;border-radius:1.2vw;overflow:hidden;border:.3vw solid #2a3242;box-shadow:0 2vw 5vw rgba(0,0,0,.7)}
+  .shot img{display:block;width:100%}
+  .a{right:3.5vw;top:10vh;width:47vw;transform:rotate(1.5deg)}
+  .b{right:15vw;top:50vh;width:40vw;transform:rotate(-2deg);border-color:var(--gold)}
+</style></head><body>
+<div class="bg"></div>
+<div class="shot a"><img src="../docs/screenshots/forge-reveal-sigil.png"></div>
+<div class="shot b"><img src="../docs/screenshots/bits-estimator-sigils.png"></div>
+<div class="copy">
+  <div class="kick">BUILT FOR TWITCH</div>
+  <h1>PATCH<br><span>WARS</span></h1>
+  <div class="line">Your chat <b>commands</b>,<br><i>invents</i> and <b>fights.</b></div>
+  <div class="chips"><span>Bits soldiers</span><span>Collab battles</span><span>Built with Codex</span></div>
+</div>
+<div class="frame"></div>
+</body></html>

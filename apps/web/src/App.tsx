@@ -4,6 +4,7 @@ import { Arena } from './LazyArena.js';
 import { UnitIcon } from './UnitIcon.js';
 import { UnitLibrary } from './UnitLibrary.js';
 import { UnitPortrait } from './UnitPortrait.js';
+import { StreamerValue } from './StreamerValue.js';
 import { ArrowUpRight } from '@phosphor-icons/react/dist/csr/ArrowUpRight';
 import { Sword } from '@phosphor-icons/react/dist/csr/Sword';
 import { Sparkle } from '@phosphor-icons/react/dist/csr/Sparkle';
@@ -160,6 +161,8 @@ function Landing() {
               <span>TWITCH INTEGRATION</span>
               <span>LOCAL AI SUPPORTED</span>
               <span>OBS READY</span>
+              <span>BITS READY</span>
+              <span>COLLAB BATTLES</span>
             </div>
           </div>
           <div className="hero-illustration">
@@ -177,6 +180,7 @@ function Landing() {
             </div>
           </div>
         </section>
+        <StreamerValue />
         <section className="how" aria-label="How Patch Wars works">
           <div>
             <span className="eyebrow">FROM CHAT TO COMBAT</span>

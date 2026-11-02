@@ -1,0 +1,456 @@
+/* Streamer value section, Forge sigils and the landing sigil forge. Dark stage between the
+   ivory landing sections, gold as the single accent, team colours only for team things. */
+.streamer-value {
+  --sv-bg: #121714;
+  --sv-panel: #1b221e;
+  --sv-line: #33413a;
+  --sv-text: #f1ecdf;
+  --sv-muted: #a9b5a8;
+  --sv-gold: #e6b85c;
+  --sv-ember: #ff7a3d;
+  --sv-azure: #4cc3ff;
+  margin: 72px calc(50% - 50vw) 0;
+  padding: 88px max(24px, calc(50vw - 600px)) 96px;
+  background:
+    radial-gradient(900px 420px at 12% 0%, rgba(255, 122, 61, 0.14), transparent 60%),
+    radial-gradient(900px 420px at 92% 10%, rgba(76, 195, 255, 0.12), transparent 60%), var(--sv-bg);
+  color: var(--sv-text);
+}
+.sv-kicker {
+  color: var(--sv-gold);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+}
+.sv-intro {
+  max-width: 760px;
+}
+.sv-intro h2 {
+  margin: 14px 0 18px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: var(--sv-text);
+}
+.sv-intro h2 em {
+  color: var(--sv-gold);
+  font-style: normal;
+}
+.sv-intro p {
+  color: var(--sv-muted);
+  font-size: 18px;
+  line-height: 1.6;
+  max-width: 640px;
+}
+.sv-pillars {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 44px;
+}
+.sv-pillars article {
+  padding: 24px;
+  border: 1px solid var(--sv-line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent), var(--sv-panel);
+  transition:
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 300ms;
+}
+.sv-pillars article:hover {
+  transform: translateY(-4px);
+  border-color: var(--sv-gold);
+}
+.sv-pillars span {
+  color: var(--sv-gold);
+  font:
+    700 13px/1 ui-monospace,
+    monospace;
+}
+.sv-pillars h3 {
+  margin: 14px 0 8px;
+  font-family: Georgia, serif;
+  font-size: 24px;
+  color: var(--sv-text);
+}
+.sv-pillars p {
+  color: var(--sv-muted);
+  margin: 0;
+  font-size: 15px;
+}
+.sv-collab {
+  position: relative;
+  margin-top: 28px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--sv-line);
+}
+.sv-collab img {
+  display: block;
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  object-position: center 100%;
+}
+.sv-channel {
+  position: absolute;
+  top: 18px;
+  display: grid;
+  gap: 2px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(10, 12, 11, 0.78);
+  backdrop-filter: blur(6px);
+  border: 1px solid currentColor;
+}
+.sv-channel b {
+  color: var(--sv-text);
+  font-size: 15px;
+}
+.sv-channel small {
+  font-size: 12px;
+}
+.sv-channel.ember {
+  left: 18px;
+  color: var(--sv-ember);
+}
+.sv-channel.azure {
+  right: 18px;
+  color: var(--sv-azure);
+  text-align: right;
+}
+.sv-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+.sv-estimator,
+.sv-forge {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--sv-line);
+  border-radius: 16px;
+  background: var(--sv-panel);
+}
+.sv-estimator-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.sv-tag {
+  font-size: 12px;
+  color: var(--sv-muted);
+  border: 1px solid var(--sv-line);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+.sv-slider {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.sv-slider span {
+  display: flex;
+  justify-content: space-between;
+  color: var(--sv-muted);
+  font-size: 14px;
+}
+.sv-slider b {
+  color: var(--sv-text);
+  font-variant-numeric: tabular-nums;
+}
+.streamer-value .sv-slider input {
+  appearance: none;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  margin: 6px 0;
+  border: 0;
+  box-shadow: none;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--sv-gold) var(--fill), #2c3631 var(--fill));
+  outline-offset: 6px;
+}
+.sv-slider input::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--sv-text);
+  border: 3px solid var(--sv-gold);
+  cursor: pointer;
+}
+.sv-slider input::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--sv-text);
+  border: 3px solid var(--sv-gold);
+}
+.sv-results {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.3fr;
+  gap: 10px;
+  margin: 20px 0 16px;
+}
+.sv-results div {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #141a17;
+  border: 1px solid var(--sv-line);
+}
+.sv-results small {
+  display: block;
+  color: var(--sv-muted);
+  font-size: 12px;
+}
+.sv-results strong {
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+}
+.sv-results .sv-hero-number {
+  border-color: var(--sv-gold);
+  background: linear-gradient(180deg, rgba(230, 184, 92, 0.16), rgba(230, 184, 92, 0.03));
+}
+.sv-results .sv-hero-number strong {
+  color: var(--sv-gold);
+  font-size: 32px;
+}
+.sv-products {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: end;
+  gap: 10px;
+  height: 120px;
+  padding-top: 8px;
+}
+.sv-products div {
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  height: 100%;
+  text-align: center;
+  font-size: 12px;
+  color: var(--sv-muted);
+}
+.sv-products i {
+  align-self: end;
+  display: block;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(180deg, var(--sv-gold), #8a6a2c);
+}
+.sv-products b {
+  color: var(--sv-text);
+  margin-top: 4px;
+}
+.sv-fine {
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: var(--sv-muted);
+  line-height: 1.5;
+}
+.sv-forge-body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 20px;
+  align-items: center;
+}
+.sv-sigil-stage {
+  display: grid;
+  place-items: center;
+  width: 210px;
+  height: 250px;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(230, 184, 92, 0.22), transparent 62%), #141a17;
+  animation: sv-strike 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes sv-strike {
+  from {
+    transform: scale(0.92);
+    filter: brightness(1.8);
+  }
+}
+.forge-sigil {
+  margin: 0;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+.forge-sigil svg {
+  display: block;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.45));
+}
+.forge-sigil figcaption {
+  font-family: Georgia, serif;
+  font-style: italic;
+  color: var(--sv-gold, #93703e);
+  font-size: 15px;
+}
+.sv-forge-form {
+  display: grid;
+  gap: 12px;
+}
+.sv-forge-form label span {
+  display: block;
+  color: var(--sv-muted);
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.sv-forge-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--sv-line);
+  background: #111613;
+  color: var(--sv-text);
+  font: inherit;
+  font-size: 15px;
+}
+.sv-forge-form textarea:focus-visible,
+.sv-team button:focus-visible,
+.sv-strike:focus-visible {
+  outline: 2px solid var(--sv-gold);
+  outline-offset: 2px;
+}
+.sv-team {
+  display: flex;
+  gap: 8px;
+}
+.sv-team button {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--sv-line);
+  background: transparent;
+  color: var(--sv-muted);
+  cursor: pointer;
+}
+.sv-team button.ember[aria-pressed='true'] {
+  border-color: var(--sv-ember);
+  color: var(--sv-ember);
+  background: rgba(255, 122, 61, 0.1);
+}
+.sv-team button.azure[aria-pressed='true'] {
+  border-color: var(--sv-azure);
+  color: var(--sv-azure);
+  background: rgba(76, 195, 255, 0.1);
+}
+.sv-strike {
+  padding: 12px;
+  border-radius: 10px;
+  border: 0;
+  background: var(--sv-gold);
+  color: #1b1408;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sv-strike:active {
+  transform: scale(0.97);
+}
+.sv-forge-form p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--sv-muted);
+}
+.sv-crest-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--sv-line);
+}
+.sv-crest-row div {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--sv-muted);
+}
+/* Generated crests on roster cards and the unit dialog. */
+.unit-card-art,
+.dialog-art {
+  position: relative;
+}
+.card-sigil {
+  position: absolute;
+  left: 8px;
+  top: 6px;
+}
+.dialog-sigil {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+}
+.dialog-sigil figcaption {
+  font-size: 12px;
+  color: #f2e6c9;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+/* Sigil on the in-match Forge reveal card. */
+.reveal-sigil {
+  flex: none;
+}
+.sigil-note {
+  font-size: 11px !important;
+  opacity: 0.7;
+  letter-spacing: 0.02em;
+}
+@media (max-width: 900px) {
+  .sv-pillars,
+  .sv-tools {
+    grid-template-columns: 1fr;
+  }
+  .sv-collab img {
+    height: 180px;
+  }
+}
+@media (max-width: 560px) {
+  .streamer-value {
+    padding: 64px 16px 72px;
+  }
+  .sv-forge-body {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .sv-results {
+    grid-template-columns: 1fr 1fr;
+  }
+  .sv-results .sv-hero-number {
+    grid-column: span 2;
+  }
+  .sv-estimator,
+  .sv-forge {
+    padding: 18px;
+  }
+  .sv-crest-row {
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 14px;
+  }
+  .sv-products {
+    gap: 6px;
+  }
+  .sv-channel {
+    top: 10px;
+    padding: 6px 10px;
+  }
+  .sv-channel small {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sv-sigil-stage,
+  .sv-pillars article {
+    animation: none;
+    transition: none;
+  }
+}

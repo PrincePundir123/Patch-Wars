@@ -1,4 +1,5 @@
 import type { Ability, Snapshot } from '../../../packages/shared/src/index.js';
+import { ForgeSigil } from './ForgeSigil.js';
 import { UnitIcon } from './UnitIcon.js';
 
 export function abilityText(a: Ability): string {
@@ -24,6 +25,7 @@ export function ForgeReveal({ s }: { s: Snapshot }) {
     <div className="forge-reveal">
       <div className="reveal-heading">
         <UnitIcon shape={b.appearance.shape} />
+        <ForgeSigil unit={b} size={72} className="reveal-sigil" />
         <div>
           <small>
             {b.archetype.toUpperCase()} ·{' '}
@@ -33,6 +35,9 @@ export function ForgeReveal({ s }: { s: Snapshot }) {
         </div>
       </div>
       <p>{b.description}</p>
+      <p className="sigil-note">
+        Sigil drawn in code from this blueprint · same crest on every screen
+      </p>
       <dl className="unit-stats">
         <div>
           <dt>Health</dt>

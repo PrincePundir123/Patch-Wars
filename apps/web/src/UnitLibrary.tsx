@@ -8,6 +8,7 @@ import { Heart } from '@phosphor-icons/react/dist/csr/Heart';
 import { Sword } from '@phosphor-icons/react/dist/csr/Sword';
 import type { Blueprint } from '../../../packages/shared/src/index.js';
 import { STARTERS } from '../../../packages/game-core/src/catalog.js';
+import { ForgeSigil } from './ForgeSigil.js';
 import { UnitPortrait } from './UnitPortrait.js';
 import { abilityText } from './ForgeReveal.js';
 export const UnitLibrary = memo(function UnitLibrary({
@@ -84,6 +85,7 @@ export const UnitLibrary = memo(function UnitLibrary({
           >
             <div className={`unit-card-art role-${b.archetype}`}>
               <UnitPortrait shape={b.appearance.shape} />
+              <ForgeSigil unit={b} size={34} className="card-sigil" />
               <span className="unit-cost">
                 <Lightning weight="fill" size={13} />
                 {b.stats.spawnCost}
@@ -120,6 +122,7 @@ export const UnitLibrary = memo(function UnitLibrary({
             </button>
             <div className={`dialog-art role-${selected.archetype}`}>
               <UnitPortrait shape={selected.appearance.shape} />
+              <ForgeSigil unit={selected} size={64} motto className="dialog-sigil" />
             </div>
             <div className="dialog-copy">
               <span className="eyebrow">{selected.archetype}</span>

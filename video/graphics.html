@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>PATCH WARS film graphics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<style>
+  /* One motion language: ease cubic-bezier(0.16,1,0.3,1); every entrance a 12 px rise plus a fade. */
+  :root {
+    --bg: #0b0d12; --panel: #161b24; --line: #2a3242; --text: #f4efe3; --muted: #9aa3b5;
+    --gold: #f2c14e; --ember: #ff7a3d; --azure: #4cc3ff; --danger: #e5484d; --twitch: #a970ff;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--text); font-family: Inter, sans-serif; }
+  .scene { position: absolute; inset: 0; display: none; }
+  .scene.active { display: block; }
+  .scene > div:not(.bgimg):not(.vignette) { position: relative; z-index: 1; }
+  #open .chat, #open .ask, .still, .label { z-index: 2; }
+  .in { opacity: 0; transform: translateY(12px); transition: opacity 600ms var(--ease), transform 600ms var(--ease); }
+  .in.on { opacity: 1; transform: none; }
+  .dim { transition: opacity 600ms var(--ease); }
+  .serif { font-family: Cinzel, Georgia, serif; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .bgimg { position: absolute; inset: -4%; background-size: cover; background-position: center; filter: saturate(0.9); }
+  .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(11,13,18,0.35), rgba(11,13,18,0.92) 75%); }
+  .chip { display: inline-block; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); background: rgba(22,27,36,0.85); color: var(--muted); font-size: 22px; }
+
+  /* open: a quiet chat that nobody acts on */
+  #open .bgimg { filter: blur(6px) brightness(0.45) saturate(0.6); }
+  #open .chat { position: absolute; right: 150px; top: 120px; width: 560px; display: grid; gap: 14px; }
+  #open .msg { padding: 14px 20px; border-radius: 14px; background: rgba(22,27,36,0.82); border: 1px solid var(--line); font-size: 26px; }
+  #open .msg b { color: var(--twitch); margin-right: 10px; }
+  #open .ask { position: absolute; left: 150px; top: 380px; width: 900px; font-size: 76px; line-height: 1.08; font-weight: 800; letter-spacing: -0.02em; }
+  #open .ask em { color: var(--gold); font-style: normal; }
+
+  /* title */
+  #title { display: none; place-items: center; }
+  #title.active { display: grid; }
+  #title .mark { font-size: 190px; font-weight: 800; letter-spacing: 0.04em; text-shadow: 0 10px 60px rgba(242,193,78,0.25); }
+  #title .mark span { color: var(--gold); }
+  #title .sub { margin-top: 10px; text-align: center; font-size: 40px; color: var(--muted); }
+  #title .sub b { color: var(--ember); } #title .sub i { color: var(--azure); font-style: normal; font-weight: 700; }
+  #title .bgimg { filter: brightness(0.38) saturate(0.85); transform: scale(1.05); }
+
+  /* still shots with a label: ext (Bits extension) and live (real Twitch match) */
+  .still { position: absolute; left: 50%; top: 50%; border-radius: 18px; overflow: hidden; border: 2px solid var(--line); box-shadow: 0 30px 80px rgba(0,0,0,0.6); transform: translate(-50%, -50%); }
+  .still img { display: block; width: 100%; }
+  .label { position: absolute; left: 120px; top: 70px; display: flex; gap: 14px; align-items: center; font-size: 28px; font-weight: 700; }
+  .label .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 18px var(--danger); }
+  .label small { font-weight: 400; color: var(--muted); font-size: 24px; }
+  .callout { position: absolute; border: 4px solid var(--gold); border-radius: 14px; box-shadow: 0 0 0 9999px rgba(11,13,18,0.0); }
+
+  /* codex */
+  #codex .grid { position: absolute; left: 120px; right: 120px; top: 300px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  #codex .stat { padding: 30px; border-radius: 18px; background: var(--panel); border: 1px solid var(--line); }
+  #codex .stat strong { display: block; font-size: 96px; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; line-height: 1; }
+  #codex .stat span { display: block; margin-top: 14px; font-size: 28px; color: var(--text); }
+  #codex .stat small { display: block; margin-top: 8px; font-size: 20px; color: var(--muted); }
+  #codex h1 { position: absolute; left: 120px; top: 90px; margin: 0; font-size: 72px; }
+  #codex .thread { position: absolute; left: 120px; top: 190px; font-size: 26px; color: var(--muted); }
+  #codex .thread b { color: var(--text); }
+  #codex .log { position: absolute; left: 120px; right: 120px; top: 610px; height: 330px; overflow: hidden; border-radius: 16px; border: 1px solid var(--line); background: #0f131a; padding: 22px 28px; font-size: 22px; line-height: 1.6; color: var(--muted); }
+  #codex .log .h { color: var(--gold); margin-right: 16px; }
+  #codex .log .rows { transition: transform 1ms linear; }
+
+  /* recap */
+  #recap .lines { position: absolute; left: 120px; top: 230px; width: 900px; display: grid; gap: 26px; }
+  #recap .line { font-size: 58px; font-weight: 800; line-height: 1.1; letter-spacing: -0.01em; }
+  #recap .line.cur { color: var(--gold); }
+  #recap .line.past { opacity: 0.4; }
+  #recap .shot { position: absolute; right: 100px; top: 230px; width: 760px; height: 428px; border-radius: 18px; overflow: hidden; border: 2px solid var(--line); opacity: 0; transition: opacity 300ms var(--ease); }
+  #recap .shot.on { opacity: 1; }
+  #recap .shot img { width: 100%; height: 100%; object-fit: cover; transform: scale(1); transition: transform 1200ms var(--ease); }
+  #recap .shot.on img { transform: scale(1.08); }
+  #recap .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+  #recap h2 { position: absolute; left: 120px; top: 110px; margin: 0; font-size: 30px; letter-spacing: 0.18em; color: var(--muted); font-family: Inter; font-weight: 600; }
+
+  /* end */
+  #end { display: none; place-items: center; text-align: center; }
+  #end.active { display: grid; }
+  #end .mark { font-size: 150px; font-weight: 800; letter-spacing: 0.04em; }
+  #end .mark span { color: var(--gold); }
+  #end .tag { font-size: 40px; color: var(--text); margin-top: 6px; }
+  #end .links { margin-top: 42px; display: grid; gap: 14px; font-size: 30px; color: var(--muted); }
+  #end .links b { color: var(--text); }
+  #end .bgimg { filter: brightness(0.25) saturate(0.7); }
+</style>
+</head>
+<body>
+<section class="scene" id="open">
+  <div class="bgimg" data-bg="castle"></div>
+  <div class="vignette"></div>
+  <div class="chat">
+    <div class="msg in" data-at="0.3"><b>pixel_rook</b>LET'S GOOO</div>
+    <div class="msg in" data-at="1.0"><b>mossyfox</b>gg</div>
+    <div class="msg in" data-at="1.7"><b>hal_9001</b>can we do something?</div>
+    <div class="msg in" data-at="n02"><b>tinycrown</b>PogChamp PogChamp</div>
+    <div class="msg in" data-at="n02+1"><b>lumen</b>first time here</div>
+    <div class="msg in dim" data-at="n03" data-dim="n04"><b>ash_ward</b>!attack the left side</div>
+  </div>
+  <div class="ask">
+    <div class="in" data-at="n04">What if chat didn't just <em>watch</em>?</div>
+    <div class="in" data-at="n04+1.6">What if it <em>played</em>?</div>
+  </div>
+  <div class="label in" data-at="0" style="top:auto;bottom:60px"><small>Illustration · sample chat</small></div>
+</section>
+
+<section class="scene" id="title">
+  <div class="bgimg" data-bg="castle"></div>
+  <div>
+    <div class="mark serif in" data-at="0.1">PATCH <span>WARS</span></div>
+    <div class="sub in" data-at="0.7"><b>Two communities.</b> One battlefield. <i>Your chat plays.</i></div>
+  </div>
+</section>
+
+<section class="scene" id="ext">
+  <div class="label in" data-at="0"><span class="dot" style="background:var(--twitch);box-shadow:0 0 18px var(--twitch)"></span>Twitch Extension panel <small>· test mode · no real Bits charged</small></div>
+  <div class="still in" data-at="0.2" style="width:1300px"><img data-src="ext" alt="" /></div>
+</section>
+
+<section class="scene" id="live">
+  <div class="label in" data-at="0"><span class="dot"></span>Real Twitch channel <small>· #princepundir · Twitch's own chat embedded · captured during development</small></div>
+  <div class="still in" data-at="0.2" style="width:1500px; top:56%"><img data-src="live" alt="" /></div>
+</section>
+
+<section class="scene" id="codex">
+  <h1 class="serif in" data-at="0">Built in one <span style="color:var(--gold)">Codex</span> thread</h1>
+  <div class="thread mono in" data-at="0.4">Codex thread <b data-fact="thread"></b> · first commit <b data-fact="first_commit"></b></div>
+  <div class="grid">
+    <div class="stat in" data-at="n26"><strong data-count="commits"></strong><span>commits</span><small>engine · Twitch · Forge · server · extension</small></div>
+    <div class="stat in" data-at="n27"><strong data-count="tests"></strong><span>tests passing</span><small data-fact-tpl="across {test_files} test files"></small></div>
+    <div class="stat in" data-at="n28"><strong data-count-pair="adversarial"></strong><span>prompt attacks rejected</span><small>docs/evaluation/results.md</small></div>
+    <div class="stat in" data-at="n28+2.2"><strong data-count-pair="duplicates"></strong><span>duplicate messages dropped</span><small>docs/evaluation/results.md</small></div>
+  </div>
+  <div class="log mono in" data-at="0.8"><div class="rows" id="logrows"></div></div>
+</section>
+
+<section class="scene" id="recap">
+  <h2 class="in" data-at="0">WHAT CHANGES ON YOUR STREAM</h2>
+  <div class="lines">
+    <div class="line" data-line="n29">Chat commands the army.</div>
+    <div class="line" data-line="n30">Chat invents the warriors.</div>
+    <div class="line" data-line="n31">Every warrior is tested before it fights.</div>
+    <div class="line" data-line="n32">Bits become soldiers on screen.</div>
+    <div class="line" data-line="n33">Two streams. One battlefield.</div>
+  </div>
+  <div class="shot" data-shot="n29"><img data-src="r1" alt="" /></div>
+  <div class="shot" data-shot="n30"><img data-src="r2" alt="" /></div>
+  <div class="shot" data-shot="n31"><img data-src="r3" alt="" /></div>
+  <div class="shot" data-shot="n32"><img data-src="r4" alt="" /></div>
+  <div class="shot" data-shot="n33"><img data-src="r5" alt="" /></div>
+  <div class="flash" id="flash"></div>
+</section>
+
+<section class="scene" id="end">
+  <div class="bgimg" data-bg="castle"></div>
+  <div>
+    <div class="mark serif in" data-at="0">PATCH <span>WARS</span></div>
+    <div class="tag in" data-at="0.5">Your chat was always ready to play.</div>
+    <div class="links in" data-at="1.0">
+      <div><b>github.com/PrincePundir123/Patch-Wars</b></div>
+      <div>Built with OpenAI Codex · Codex × TwitchCon Hackathon</div>
+      <div>Open source · MIT · run it locally with <b class="mono">pnpm dev</b></div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const q = new URLSearchParams(location.hash.slice(1) || location.search.slice(1));
+  const SCENE = q.get('scene') || 'title';
+  const DUR = +(q.get('dur') || 8);
+  const CUES = JSON.parse(q.get('cues') || '{}');
+  const FACTS = JSON.parse(q.get('facts') || '{}');
+  const STILLS = q.get('stills') || '';
+  const root = document.getElementById(SCENE);
+  root.classList.add('active');
+  const IMG = { castle: 'castle.jpg', ext: 'ext.png', live: 'live.png', r1: 'r1.jpg', r2: 'r2.jpg', r3: 'r3.jpg', r4: 'r4.jpg', r5: 'r5.jpg' };
+  root.querySelectorAll('[data-bg]').forEach((el) => (el.style.backgroundImage = `url(${STILLS}/${IMG[el.dataset.bg]})`));
+  root.querySelectorAll('[data-src]').forEach((el) => (el.src = `${STILLS}/${IMG[el.dataset.src]}`));
+  root.querySelectorAll('[data-fact]').forEach((el) => (el.textContent = FACTS[el.dataset.fact] ?? ''));
+  root.querySelectorAll('[data-fact-tpl]').forEach((el) => (el.textContent = el.dataset.factTpl.replace(/\{(\w+)\}/g, (_, k) => FACTS[k])));
+  if (SCENE === 'codex') {
+    document.getElementById('logrows').innerHTML = (FACTS.log || []).map(([h, s]) => `<div><span class="h">${h}</span>${s.replace(/</g, '&lt;')}</div>`).join('');
+  }
+  // "n04+1.6" means 1.6 s after line n04 starts; a bare number is seconds from the scene start.
+  const at = (v) => {
+    if (v == null) return Infinity;
+    const [id, plus] = String(v).split('+');
+    const base = isNaN(+id) ? (CUES[id] ?? Infinity) : +id;
+    return base + (+plus || 0);
+  };
+  const ease = (x) => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
+  let t0 = null;
+  window.__start = () => { t0 = performance.now(); };
+  function frame() {
+    const t = t0 === null ? -1 : (performance.now() - t0) / 1000;
+    root.querySelectorAll('[data-at]').forEach((el) => el.classList.toggle('on', t >= at(el.dataset.at)));
+    root.querySelectorAll('[data-dim]').forEach((el) => (el.style.opacity = t >= at(el.dataset.dim) ? 0.35 : ''));
+    root.querySelectorAll('[data-count]').forEach((el) => {
+      const s = el.closest('[data-at]');
+      const k = ease((t - at(s.dataset.at)) / 0.9);
+      el.textContent = Math.round((FACTS[el.dataset.count] || 0) * k).toLocaleString('en-US');
+    });
+    root.querySelectorAll('[data-count-pair]').forEach((el) => {
+      const s = el.closest('[data-at]');
+      const [a, b] = FACTS[el.dataset.countPair] || [0, 0];
+      const k = ease((t - at(s.dataset.at)) / 0.9);
+      el.textContent = `${Math.round(a * k).toLocaleString('en-US')}/${b.toLocaleString('en-US')}`;
+    });
+    root.querySelectorAll('.bgimg').forEach((el) => (el.style.transform = `scale(${1.04 + 0.05 * Math.max(0, t) / DUR})`));
+    root.querySelectorAll('.still').forEach((el) => (el.style.transform = `translate(-50%, -50%) scale(${1 + 0.04 * Math.max(0, t) / DUR})`));
+    if (SCENE === 'codex') {
+      const rows = document.getElementById('logrows');
+      const max = Math.max(0, rows.scrollHeight - 290);
+      rows.style.transform = `translateY(${-max * Math.min(1, Math.max(0, t) / DUR)}px)`;
+    }
+    if (SCENE === 'recap') {
+      const ids = ['n29', 'n30', 'n31', 'n32', 'n33'];
+      let cur = -1;
+      ids.forEach((id, i) => { if (t >= at(id)) cur = i; });
+      root.querySelectorAll('[data-line]').forEach((el, i) => {
+        el.className = 'line in ' + (i <= cur ? 'on ' : '') + (i === cur ? 'cur' : i < cur ? 'past' : '');
+      });
+      root.querySelectorAll('[data-shot]').forEach((el, i) => el.classList.toggle('on', i === cur));
+      const since = cur >= 0 ? t - at(ids[cur]) : 9;
+      document.getElementById('flash').style.opacity = cur >= 0 && since >= 0 && since < 0.07 ? 0.5 : 0;
+    }
+    requestAnimationFrame(frame);
+  }
+  Promise.all([...document.images].map((i) => i.decode().catch(() => {}))).then(() => {
+    window.__ready = true;
+    requestAnimationFrame(frame);
+  });
+</script>
+</body>
+</html>
